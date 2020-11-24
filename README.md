@@ -5,24 +5,24 @@ together with their 6-letter and 4-letter codes (as used in Smithsonian research
 
 Current files and their provenance:
 
-**Condit-et-al_2020_PanamaTreeSpDataset.pdf** is the dataset description file for Condit et al. 2020 dataset.  Full bibliographic info: Condit, Richard; Pérez, Rolando; Aguilar, Salomón (2020), Complete Tree Species of Panama, v2, Dataset, https://doi.org/10.15146/R3M97W
+**Condit-et-al_2020_PanamaTreeSpDataset.pdf** is the dataset description file for Condit et al. 2020 dataset of *tree* species names.  Full bibliographic info: Condit, Richard; Pérez, Rolando; Aguilar, Salomón (2020), Complete Tree Species of Panama, v2, Dataset, https://doi.org/10.15146/R3M97W
 
-**PanamaTreeSpecies.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf. In brief, "A tab-delimited ascii table including a record for 3045 tree species we consider native to Panama."
+**PanamaTreeSpecies.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf. In brief, "A tab-delimited ascii table including a record for 3045 *tree* species we consider native to Panama."
 Columns: Family	Latin	Author	countries	minLat	maxLat	minLong	maxLong	Npan	N	range	plots	dens	inventories	maxht
 
-**PanamaTreeNameLookup.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf.  In brief, "A tab-delimited ascii table including a record for 4497 Latin names which we found to be associated with the native tree species of Panama, including the 3045 currently accepted names plus 1452 alternate names."
+**PanamaTreeNameLookup.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf.  In brief, "A tab-delimited ascii table including a record for 4497 Latin names which we found to be associated with the native *tree* species of Panama, including the 3045 currently accepted names plus 1452 alternate names."
 Columns: Family	Latin	Author	ValidLatin	Scope
 
-**nomenclature_R_20190210_Rready.csv** is a file from Joe Wright with his species info.  
+**nomenclature_R_20190210_Rready.csv** is a file from Joe Wright with his plant species info, including *trees, lianas, fines, herbs, etc.* (2017 rows).  
 Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite
 
-**Species_Panama_20181218_SuzyLao.xlsx** is a file from Suzanne Lao.
+**Species_Panama_20181218_SuzyLao.xlsx** is a file from Suzanne Lao on Panama *tree* species (1427 rows).
 Columns: mnemonic	Genus	SpeciesName	SubSpeciesName	Family	IDLevel
 
-**CTFSSpeciesList1.xls** is a file from ____. 
+**CTFSSpeciesList1.xls** is a file from an unknown source with Panama *tree* species (1362 rows). 
 Columns: Family	Genus	species	subspecies	mnemonic	IDlevel	Authority	PriorNames	SpeciesID
 
-**Schnitzer_2019-03_New species names table1.xls** is a liana species list from Stefan Schnitzer.
+**Schnitzer_2019-03_New species names table1.xls** is a BCI *liana* species list from Stefan Schnitzer (223 rows)).
 Columns: species (actual)	FINAL SP Codigos	Genus	species	Nombres actualizados	Notas	Nombre original de Stefan	ROLANDO'S Codigos	Unique species codes	error?
 
 
