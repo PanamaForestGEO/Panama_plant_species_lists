@@ -13,7 +13,7 @@ Columns: Family	Latin	Author	countries	minLat	maxLat	minLong	maxLong	Npan	N	rang
 **PanamaTreeNameLookup.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf.  In brief, "A tab-delimited ascii table including a record for 4497 Latin names which we found to be associated with the native *tree* species of Panama, including the 3045 currently accepted names plus 1452 alternate names."
 Columns: Family	Latin	Author	ValidLatin	Scope
 
-**nomenclature_R_20190210_Rready.csv** is a file from Joe Wright with his plant species info, including *trees, lianas, fines, herbs, etc.* (2017 rows).  
+**nomenclature_R_20190210_Rready.csv** is a file from Joe Wright with his plant species info, including *trees, lianas, herbaceous plants, etc.* (2017 rows).  
 Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite
 
 **Species_Panama_20181218_SuzyLao.xlsx** is a file from Suzanne Lao on Panama *tree* species (1427 rows).
