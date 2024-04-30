@@ -13,11 +13,12 @@ Columns: Family	Latin	Author	countries	minLat	maxLat	minLong	maxLong	Npan	N	rang
 **PanamaTreeNameLookup.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf.  In brief, "A tab-delimited ascii table including a record for 4497 Latin names which we found to be associated with the native *tree* species of Panama, including the 3045 currently accepted names plus 1452 alternate names."
 Columns: Family	Latin	Author	ValidLatin	Scope
 
-**nomenclature_R_20190210_Rready.csv** is a file from Joe Wright with his plant species info, including *trees, lianas, herbaceous plants, etc.* (2017 rows).  
-Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite
+**nomenclature_R_20210224_Rready.csv** is a file from S. Joseph Wright with Panama plant species codes and info, including *trees, lianas, herbaceous plants, etc.* (2017 rows).  
+Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite.
+Note that all the columns from climber to parasite have entries of 1, 0 or NA.  
 
-**Species_Panama_20181218_SuzyLao.xlsx** is a file from Suzanne Lao on Panama *tree* species (1427 rows).
-Columns: mnemonic	Genus	SpeciesName	SubSpeciesName	Family	IDLevel
+**ViewTaxonomy2024-04-30.xlsx** is a file from Suzanne Lao on Panama *tree* species maintained by ForestGEO (1430 rows).
+Columns: Family mnemonic	Genus	SpeciesName	Rank Supspecies IDlevel supspMnemonic
 
 **CTFSSpeciesList1.xls** is a file from an unknown source with Panama *tree* species (1362 rows). 
 Columns: Family	Genus	species	subspecies	mnemonic	IDlevel	Authority	PriorNames	SpeciesID
