@@ -19,6 +19,7 @@ Columns: Family	Latin	Author	ValidLatin	Scope
 **nomenclature_R_20210224_Rready.csv** is a file from S. Joseph Wright with Panama plant species codes and info, including *trees, lianas, herbaceous plants, etc.* (2036 rows).  
 Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite.
 Note that all the columns from climber to parasite have entries of 1, 0 or NA.  
+WARNING: importing this file into Excel will automatically change some species codes to dates.  
 
 **ViewTaxonomy2024-04-30.xlsx** is a file from Suzanne Lao on Panama *tree* species maintained by ForestGEO (1430 rows).
 Columns: Family mnemonic	Genus	SpeciesName	Rank Supspecies IDlevel supspMnemonic
