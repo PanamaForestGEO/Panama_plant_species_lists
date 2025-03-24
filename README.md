@@ -3,6 +3,13 @@
 This github repository is intended to provide an up-to-date database of scientific names of plants (mostly woody plants) in Panama, 
 together with their 6-letter and 4-letter codes (as used in Smithsonian research), and histories of changes in species names associated with these codes. 
 
+# Directories
+
+**splists_raw**  contains the "raw" or original files of species lists as received from others or with very minor modifications to improve readability.  
+
+
+
+
 Current files and their provenance:
 
 **Condit-et-al_2020_PanamaTreeSpDataset.pdf** is the dataset description file for Condit et al. 2020 dataset of *tree* species names.  
