@@ -5,8 +5,15 @@ together with their 6-letter and 4-letter codes (as used in Smithsonian research
 
 # Directories
 
-**splists_raw**  contains the "raw" or original files of species lists as received from others or with very minor modifications to improve readability.  
+**scripts** contains R scripts for processing the species lists.
 
+**splists_raw**  contains the "raw" or original files of species lists as received from others   
+
+**splists_out** contains processed species lists for output 
+
+**splists_mid**  contains intermediate species lists that have some changes from raw but are not yet final; for example, with information added from running binomials through the TNRS Taxonomic Name Resolution Service. 
+
+**tocheck** contains files generated to enable manual / other checks of potentially problematic records.
 
 
 
