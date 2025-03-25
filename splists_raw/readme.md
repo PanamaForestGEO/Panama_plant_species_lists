@@ -35,9 +35,3 @@ Columns: ORDEN	FAMILIA_APG	ESPECIE 	AUTORIDAD	SINONIMOS	CODIGO	HERBARIO_PMA_SCZ	
 Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite.
 Note that all the columns from climber to parasite have entries of 1, 0 or NA.  
 WARNING: importing this file into Excel will automatically change some species codes to dates.  
-
-**Schnitzer_2019-03_New species names table1.xls** is a BCI *liana* species list from Stefan Schnitzer (223 rows).
-Columns: species (actual)	FINAL SP Codigos	Genus	species	Nombres actualizados	Notas	Nombre original de Stefan	ROLANDO'S Codigos	Unique species codes	error?
-
-**AguaSalud/AgauSaludspecies_2025-01-19.csv** is an Agua Salud woody plant species list from Michiel van Breugel (644 rows).
-Columns: specid	family	genus	species	GF
