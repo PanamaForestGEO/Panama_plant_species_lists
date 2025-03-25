@@ -3,6 +3,10 @@
 This github repository is intended to provide an up-to-date database of scientific names of plants (mostly woody plants) in Panama, 
 together with their 6-letter and 4-letter codes (as used in Smithsonian research), and histories of changes in species names associated with these codes. 
 
+# Contributors
+
+Helene C. Muller-Landau created this github repository and wrote the code.  The readme for the splists_raw directory includes information on the main contributors to the raw/original species lists.  
+
 # Directories
 
 **scripts** contains R scripts for processing the species lists.
