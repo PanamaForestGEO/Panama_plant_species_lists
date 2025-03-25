@@ -1,4 +1,4 @@
-Original species files and their provinence:
+Original species files and associated metadata:
 
 **Forestgeo/Condit-et-al_2020_PanamaTreeSpDataset.pdf** is the dataset description file for Condit et al. 2020 dataset of *tree* species names.  
 Full bibliographic info: Condit, Richard; Pérez, Rolando; Aguilar, Salomón (2020), Complete Tree Species of Panama, v2, Dataset, https://doi.org/10.15146/R3M97W
