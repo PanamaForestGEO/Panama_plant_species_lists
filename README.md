@@ -9,7 +9,7 @@ Helene C. Muller-Landau created this github repository and wrote the code.  The 
 
 # Directories
 
-**labelbox_lists** contains processed species lists for output.  It has its own readme.
+**labelbox_lists** contains species and complete (species, genera and families) lists for Labelbox project with GBIF taxon ID.  It has its own readme.
 
 **scripts** contains R scripts for processing the species lists.
 
