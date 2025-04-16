@@ -7,7 +7,7 @@ latest_splist <- "Perez-et-al_PanamaPlantSp_2025-03-23tnrsHM2.xlsx"
 splist <- read_excel(file.path("splists_out", latest_splist))
 
 # Using BCI checklist to filter splist
-bcichecklist <- read_csv("labelboxlists/checklist/Plants of Barro Colorado_1744208630.csv",
+bcichecklist <- read_csv("labelbox_lists/checklist/Plants of Barro Colorado_1744208630.csv",
                           col_types = cols(Notes = "c", TaxonId = "i")) 
 
 bcichecklist <- bcichecklist %>%
@@ -64,7 +64,7 @@ sponlylist_withgbif_checklist <- splist_withgbif_checklist %>%
     (is.na(sp6) & !is.na(sp4)) ~ paste(Current_name, toupper(sp4), sep = '-'),
     .default = Current_name))
 
-write.csv(sponlylist_withgbif_checklist, "labelboxlists/labelbox_bci_splist.csv",
+write.csv(sponlylist_withgbif_checklist, "labelbox_lists/labelbox_bci_splist.csv",
           fileEncoding = 'latin1', row.names = F, quote = T)
 
 # Families ------
@@ -151,5 +151,5 @@ labelbox_bci_checklist <- bind_rows(sponlylist_withgbif_checklist,
                 ~ifelse(is.na(.) | . == "NA", "", .))) %>% 
   arrange(taxon_code)
 
-write.csv(labelbox_bci_checklist, "labelboxlists/labelbox_bci_completelist.csv",
+write.csv(labelbox_bci_checklist, "labelbox_lists/labelbox_bci_completelist.csv",
           fileEncoding = 'latin1', row.names = F, quote = T)
