@@ -12,6 +12,8 @@ library(tidyr)
 library("TNRS")
 library("stringi")
 library("stringr")
+library(taxize)
+
 
 rm(list=ls())
 
@@ -21,6 +23,103 @@ DIRINSP <- "splists_raw/"
 DIRMIDSP <- "splists_mid/"
 DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
+
+FNNEW <- paste0(DIRINSP,"Forestgeo/2025-08-20FromSuzanne/FloraPanama_20Aug25_HM.xlsx")
+
+newtaxa <- read_excel(FNNEW,col_types="text")
+names(newtaxa)
+
+# check for duplicate codes
+table(table(newtaxa$Spcode))
+table(newtaxa$Spcode)[table(newtaxa$Spcode)>1]
+dupcodes <- names(table(newtaxa$Spcode)[table(newtaxa$Spcode)>1])
+
+table(newtaxa$Liana)
+
+table(newtaxa$Order==trimws(newtaxa$Order))
+table(newtaxa$Family==trimws(newtaxa$Family))
+table(newtaxa$Genus==trimws(newtaxa$Genus))
+table(newtaxa$Species==trimws(newtaxa$Species))
+
+newtaxa$binomial <- paste(newtaxa$Genus,newtaxa$Species)
+table(table(newtaxa$binomial))
+table(newtaxa$binomial)[table(newtaxa$binomial)>1]
+duptaxa <- names(table(newtaxa$binomial)[table(newtaxa$binomial)>1])
+temp <- subset(newtaxa,binomial %in% duptaxa) %>% arrange(binomial)
+write_xlsx(temp,"tocheck/tempdupbinomial.xlsx")
+
+namestocheck <- sort(unique(newtaxa$binomial))
+
+# find names with question marks in them
+names_with_qmark <- grep("\\?", namestocheck, value = TRUE)
+names_with_qmark
+
+# find names with "sp." in them
+names_with_sp. <- grep("sp\\.", namestocheck, value = TRUE)
+names_with_sp.
+
+
+
+
+# using TNRS to check names
+newtnrs <- TNRS(namestocheck)
+table(newtnrs$Name_submitted==newtnrs$Name_matched)
+newtnrs$Name_submitted[newtnrs$Name_submitted != newtnrs$Name_matched]
+table(newtnrs$Accepted_name==newtnrs$Name_matched)
+newtnrs$Name_matched[newtnrs$Accepted_name != newtnrs$Name_matched]
+
+temp2 <- subset(newtnrs,Name_submitted!=Name_matched | Name_matched!=Accepted_name) %>%
+  mutate(name_matched_in_tnrs=Name_submitted==Name_matched,
+         name_matched_is_accepted=Name_matched==Accepted_name) %>%
+  arrange(name_matched_in_tnrs,Name_submitted) %>%
+  select(Name_submitted,Name_matched,Accepted_name,
+         name_matched_in_tnrs,name_matched_is_accepted,everything())
+write_xlsx(temp2,"tocheck/temptnrsprob.xlsx")
+
+# having trouble using taxize because of length of dataset
+# try just doing this on the ones that had problems with TNRS
+for (i in 1:nrow(temp2)) {
+  tempi <- gna_verifier(temp2$Name_submitted[i])
+  if (i==1) temp2t <- tempi else temp2t <- rbind(temp2t, tempi)
+}
+temp2t$name_matched_in_taxize <- temp2t$submittedName==temp2t$matchedCanonicalSimple
+temp2t$name_matched_is_accepted <- temp2t$matchedCanonicalSimple==temp2t$currentCanonicalSimple
+
+# reorder column names
+firstcols <- c("submittedName", "matchedCanonicalSimple", "currentCanonicalSimple",
+                 "name_matched_in_taxize","name_matched_is_accepted")
+others <- setdiff(names(temp2t), firstcols)
+temp2t <- temp2t[c(firstcols, others)]
+write_xlsx(temp2t,"tocheck/temptaxizeprob.xlsx")
+
+# just 10 names not current according to taxize, and looking at these in more detail
+# it seems these are all debatable.  
+
+
+# check that a single genus always has the same family:
+genus_check1 <- newtaxa %>%
+  group_by(Genus) %>%
+  summarise(n_families = n_distinct(Family), .groups = "drop") %>%
+  filter(n_families > 1)
+genus_check1
+# yes it does
+
+# check that a single family always has the same order:
+family_check1 <- newtaxa %>%
+  group_by(Family) %>%
+  summarise(n_orders = n_distinct(Order), .groups = "drop") %>%
+  filter(n_orders > 1)
+family_check1
+
+table(newtaxa$Spcode==tolower(newtaxa$Spcode))
+
+table(nchar(newtaxa$Spcode))
+newtaxa$Spcode[nchar(newtaxa$Spcode)!=6]
+
+newtaxa$genuscode <- substr(newtaxa$Spcode,1,4)
+
+
+############ checking prior list ##########################
 
 FNNEW <- paste0(DIRINSP,"Forestgeo/speciesmaster_2025_HM.xlsx")
 
