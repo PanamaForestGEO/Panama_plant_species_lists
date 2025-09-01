@@ -24,7 +24,7 @@ DIRMIDSP <- "splists_mid/"
 DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
-FNNEW <- paste0(DIRINSP,"Forestgeo/2025-08-20FromSuzanne/FloraPanama_20Aug25_HM.xlsx")
+FNNEW <- paste0(DIRINSP,"Forestgeo/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx")
 
 newtaxa <- read_excel(FNNEW,col_types="text")
 names(newtaxa)
@@ -41,12 +41,17 @@ table(newtaxa$Family==trimws(newtaxa$Family))
 table(newtaxa$Genus==trimws(newtaxa$Genus))
 table(newtaxa$Species==trimws(newtaxa$Species))
 
+# check for duplicate species names
 newtaxa$binomial <- paste(newtaxa$Genus,newtaxa$Species)
 table(table(newtaxa$binomial))
 table(newtaxa$binomial)[table(newtaxa$binomial)>1]
-duptaxa <- names(table(newtaxa$binomial)[table(newtaxa$binomial)>1])
-temp <- subset(newtaxa,binomial %in% duptaxa) %>% arrange(binomial)
-write_xlsx(temp,"tocheck/tempdupbinomial.xlsx")
+newtaxa$fullname <- ifelse(is.na(newtaxa$Subspecies),newtaxa$binomial,
+                           paste(newtaxa$binomial," ",newtaxa$Subspecies))
+table(table(newtaxa$fullname))
+table(newtaxa$fullname)[table(newtaxa$fullname)>1]
+duptaxa <- names(table(newtaxa$fullname)[table(newtaxa$fullname)>1])
+temp <- subset(newtaxa,fullname %in% duptaxa) %>% arrange(fullname)
+write_xlsx(temp,"tocheck/tempfullname.xlsx")
 
 namestocheck <- sort(unique(newtaxa$binomial))
 
@@ -57,9 +62,6 @@ names_with_qmark
 # find names with "sp." in them
 names_with_sp. <- grep("sp\\.", namestocheck, value = TRUE)
 names_with_sp.
-
-
-
 
 # using TNRS to check names
 newtnrs <- TNRS(namestocheck)
@@ -74,23 +76,43 @@ temp2 <- subset(newtnrs,Name_submitted!=Name_matched | Name_matched!=Accepted_na
   arrange(name_matched_in_tnrs,Name_submitted) %>%
   select(Name_submitted,Name_matched,Accepted_name,
          name_matched_in_tnrs,name_matched_is_accepted,everything())
+temp2$dateTNRS <- Sys.Date()
 write_xlsx(temp2,"tocheck/temptnrsprob.xlsx")
 
-# having trouble using taxize because of length of dataset
-# try just doing this on the ones that had problems with TNRS
-for (i in 1:nrow(temp2)) {
-  tempi <- gna_verifier(temp2$Name_submitted[i])
-  if (i==1) temp2t <- tempi else temp2t <- rbind(temp2t, tempi)
-}
-temp2t$name_matched_in_taxize <- temp2t$submittedName==temp2t$matchedCanonicalSimple
-temp2t$name_matched_is_accepted <- temp2t$matchedCanonicalSimple==temp2t$currentCanonicalSimple
-
-# reorder column names
-firstcols <- c("submittedName", "matchedCanonicalSimple", "currentCanonicalSimple",
+# had trouble using taxize because of length of dataset
+# instead just doing this on the ones that were flagged by TNRS, for a second opinion
+taxadatasources <- c(1,12,165,167,197) # 1 and 12 are defaults - Catalogue of Life and Encyclopedia of Life
+# 165 is Tropicos, 167 is International PLant Names Index, 197 is World Checklist of Vascular Plants
+countsbydatasource <- data.frame(datasource=taxadatasources,namesmatched=NA,namesaccepted=NA)
+for (j in 1:length(taxadatasources)) {
+  for (i in 1:nrow(temp2)) {
+    tempi <- gna_verifier(temp2$Name_submitted[i],data_sources=taxadatasources[j])
+    if (i==1) temp2t <- tempi else temp2t <- rbind(temp2t, tempi)
+  }
+  temp2t$name_matched_in_taxize <- temp2t$submittedName==temp2t$matchedCanonicalSimple
+  temp2t$name_matched_is_accepted <- temp2t$matchedCanonicalSimple==temp2t$currentCanonicalSimple
+  
+  # reorder column names
+  firstcols <- c("submittedName", "matchedCanonicalSimple", "currentCanonicalSimple",
                  "name_matched_in_taxize","name_matched_is_accepted")
-others <- setdiff(names(temp2t), firstcols)
-temp2t <- temp2t[c(firstcols, others)]
-write_xlsx(temp2t,"tocheck/temptaxizeprob.xlsx")
+  others <- setdiff(names(temp2t), firstcols)
+  temp2t <- temp2t[c(firstcols, others)]
+#  temp2t <- temp2t %>%
+#    arrange(name_matched_in_taxize,
+#            name_matched_is_accepted,
+#            submittedName)
+  countsbydatasource$namesmatched[j]=length(temp2t$name_matched_in_taxize[temp2t$name_matched_in_taxize==T])
+  countsbydatasource$namesaccepted[j]=length(temp2t$name_matched_is_accepted[temp2t$name_matched_is_accepted==T])
+  write_xlsx(temp2t,paste0("tocheck/temptaxizeprob",j,".xlsx"))
+}
+countsbydatasource
+# for 17 names that didn't pass TNRS on Sept 1, 2025
+#datasource namesmatched namesaccepted
+#1          1           15             9
+#2         12           16             0
+#3        165           14             0
+#4        167           17             0
+#5        197           16            13
 
 # just 10 names not current according to taxize, and looking at these in more detail
 # it seems these are all debatable.  
