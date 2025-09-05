@@ -1,56 +1,9 @@
-** needs updating **
+Merging files for Panama woody plant species generally involves using the most up-to-date file in each of the following directories, which in turn means the most up-to-date version of the corresponding dataset. 
 
 *Subdirectories*
 
-**PanamaWoodySpLists** Contains files that are lists of all tree species or all woody plant species more generally in the country of Panama, often together with 6-letter codes assigned to these species by ForestGEO, and other info.
+**PanamaWoodySpLists** Contains files that are lists of all tree species or all woody plant species more generally in the country of Panama, often together with 6-letter codes assigned to these species by ForestGEO, and other info.  Includes only species with scientific names, no morphospecies.  
 
-**Forestgeo** Contains files of tree species or woody plant species more generally that are present in ForestGEO plots or datasets in Panama, together with their 6-letter species codes and other info.
+**Forestgeo** Contains files of tree species or woody plant species more generally that are present in ForestGEO plots or datasets in Panama, together with their 6-letter species codes and other info.  Includes recognized morphospecies and corresponding codes. 
 
 **Wright** Contains files of plant species that appear in the seed, seedling, and other datasets collected in Panama under the supervision of S. Joseph Wright, together with the 4-letter species codes used in these studies and often corresponding 6-letter species codes.  Include some non-woody species and morphospecies.  
-
-*Original species files and associated metadata that are CURRENTLY USED:* 
-
-**Forestgeo/ViewTaxonomy2024-09-10HM.xlsx** is a file from Suzanne Lao on Panama *tree* species maintained by ForestGEO (1430 rows).  Suffix HM indicates minor manual modifications by Helene Muller-Landau to improve read-in to R. 
-Columns: Family mnemonic	Genus	SpeciesName	Rank Supspecies IDlevel supspMnemonic
-
-**Wright/nomenclature_R_20210224_Rready.csv** is a file from S. Joseph Wright with Panama plant species codes and info, including *trees, lianas, herbaceous plants, etc.* (2036 rows).  
-Columns: sp4	sp6	family	genus	species	deciduous	oldname	climber	free	liana	vine	shrub	understory	midstory	tree	herb	epiphyte	hemiepiphyte	parasite.
-Note that all the columns from climber to parasite have entries of 1, 0 or NA.  
-WARNING: importing this file into Excel will automatically change some species codes to dates
-
-**ForestGEO/2025-0828FromSuzanne/FloraPanama_28Aug25.xlsx** is a file received from Suzanne Lao (dated 2025-08-28) that is a list of all woody plant taxa in Panama authored by 
-Rolando Pérez, Salomón Aguilar and David Mitre.  
-Columns: Order, Family, Genus, Species, Authority, Subspecies, Synonyms, Herbarium, Spcode, and Liana.
-Spcode is lowercase 6-letter species codes.  Liana has "l" for climbing species and nothing for other (freestanding) species.
-
-Other files in this directory* 
-
-**Forestgeo/Condit-et-al_2020/Condit-et-al_2020_PanamaTreeSpDataset.pdf** is the dataset description file for Condit et al. 2020 dataset of *tree* species names.  
-Full bibliographic info: Condit, Richard; Pérez, Rolando; Aguilar, Salomón (2020), Complete Tree Species of Panama, v2, Dataset, https://doi.org/10.15146/R3M97W
-
-**Forestgeo/Condit-et-al_2020/PanamaTreeSpecies.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf. 
-In brief, "A tab-delimited ascii table including a record for 3045 *tree* species we consider native to Panama."
-Columns: Family	Latin	Author	countries	minLat	maxLat	minLong	maxLong	Npan	N	range	plots	dens	inventories	maxht
-
-**Forestgeo/Condit-et-al_2020/PanamaTreeNameLookup.tsv** is part of Condit et al. 2020, as described in Condit-et-al_2020_PanamaTreeSpDataset.pdf.  
-In brief, "A tab-delimited ascii table including a record for 4497 Latin names which we found to be associated with the native *tree* species of Panama, including the 3045 currently accepted names plus 1452 alternate names."
-Columns: Family	Latin	Author	ValidLatin	Scope
-
-**Forestgeo/ViewTaxonomy2024-04-30.xlsx** is a file from Suzanne Lao on Panama *tree* species maintained by ForestGEO (1430 rows).
-Columns: Family mnemonic	Genus	SpeciesName	Rank Supspecies IDlevel supspMnemonic
-
-**Forestgeo/CTFSSpeciesList1.xls** is a file from an unknown source with Panama *tree* species (1362 rows). 
-Columns: Family	Genus	species	subspecies	mnemonic	IDlevel	Authority	PriorNames	SpeciesID
-
-**Forestgeo/Rolando Pérez, Salomón Aguilar y David Mitre, Lista de árboles, arbustos y palmas  de la flora de Panamá, marzo 2025.xls** is a file obtained from Rolando Pérez in March 2025 (3070 rows).
-Contains current names, synonyms, and 6-letter codes for all tree and shrub species of Panama.  
-Columns: ORDEN	FAMILIA APG	ESPECIE 	AUTORIDAD	SINONIMOS	CODIGO	HERBARIO (PMA,SCZ).
-
-**Forestgeo/Rolando Pérez, Salomón Aguilar y David Mitre, Lista de Lianas y enredaderas de la flora de Panamá, marzo 20255.xls** is a file obtained from Rolando Pérez in March 2025 (763 rows).
-Contains current names, synonyms, and 6-letter codes for all liana and vine species of Panama.  
-Columns: ORDEN	FAMILIA APG	ESPECIE 	AUTORIDAD	SINONIMOS	CODIGO	HERBARIO (PMA,SCZ).
-
-**Forestgeo/Perez-et-al_PanamaPlantSp_2025-03.xlsx** is a file manually combining the data from the prior two files into one file (3833 rows).
-Columns: ORDEN	FAMILIA_APG	ESPECIE 	AUTORIDAD	SINONIMOS	CODIGO	HERBARIO_PMA_SCZ	Habit
-
-.  
