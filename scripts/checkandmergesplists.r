@@ -18,15 +18,19 @@ DIRINSP <- "splists_raw/"
 DIRMIDSP <- "splists_mid/"
 DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
-FNWRIGHTSPLISTIN <- paste0(DIRINSP,"Wright/nomenclature_R_20210224_Rready_fixed.xlsx")
-FNWRIGHTSPLISTTNRS <- paste0(DIRMIDSP,"nomenclature_R_20100224_Rready_fixed_tnrs.xlsx")
-FGEOSPLISTIN <- paste0(DIRINSP,"Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx")
-FGEOSPLISTTNRS <- paste0(DIRMIDSP,"ViewTaxonomy_2024-09-10HM_tnrs.xlsx")
-PANAMASPLISTIN <- paste0(DIRINSP,"Forestgeo/Perez-et-al_PanamaPlantSp_2025-03.xlsx")
-PANAMASPLISTTNRS <- paste0(DIRMIDSP,"Perez-et-al_PanamaPlantSp_2025-03tnrs.xlsx")
-PANAMASPLISTTNRSHM <- paste0(DIROUTSP,"Perez-et-al_PanamaPlantSp_2025-03tnrsHM.xlsx")
-SYNONYMOUT <- paste0(DIROUTSP,"Synonyms_2025-03.xlsx")
-PANAMATAXA <- paste0(DIROUTSP,"Perez-et-al_PanamaTaxa_2025-03.xlsx")
+
+# input files # all in director DIRINSP
+FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
+FGEOSPLISTIN <- "Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx"
+PANAMASPLISTIN <- "Forestgeo/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx"
+
+# output files 
+FNWRIGHTSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNWRIGHTSPLISTIN)),"_tnrs.xlsx")
+FGEOSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FGEOSPLISTIN)),"_tnrs.xlsx")
+PANAMASPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(PANAMASPLISTIN)),"_tnrs.xlsx")
+PANAMASPLISTTNRSHM <- paste0(DIROUTSP,tools::file_path_sans_ext(basename(PANAMASPLISTIN)),"_tnrsHM.xlsx")
+SYNONYMOUT <- paste0(DIROUTSP,"Synonyms_",tools::file_path_sans_ext(basename(PANAMASPLISTIN)),".xlsx")
+PANAMATAXA <- paste0(DIROUTSP,"AllTaxa_",tools::file_path_sans_ext(basename(PANAMASPLISTIN)),".xlsx")
 # the last is the list of all unique accepted species, genera, and families for photo labeling
 
 tnrscols <- c("Name_matched","Name_matched_rank","Accepted_name","Accepted_name_author",
@@ -39,7 +43,7 @@ tnrscols4 <- c("Current_name",tnrscols)
 if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
   usejoetaxa <- read_excel(FNWRIGHTSPLISTTNRS) 
 } else {
-  joetaxa <- read_excel(FNWRIGHTSPLISTIN)
+  joetaxa <- read_excel(paste0(DIRINSP,FNWRIGHTSPLISTIN))
   joetaxa <- joetaxa[,1:21]
   joetaxa <- mutate(joetaxa,
                     sp6=ifelse(sp6=="na",NA,sp6),
@@ -53,6 +57,7 @@ if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
   joetaxatnrs <- TNRS(joetaxa$binomial)
   joetaxatnrs <-rename(joetaxatnrs,binomial=Name_submitted)
   usejoetaxa <- left_join(joetaxa,joetaxatnrs[,tnrscols3],by="binomial")
+  usejoetaxa$tnrsdate <- Sys.Date()
   write_xlsx(usejoetaxa,FNWRIGHTSPLISTTNRS)
   rm(joetaxa,sp6dupsj,binomialdupsj,joetaxatnrs)
 }
@@ -62,7 +67,7 @@ if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
 if (file.exists(FGEOSPLISTTNRS) & !redotnrs) {
   fgeotaxa <- read_excel(FGEOSPLISTTNRS) 
 } else {
-  treetaxa <- read_excel(FGEOSPLISTIN)
+  treetaxa <- read_excel(paste0(DIRINSP,FGEOSPLISTIN))
   treetaxa <- rename(treetaxa,
                      sp6=Mnemonic)
   sp6dups <- treetaxa %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
@@ -79,23 +84,31 @@ if (file.exists(FGEOSPLISTTNRS) & !redotnrs) {
   treetaxatnrs <- TNRS(treetaxauniqbinomial$binomial)
   treetaxatnrs <-rename(treetaxatnrs,binomial=Name_submitted)
   fgeotaxa <- left_join(treetaxauniqbinomial,treetaxatnrs[,tnrscols3],by="binomial")
+  fgeotaxa$tnrsdate <- Sys.Date()
   write_xlsx(fgeotaxa,FGEOSPLISTTNRS)
   rm(treetaxa,sp6dups,binomialdups,treetaxauniqbinomial,treetaxatnrs)
 }
 
 #####################
-
-read_excel(PANAMASPLISTIN) %>%
-  rename(Current_order=ORDEN,
-         Current_family=FAMILIA_APG,
-         Current_name=ESPECIE,
-         Current_name_author=AUTORIDAD,
-         synonyms=SINONIMOS,
-         sp6curr=CODIGO,
-         vouchers=HERBARIO_PMA_SCZ,
-         habit=Habit) %>%
-  mutate(sp6prior=fgeotaxa$sp6[match(Current_name,fgeotaxa$binomial)],
-         sp6curr=tolower(sp6curr)) -> 
+# ForestGEO Panama species list 
+read_excel(paste0(DIRINSP,PANAMASPLISTIN),col_types="text")  %>%
+  rename(Current_order=Order,
+         Current_family=Family,
+         Current_genus=Genus,
+         Current_species=Species,
+         Current_name_author=Authority,
+         Current_subspecies=Subspecies,
+         synonyms=Synonyms,
+         sp6curr=Spcode,
+         vouchers=Herbarium,
+         habit=Liana) %>%
+  mutate(sp6curr=tolower(sp6curr),
+         habit=ifelse(habit=="l","Climbing","Freestanding"),
+         Current_name=ifelse(is.na(Current_subspecies),
+                                paste0(Current_genus," ",Current_species),
+                                paste0(Current_genus," ",Current_species," ",Current_subspecies))) %>%
+  mutate(habit=ifelse(is.na(habit),"Freestanding",habit),
+         sp6prior=fgeotaxa$sp6[match(Current_name,fgeotaxa$binomial)]) -> 
   alltaxa
 
 # fix problems matching on binomial for these subspecies
@@ -104,22 +117,26 @@ alltaxa$sp6prior[alltaxa$sp6curr=="swars2"] <- "swars2"
 
 
 bindups <- alltaxa %>% group_by(Current_name) %>% arrange(Current_name) %>% filter(n()>1) %>% ungroup()
-write_xlsx(bindups,paste0(DIRCHECK,"Perezlistnombreduplicado.xlsx"))
-# I manually went through and picked one of the entries as correct for each duplicated Current_name
+if (nrow(bindups)>0) 
+  {
+  write_xlsx(bindups,paste0(DIRCHECK,"FloraPanamanombreduplicado.xlsx"))
+# currently no duplicates!
+# previously, I manually went through and picked one of the entries as correct for each duplicated Current_name
 # exception is Swartzia simplex, where both are good
-alltaxa <- filter(alltaxa, !Current_name %in% bindups$Current_name)
-gooddups <- read_excel(paste0(DIRCHECK,"Perezlistnombredup_touse.xlsx"))
-alltaxa <- rbind(alltaxa,gooddups)
+  alltaxa <- filter(alltaxa, !Current_name %in% bindups$Current_name)
+  gooddups <- read_excel(paste0(DIRCHECK,"FloraPanamanombredup_touse.xlsx"))
+  alltaxa <- rbind(alltaxa,gooddups)
+}
 
 sp6dif <- subset(alltaxa,!is.na(sp6curr) & !is.na(sp6prior) & sp6curr!=sp6prior)
 write_xlsx(sp6dif,paste0(DIRCHECK,"Perezlistcodigocambio.xlsx"))
 
 sp6dups <- alltaxa %>% filter(!is.na(sp6curr)) %>% group_by(sp6curr) %>% 
   arrange(sp6curr) %>% filter(n()>1) %>% ungroup()
-write_xlsx(sp6dups,paste0(DIRCHECK,"Perezlistcodigoduplicado.xlsx"))
+write_xlsx(sp6dups,paste0(DIRCHECK,"FloraPanamacodigoduplicado.xlsx"))
 
 sp6not6char <- subset(alltaxa,nchar(sp6curr)!=6&!is.na(sp6curr))
-write_xlsx(sp6not6char,paste0(DIRCHECK,"Perezlistsp6not6char.xlsx"))
+write_xlsx(sp6not6char,paste0(DIRCHECK,"FloraPanamasp6not6char.xlsx"))
 
 sp6dupscurr <- names(table(alltaxa$sp6curr))[table(alltaxa$sp6curr)>1]
 sp6dupsprior <- names(table(alltaxa$sp6prior))[table(alltaxa$sp6prior)>1]
@@ -134,16 +151,9 @@ sp6probleft <- subset(alltaxa,
                       !is.na(sp6) & ((!is.na(sp6prior) & sp6curr!=sp6prior) | 
                                           nchar(sp6)!=6 | sp6 %in% sp6dupsnew)) %>%
   arrange(sp6)
-write_xlsx(sp6probleft,paste0(DIRCHECK,"Perezlistsp6prob.xlsx"))
+write_xlsx(sp6probleft,paste0(DIRCHECK,"FloraPanamasp6prob.xlsx"))
 
-
-# I, Helene, reviewed these problem codes and make the following revisions
-alltaxa$sp6[alltaxa$Current_name=="Quararibea asterolepis"] <- "quaras" # was "quaras no en BCI"
-alltaxa$sp6[alltaxa$Current_name=="Beilschmiedia pendula"] <- NA  # was "no en bci"
-alltaxa$sp6[alltaxa$Current_name=="Diospyros juruensis"] <- "dio2ha"  # was dio22ha
-alltaxa$sp6[alltaxa$Current_name=="Sorocea pubivena"] <- "soropu" # accidental change?  there are no other species in the genus that start with p and are in the list
-alltaxa$sp6[alltaxa$Current_name=="Siparuna thecaphora"] <- "sipath" #accidental change to sipate? change doesn't make sense
-
+# following not currently needed because there were no sp6dups to begin with
 sp6dupsleft <- alltaxa %>% 
   filter(!is.na(sp6)) %>% 
   group_by(sp6) %>% 
@@ -153,12 +163,12 @@ sp6dupsleft <- alltaxa %>%
 
 sp6dropped <- subset(fgeotaxa,!sp6 %in% alltaxa$sp6 & 
                        Accepted_name_rank %in% c("species","subspecies","variety")
-                     &IDLevel=="species")
-write_xlsx(sp6dropped,paste0(DIRCHECK,"Perezlistcodigosperdidos.xlsx"))
-
-# there is one typo in a species name that prevents matching in TNRS - fix this before running TNRS
-alltaxa$Current_name[alltaxa$sp6=="pleuhe"] <- "Pleurothyrium hexaglandulosumvan"
-alltaxa$Current_name_author[alltaxa$sp6=="pleuhe"] <- "van der Werff"
+                     &IDLevel=="species") %>%
+  mutate(binomial_in_flora=binomial %in% alltaxa$Current_name) %>%
+  arrange(sp6)
+firstcols <- c("sp6", "binomial", "binomial_in_flora")
+sp6dropped <- sp6dropped[c(firstcols,setdiff(names(sp6dropped),firstcols))]
+write_xlsx(sp6dropped,paste0(DIRCHECK,"FloraPanamacodigosperdidos.xlsx"))
 
 if (file.exists(PANAMASPLISTTNRS) & !redotnrs) {
   alltaxaplus <- read_excel(PANAMASPLISTTNRS) 
@@ -167,46 +177,47 @@ if (file.exists(PANAMASPLISTTNRS) & !redotnrs) {
   table(alltaxatnrs$Name_submitted==alltaxatnrs$Name_matched)
   alltaxatnrs <-rename(alltaxatnrs,Current_name=Name_submitted)
   alltaxaplus <- left_join(alltaxa,alltaxatnrs[,tnrscols4],by="Current_name")
+  alltaxaplus$tnrsdate <- Sys.Date()
   write_xlsx(alltaxaplus,PANAMASPLISTTNRS)
-#  rm(alltaxatnrs)
 } 
+as.data.frame(alltaxaplus[alltaxaplus$Current_name!=alltaxaplus$Name_matched,])
 
 namedifsp <- alltaxaplus %>% 
   filter(Current_name!=Name_matched & 
            Name_matched_rank %in% c("species","subspecies","variety")) %>%
   dplyr::select(Current_name,Name_matched,Accepted_name,sp6curr,sp6prior,sp6) 
-write_xlsx(namedifsp,paste0(DIRCHECK,"Perezlistnombreserrores.xlsx"))
-# 7 of these look like typos
-# CAUTION - occasionally more than 7 pop up, for mysterious reasons - the others indicate a problem. 
-# in this case, do rm(list=ls()), restart R, and rerun.  
-alltaxaplus <- alltaxaplus %>% 
-  mutate(currnamechanged=Current_name %in% namedifsp$Current_name) %>%
-  mutate(Current_name=ifelse(Current_name %in% namedifsp$Current_name, Name_matched, Current_name))
+write_xlsx(namedifsp,paste0(DIRCHECK,"FloraPanamanombreserrores.xlsx"))
+# none at present  
+if (nrow(namedifsp)>0) {
+  alltaxaplus <- alltaxaplus %>% 
+    mutate(currnamechanged=Current_name %in% namedifsp$Current_name) %>%
+    mutate(Current_name=ifelse(Current_name %in% namedifsp$Current_name, Name_matched, Current_name))
 
-# adjust species names of the Swartzia simplex 
-alltaxaplus$Current_name[alltaxaplus$sp6curr=="swars1"] <- "Swartzia simplex var. grandiflora"
-alltaxaplus$Current_name[alltaxaplus$sp6curr=="swars2"] <- "Swartzia simplex var. continentalis"
-bindups2 <- alltaxaplus %>% group_by(Current_name) %>% arrange(Current_name) %>% filter(n()>1) %>% ungroup()
-# no duplicates left 
+} else
+  alltaxaplus <- mutate(alltaxaplus,currnamechanged=F)
 
 sp6added <- subset(alltaxaplus,!sp6 %in% fgeotaxa$sp6 & 
                      !is.na(sp6) & 
                      Accepted_name_rank %in% c("species","subspecies","variety"))
 
-# In some few cases, for mysterious reasons, TNRS matches the name but does not associated an accepted name. 
+# In some few cases, for mysterious reasons, TNRS matches the name but does not associate an accepted name. 
 # In these cases, use the matched name as the accepted name.
 inc <- alltaxaplus$Accepted_name==""
 if (length(inc[inc==T&!is.na(inc)])>0) {
   table(inc)
+  temp <- alltaxaplus[inc,]
   alltaxaplus$Accepted_name[inc] <- alltaxaplus$Name_matched[inc]
   alltaxaplus$Accepted_name_rank[inc] <- alltaxaplus$Name_matched_rank[inc]
-  alltaxaplus$Accepted_name_author[inc] <- NA
+  alltaxaplus$Accepted_name_author[inc] <- ifelse(alltaxaplus$Accepted_name[inc]==alltaxaplus$Name_matched[inc],
+                                                  alltaxaplus$Current_name_author[inc],NA)
 }
 
 # add sp4 codes from Joe's data
 table(table(usejoetaxa$sp4)) # 938 unique sp4 codes
+table(usejoetaxa$Name_matched_rank,is.na(usejoetaxa$sp4)) # most of them for taxa with species-level IDs
 table(usejoetaxa$Accepted_name_rank,is.na(usejoetaxa$sp4)) # most of them for taxa with species-level IDs
-
+as.data.frame(subset(usejoetaxa,Accepted_name_rank %in% c("variety","subspecies") | 
+              Name_matched_rank %in% c("variety","subspecies")))
 m1 <- ifelse(is.na(alltaxaplus$sp6),NA,
              match(alltaxaplus$sp6,usejoetaxa$sp6))
 table(table(m1))
@@ -231,16 +242,11 @@ alltaxaplus$sp4[alltaxaplus$sp6=="swars1"] <- "SWA1"
 alltaxaplus$sp4[alltaxaplus$sp6=="swars2"] <- "SWA2"
 alltaxaplus$sp4[alltaxaplus$sp6=="guargr"] <- "GUA1"
 alltaxaplus$sp4[alltaxaplus$sp6=="guargu"] <- "GUA2"
-alltaxaplus$sp4[alltaxaplus$sp6=="quaras"] <- NA  # this name and code were previously used for BCI Quararibea
-alltaxaplus$sp4[alltaxaplus$sp6=="quara1"] <- "QUA1"  # this is the new name and 6-letter code for the BCI Quararibea
+alltaxaplus$sp4[alltaxaplus$sp6=="quaras"] <- "QUA1"# BCI Quararibea was formerly known as asterolepis, but is now stenophylla
+alltaxaplus$sp4[alltaxaplus$sp6=="quara1"] <- NA  # BCI Quararibea was formerly known as asterolepis, but is now stenophylla
 sp4dups <- names(table(alltaxaplus$sp4)[table(alltaxaplus$sp4)>1])
 table(table(alltaxaplus$sp4))
 # no longer any duplicates
-
-alltaxaplus <- rename(alltaxaplus,sp6=sp6)
-alltaxaplus %>%
-  mutate() -> alltaxaplus
-
 
 outtaxaplus <- alltaxaplus %>% 
   mutate(acceptednamedif = Current_name!=Accepted_name,
@@ -249,7 +255,9 @@ outtaxaplus <- alltaxaplus %>%
                 "Current_order","Current_family","Current_name","Current_name_author",
                 "synonyms","vouchers","habit",
                 "Accepted_name","Accepted_name_author","Accepted_name_rank",
-                "Accepted_family","currnamechanged","sp6changed","acceptednamedif") %>%
+                "Accepted_family",
+                "currnamechanged","sp6changed","acceptednamedif",
+                "tnrsdate") %>%
   arrange(Current_name) %>%
   mutate(notes=paste0(ifelse(is.na(currnamechanged) | !currnamechanged,
                             "","Spelling corrected in Current_name. "),
@@ -260,17 +268,22 @@ outtaxaplus <- alltaxaplus %>%
 write_xlsx(outtaxaplus,PANAMASPLISTTNRSHM)
 
 
-# remove taxa that are genera or higher rather than species
-allsp <- subset(alltaxaplus,
-                Accepted_name_rank %in% c("species","subspecies","variety"))
-                  
+# check taxa that are matched at genera or higher rather than species
+as.data.frame(subset(alltaxaplus,!Accepted_name_rank %in% c("species","subspecies","variety")))
+
+# do not remove these at present as current name matched is species level, and this seems to be a TNRS fail
+#allsp <- subset(alltaxaplus,
+#                Accepted_name_rank %in% c("species","subspecies","variety"))
+allsp <- alltaxaplus
+
 acceptednamedups <- allsp %>% 
   group_by(Accepted_name) %>% 
   arrange(Accepted_name) %>% filter(n()>1) %>% ungroup()
 
 namenotaccepted <- subset(allsp,Name_matched!=Accepted_name)
 write_xlsx(namenotaccepted,paste0(DIRCHECK,"Perezlistnombrenoacceptado.xlsx"))
-# only 15 are different from current accepted name.  So use the Current name in this list.  
+namenotaccepted
+# few are different from current accepted name.  So use the Current name in this list.  
 table(allsp$Name_matched==allsp$Accepted_name,
       allsp$Accepted_name %in% acceptednamedups$Accepted_name)
 
@@ -280,23 +293,25 @@ allsp %>% mutate(Accepted_genus=word(Accepted_name,1),
 
 # check that a single genus always has the same family:
 genus_check1 <- allsp %>%
+  filter(Accepted_family!="") %>%
   group_by(Accepted_genus) %>%
   summarise(n_families = n_distinct(Accepted_family), .groups = "drop") %>%
   filter(n_families > 1)
-# yes it does
+genus_check1
 
 # check whether a single genus always has the same lifeform:
 genus_check2 <- allsp %>%
   group_by(Accepted_genus) %>%
   summarise(n_families = n_distinct(Current_family), .groups = "drop") %>%
   filter(n_families > 1)
-# not always, no
+genus_check2
 
 # check that a single genus always has the same first 4 letters of species code:
 genus_check3 <- allsp %>%
   group_by(Accepted_genus) %>%
   summarise(n_genuscode = n_distinct(genuscode), .groups = "drop") %>%
   filter(n_genuscode > 1)
+genus_check3
 
 genus_violations <- allsp %>%
   filter(!is.na(genuscode)) %>%
@@ -305,13 +320,8 @@ genus_violations <- allsp %>%
   distinct(Accepted_genus,genuscode) %>%
   arrange(Accepted_genus) %>%
   dplyr::select(Accepted_genus,genuscode)
+# looks like all of these related to species name changes where code is kept
 
-
-# looks like most of these related to species name changes where code is kept
-# except following look problematic
-# Bauhinia bauh, bahu
-# Henriettea henr, hen1
-# Sicydium sicy, sisy
 
 genus_violations2 <- allsp %>%
   filter(!is.na(genuscode)) %>%
@@ -320,16 +330,9 @@ genus_violations2 <- allsp %>%
   distinct(Accepted_genus,genuscode) %>%
   arrange(genuscode) %>%
   dplyr::select(genuscode,Accepted_genus)
-
-# again looks like most are related to species name changes where code is kept
-# following look potentially problematic
-# acac Acacia, Acaciella
-# oreo Oreopanax, Oreomunnea
-# teco Tecoma, Tecomaria  # this turns out to just be a name change of one, so okay
-
+# again looks like all are related to species name changes where code is kept
 
 genusdf <- allsp %>%
-  #filter(!duplicated(Accepted_genus)) %>%
   group_by(Accepted_genus) %>%
   summarize(nsptree=sum(habit=="Freestanding"),
             nspliana=sum(habit=="Climbing")) %>%
@@ -339,7 +342,6 @@ genusdf <- allsp %>%
   dplyr::select(Accepted_name,Accepted_name_rank,nsptree,nspliana)
 
 genusdf2 <- allsp %>%
-  #filter(!duplicated(Accepted_genus)) %>%
   group_by(orig_genus) %>%
   summarize(nsptree=sum(habit=="Freestanding"),
             nspliana=sum(habit=="Climbing")) %>%
