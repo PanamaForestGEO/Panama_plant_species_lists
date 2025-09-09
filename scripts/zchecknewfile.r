@@ -24,7 +24,7 @@ DIRMIDSP <- "splists_mid/"
 DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
-FNNEW <- paste0(DIRINSP,"Forestgeo/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx")
+FNNEW <- paste0(DIRINSP,"PanamaWoodySpLists/2025-09-08FromSuzanne/FloraPanama_8Sept25.xlsx")
 
 newtaxa <- read_excel(FNNEW,col_types="text")
 names(newtaxa)
@@ -51,15 +51,15 @@ table(table(newtaxa$fullname))
 table(newtaxa$fullname)[table(newtaxa$fullname)>1]
 duptaxa <- names(table(newtaxa$fullname)[table(newtaxa$fullname)>1])
 temp <- subset(newtaxa,fullname %in% duptaxa) %>% arrange(fullname)
-write_xlsx(temp,"tocheck/tempfullname.xlsx")
+write_xlsx(temp,"tocheck/tempfullnamepansp.xlsx")
 
 namestocheck <- sort(unique(newtaxa$binomial))
 
-# find names with question marks in them
+# find any names with question marks in them
 names_with_qmark <- grep("\\?", namestocheck, value = TRUE)
 names_with_qmark
 
-# find names with "sp." in them
+# find any names with "sp." in them
 names_with_sp. <- grep("sp\\.", namestocheck, value = TRUE)
 names_with_sp.
 
@@ -77,7 +77,7 @@ temp2 <- subset(newtnrs,Name_submitted!=Name_matched | Name_matched!=Accepted_na
   select(Name_submitted,Name_matched,Accepted_name,
          name_matched_in_tnrs,name_matched_is_accepted,everything())
 temp2$dateTNRS <- Sys.Date()
-write_xlsx(temp2,"tocheck/temptnrsprob.xlsx")
+write_xlsx(temp2,"tocheck/temptnrsprobpansp.xlsx")
 
 # had trouble using taxize because of length of dataset
 # instead just doing this on the ones that were flagged by TNRS, for a second opinion
@@ -103,10 +103,10 @@ for (j in 1:length(taxadatasources)) {
 #            submittedName)
   countsbydatasource$namesmatched[j]=length(temp2t$name_matched_in_taxize[temp2t$name_matched_in_taxize==T])
   countsbydatasource$namesaccepted[j]=length(temp2t$name_matched_is_accepted[temp2t$name_matched_is_accepted==T])
-  write_xlsx(temp2t,paste0("tocheck/temptaxizeprob",j,".xlsx"))
+  write_xlsx(temp2t,paste0("tocheck/temptaxizeprobpansp",j,".xlsx"))
 }
 countsbydatasource
-# for 17 names that didn't pass TNRS on Sept 1, 2025
+# for 17 names that didn't pass TNRS on Sept 8, 2025
 #datasource namesmatched namesaccepted
 #1          1           15             9
 #2         12           16             0
@@ -117,6 +117,11 @@ countsbydatasource
 # just 10 names not current according to taxize, and looking at these in more detail
 # it seems these are all debatable.  
 
+# 1  Catalogue of Life 
+# 12 Encyclopedia of Life
+# 165 is Tropicos, 
+# 167 is International PLant Names Index, 
+# 197 is World Checklist of Vascular Plants
 
 # check that a single genus always has the same family:
 genus_check1 <- newtaxa %>%
@@ -163,7 +168,7 @@ table(table(newtaxa$binomial))
 table(newtaxa$binomial)[table(newtaxa$binomial)>1]
 duptaxa <- names(table(newtaxa$binomial)[table(newtaxa$binomial)>1])
 temp <- subset(newtaxa,binomial %in% duptaxa) %>% arrange(binomial)
-write_xlsx(temp,"tempdupbinomial.xlsx")
+write_xlsx(temp,"tocheck/tempdupbinomialfgeo.xlsx")
 
 newtnrs <- TNRS(unique(sort(newtaxa$binomial)))
 table(newtnrs$Name_submitted==newtnrs$Name_matched)
@@ -177,7 +182,7 @@ temp2 <- subset(newtnrs,Name_submitted!=Name_matched | Name_matched!=Accepted_na
   arrange(name_matched_in_tnrs,Name_submitted) %>%
   select(Name_submitted,Name_matched,Accepted_name,
          name_matched_in_tnrs,name_matched_is_accepted,everything())
-write_xlsx(temp2,"temptnrsprob.xlsx")
+write_xlsx(temp2,"tocheck/temptnrsprobfgeo.xlsx")
 
 # check that a single genus always has the same family:
 genus_check1 <- newtaxa %>%
