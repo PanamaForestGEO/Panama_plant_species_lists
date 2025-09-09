@@ -21,16 +21,16 @@ DIRCHECK <- "tocheck/"
 
 # input files # all in director DIRINSP
 FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
-FGEOSPLISTIN <- "Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx"
-PANAMASPLISTIN <- "PanamaWoodySpList/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx"
+FNFGEOSPLISTIN <- "Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx"
+FNPANAMASPLISTIN <- "PanamaWoodySpList/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx"
 
 # output files 
 FNWRIGHTSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNWRIGHTSPLISTIN)),"_tnrs.xlsx")
-FGEOSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FGEOSPLISTIN)),"_tnrs.xlsx")
-PANAMASPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(PANAMASPLISTIN)),"_tnrs.xlsx")
-PANAMASPLISTTNRSHM <- paste0(DIROUTSP,tools::file_path_sans_ext(basename(PANAMASPLISTIN)),"_tnrsHM.xlsx")
-SYNONYMOUT <- paste0(DIROUTSP,"Synonyms_",tools::file_path_sans_ext(basename(PANAMASPLISTIN)),".xlsx")
-PANAMATAXA <- paste0(DIROUTSP,"AllTaxa_",tools::file_path_sans_ext(basename(PANAMASPLISTIN)),".xlsx")
+FNFGEOSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNFGEOSPLISTIN)),"_tnrs.xlsx")
+FNPANAMASPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_tnrs.xlsx")
+FNPANAMASPCOMB <- paste0(DIROUTSP,"PanamaSpCombined_",Sys.Date(),".xlsx")
+FNSYNONYMS <- paste0(DIROUTSP,"Synonyms_",Sys.Date(),".xlsx")
+FNPANAMATAXA <- paste0(DIROUTSP,"AllTaxa_",Sys.Date(),".xlsx")
 # the last is the list of all unique accepted species, genera, and families for photo labeling
 
 tnrscols <- c("Name_matched","Name_matched_rank","Accepted_name","Accepted_name_author",
@@ -64,10 +64,10 @@ if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
 
 
 # old ForestGEO tree taxonomy dataset 
-if (file.exists(FGEOSPLISTTNRS) & !redotnrs) {
-  fgeotaxa <- read_excel(FGEOSPLISTTNRS) 
+if (file.exists(FNFGEOSPLISTTNRS) & !redotnrs) {
+  fgeotaxa <- read_excel(FNFGEOSPLISTTNRS) 
 } else {
-  treetaxa <- read_excel(paste0(DIRINSP,FGEOSPLISTIN))
+  treetaxa <- read_excel(paste0(DIRINSP,FNFGEOSPLISTIN))
   treetaxa <- rename(treetaxa,
                      sp6=Mnemonic)
   sp6dups <- treetaxa %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
@@ -85,13 +85,13 @@ if (file.exists(FGEOSPLISTTNRS) & !redotnrs) {
   treetaxatnrs <-rename(treetaxatnrs,binomial=Name_submitted)
   fgeotaxa <- left_join(treetaxauniqbinomial,treetaxatnrs[,tnrscols3],by="binomial")
   fgeotaxa$tnrsdate <- Sys.Date()
-  write_xlsx(fgeotaxa,FGEOSPLISTTNRS)
+  write_xlsx(fgeotaxa,FNFGEOSPLISTTNRS)
   rm(treetaxa,sp6dups,binomialdups,treetaxauniqbinomial,treetaxatnrs)
 }
 
 #####################
 # ForestGEO Panama species list 
-read_excel(paste0(DIRINSP,PANAMASPLISTIN),col_types="text")  %>%
+read_excel(paste0(DIRINSP,FNPANAMASPLISTIN),col_types="text")  %>%
   rename(Current_order=Order,
          Current_family=Family,
          Current_genus=Genus,
@@ -170,15 +170,15 @@ firstcols <- c("sp6", "binomial", "binomial_in_flora")
 sp6dropped <- sp6dropped[c(firstcols,setdiff(names(sp6dropped),firstcols))]
 write_xlsx(sp6dropped,paste0(DIRCHECK,"FloraPanamacodigosperdidos.xlsx"))
 
-if (file.exists(PANAMASPLISTTNRS) & !redotnrs) {
-  alltaxaplus <- read_excel(PANAMASPLISTTNRS) 
+if (file.exists(FNPANAMASPLISTTNRS) & !redotnrs) {
+  alltaxaplus <- read_excel(FNPANAMASPLISTTNRS) 
 } else {
   alltaxatnrs <- TNRS(alltaxa$Current_name)
   table(alltaxatnrs$Name_submitted==alltaxatnrs$Name_matched)
   alltaxatnrs <-rename(alltaxatnrs,Current_name=Name_submitted)
   alltaxaplus <- left_join(alltaxa,alltaxatnrs[,tnrscols4],by="Current_name")
   alltaxaplus$tnrsdate <- Sys.Date()
-  write_xlsx(alltaxaplus,PANAMASPLISTTNRS)
+  write_xlsx(alltaxaplus,FNPANAMASPLISTTNRS)
 } 
 as.data.frame(alltaxaplus[alltaxaplus$Current_name!=alltaxaplus$Name_matched,])
 
@@ -251,12 +251,15 @@ table(table(alltaxaplus$sp4))
 outtaxaplus <- alltaxaplus %>% 
   mutate(acceptednamedif = Current_name!=Accepted_name,
          sp6changed = sp6!= sp6curr | sp6 != sp6prior) %>%
-  dplyr::select("sp6","sp6curr","sp6prior","sp4",
-                "Current_order","Current_family","Current_name","Current_name_author",
-                "synonyms","vouchers","habit",
+  dplyr::select("sp6","sp4","Current_name","Current_name_author",
+                "Current_order","Current_family",
+                "Current_genus","Current_species","Current_subspecies",
                 "Accepted_name","Accepted_name_author","Accepted_name_rank",
                 "Accepted_family",
-                "currnamechanged","sp6changed","acceptednamedif",
+                "habit",
+                "synonyms","vouchers",
+                "sp6curr","sp6prior",
+                "sp6changed","currnamechanged","acceptednamedif",
                 "tnrsdate") %>%
   arrange(Current_name) %>%
   mutate(notes=paste0(ifelse(is.na(currnamechanged) | !currnamechanged,
@@ -265,7 +268,7 @@ outtaxaplus <- alltaxaplus %>%
                             "","Code sp6 changed from sp6curr or sp6prior. "),
                      ifelse(is.na(acceptednamedif) | !acceptednamedif,
                             "","Current_name differs from Accepted_name returned by TNRS. "))) 
-write_xlsx(outtaxaplus,PANAMASPLISTTNRSHM)
+write_xlsx(outtaxaplus,FNPANAMASPCOMB)
 
 
 # check taxa that are matched at genera or higher rather than species
@@ -393,7 +396,7 @@ outtaxa <- bind_rows(spdfall,allhighertaxa) %>%
   arrange(taxaname)
 table(outtaxa$namerank)
 
-write_xlsx(outtaxa,PANAMATAXA)
+write_xlsx(outtaxa,FNPANAMATAXA)
 
 
 
@@ -418,7 +421,7 @@ synonymdfout <- left_join(synonymdf,synonymdftnrs[,c("Old_name",paste0("Old_",tn
 
 table(synonymdfout$Current_name==synonymdfout$Old_Accepted_name)
 
-write_xlsx(synonymdfout,SYNONYMOUT)
+write_xlsx(synonymdfout,FNSYNONYMS)
 
 
 
