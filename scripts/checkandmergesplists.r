@@ -22,7 +22,7 @@ DIRCHECK <- "tocheck/"
 # input files # all in director DIRINSP
 FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx"
-FNPANAMASPLISTIN <- "PanamaWoodySpList/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx"
+FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-09-08FromSuzanne/FloraPanama_8Sept25.xlsx"
 
 # output files 
 FNWRIGHTSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNWRIGHTSPLISTIN)),"_tnrs.xlsx")
