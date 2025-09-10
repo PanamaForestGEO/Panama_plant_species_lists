@@ -39,7 +39,9 @@ tnrscols2 <- c("Name_submitted",tnrscols)
 tnrscols3 <- c("binomial",tnrscols)
 tnrscols4 <- c("Current_name",tnrscols)
 
-# Joe Wright's taxonomy dataset (includes lianas)
+###########################################
+
+# Joe Wright's taxonomy dataset (includes 4-letter codes and some non-woody species as well as trees and lianas)
 if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
   usejoetaxa <- read_excel(FNWRIGHTSPLISTTNRS) 
 } else {
@@ -62,8 +64,9 @@ if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
   rm(joetaxa,sp6dupsj,binomialdupsj,joetaxatnrs)
 }
 
+#################################################
 
-# old ForestGEO tree taxonomy dataset 
+# ForestGEO dataset of taxonomy for species codes used in Panama plot censuses - includes morphospecies
 if (file.exists(FNFGEOSPLISTTNRS) & !redotnrs) {
   fgeotaxa <- read_excel(FNFGEOSPLISTTNRS) 
 } else {
@@ -90,7 +93,7 @@ if (file.exists(FNFGEOSPLISTTNRS) & !redotnrs) {
 }
 
 #####################
-# ForestGEO Panama species list 
+# ForestGEO Panama woody plant species list 
 read_excel(paste0(DIRINSP,FNPANAMASPLISTIN),col_types="text")  %>%
   rename(Current_order=Order,
          Current_family=Family,
@@ -115,7 +118,7 @@ read_excel(paste0(DIRINSP,FNPANAMASPLISTIN),col_types="text")  %>%
 alltaxa$sp6prior[alltaxa$sp6curr=="swars1"] <- "swars1"
 alltaxa$sp6prior[alltaxa$sp6curr=="swars2"] <- "swars2"
 
-
+# check for duplicate binomials and address if needed
 bindups <- alltaxa %>% group_by(Current_name) %>% arrange(Current_name) %>% filter(n()>1) %>% ungroup()
 if (nrow(bindups)>0) 
   {
@@ -128,13 +131,16 @@ if (nrow(bindups)>0)
   alltaxa <- rbind(alltaxa,gooddups)
 }
 
+# check for changed sp6 codes
 sp6dif <- subset(alltaxa,!is.na(sp6curr) & !is.na(sp6prior) & sp6curr!=sp6prior)
-write_xlsx(sp6dif,paste0(DIRCHECK,"Perezlistcodigocambio.xlsx"))
+write_xlsx(sp6dif,paste0(DIRCHECK,"FloraPanamacodigocambio.xlsx"))
 
+# check for duplicate sp6 codes
 sp6dups <- alltaxa %>% filter(!is.na(sp6curr)) %>% group_by(sp6curr) %>% 
   arrange(sp6curr) %>% filter(n()>1) %>% ungroup()
 write_xlsx(sp6dups,paste0(DIRCHECK,"FloraPanamacodigoduplicado.xlsx"))
 
+# check for sp6 codes not 6 letters (typos or morphospecies)
 sp6not6char <- subset(alltaxa,nchar(sp6curr)!=6&!is.na(sp6curr))
 write_xlsx(sp6not6char,paste0(DIRCHECK,"FloraPanamasp6not6char.xlsx"))
 
@@ -161,14 +167,6 @@ sp6dupsleft <- alltaxa %>%
   filter(n()>1) %>% ungroup()
 # there are still no duplicated sp6 codes after this  
 
-sp6dropped <- subset(fgeotaxa,!sp6 %in% alltaxa$sp6 & 
-                       Accepted_name_rank %in% c("species","subspecies","variety")
-                     &IDLevel=="species") %>%
-  mutate(binomial_in_flora=binomial %in% alltaxa$Current_name) %>%
-  arrange(sp6)
-firstcols <- c("sp6", "binomial", "binomial_in_flora")
-sp6dropped <- sp6dropped[c(firstcols,setdiff(names(sp6dropped),firstcols))]
-write_xlsx(sp6dropped,paste0(DIRCHECK,"FloraPanamacodigosperdidos.xlsx"))
 
 if (file.exists(FNPANAMASPLISTTNRS) & !redotnrs) {
   alltaxaplus <- read_excel(FNPANAMASPLISTTNRS) 
@@ -212,7 +210,20 @@ if (length(inc[inc==T&!is.na(inc)])>0) {
                                                   alltaxaplus$Current_name_author[inc],NA)
 }
 
-# add sp4 codes from Joe's data
+
+# check for 6-letter codes in the Fgeo codes list that are not in the Panama woody plant species list
+# but that are for good species
+sp6dropped <- subset(fgeotaxa,!sp6 %in% alltaxa$sp6 & 
+                       Accepted_name_rank %in% c("species","subspecies","variety")
+                     &IDLevel=="species") %>%
+  mutate(binomial_in_flora=binomial %in% alltaxa$Current_name) %>%
+  arrange(sp6)
+firstcols <- c("sp6", "binomial", "binomial_in_flora")
+sp6dropped <- sp6dropped[c(firstcols,setdiff(names(sp6dropped),firstcols))]
+write_xlsx(sp6dropped,paste0(DIRCHECK,"FloraPanamacodigosperdidos.xlsx"))
+
+
+# add sp4 codes from Wright list
 table(table(usejoetaxa$sp4)) # 938 unique sp4 codes
 table(usejoetaxa$Name_matched_rank,is.na(usejoetaxa$sp4)) # most of them for taxa with species-level IDs
 table(usejoetaxa$Accepted_name_rank,is.na(usejoetaxa$sp4)) # most of them for taxa with species-level IDs
@@ -247,6 +258,8 @@ alltaxaplus$sp4[alltaxaplus$sp6=="quara1"] <- NA  # BCI Quararibea was formerly 
 sp4dups <- names(table(alltaxaplus$sp4)[table(alltaxaplus$sp4)>1])
 table(table(alltaxaplus$sp4))
 # no longer any duplicates
+
+
 
 outtaxaplus <- alltaxaplus %>% 
   mutate(acceptednamedif = Current_name!=Accepted_name,
