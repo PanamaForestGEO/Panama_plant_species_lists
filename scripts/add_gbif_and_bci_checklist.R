@@ -4,7 +4,7 @@ library(rgbif)
 library(TNRS)
 
 latest_splist <- "Perez-et-al_PanamaPlantSp_2025-03-23tnrsHM2.xlsx"
-splist <- read_excel(file.path("splists_out", latest_splist))
+splist <- read_excel(file.path("splists_out", "zarchive", latest_splist))
 
 # Using BCI checklist to filter splist
 bcichecklist <- read_csv("labelbox_lists/checklist/Plants of Barro Colorado_1744208630.csv",
@@ -53,7 +53,7 @@ splist_withgbif <- splist %>%
 
 # filter with checklist
 splist_withgbif_checklist <- splist_withgbif %>% 
-  filter(gbif_accepted_taxon_id %in% bcichecklist_species_gbif$gbif_accepted_taxon_id)
+  filter(gbif_accepted_taxon_id %in% c(bcichecklist_species_gbif$gbif_accepted_taxon_id, 9158473)) #add missing species Pochota fendleri
 
 # Create taxon_column for Labelbox and keep only species or subspecies (exclude genus)
 sponlylist_withgbif_checklist <- splist_withgbif_checklist %>%
