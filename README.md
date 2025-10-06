@@ -5,7 +5,7 @@ together with their 6-letter and 4-letter codes (as used in Smithsonian research
 
 # Contributors
 
-Helene C. Muller-Landau created this github repository and wrote the code.  The readme for the splists_raw directory includes information on the authors of the raw/original species lists.  *Please make sure to appropriately credit the list authors.*   
+Helene C. Muller-Landau created this github repository and wrote most of the code.  Antoine Caron-Guay added code for generating the Labelbox lists, which includes linking to gbif.  The readme for the splists_raw directory includes information on the authors of the raw/original species lists.  *Please make sure to appropriately credit the list authors.*   
 
 # Directories
 
