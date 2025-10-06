@@ -1,5 +1,7 @@
 **Forestgeo** This subdirectory contains files of tree species or woody plant species more generally that are present in ForestGEO plots or datasets in Panama, together with their 6-letter species codes and other info.  Includes recognized morphospecies and corresponding codes. The files below are organized by date from most recent (current) to older.  
 
+Unless otherwise noted, the authors of these files are **Rolando Pérez, Salomón Aguilar and David Mitre**
+
 **Forestgeo/ViewTaxonomy2024-09-10HM.xlsx** is a file from Suzanne Lao on Panama *tree* species in the Panama forest plot datasets (1430 rows).  
 Suffix HM indicates minor manual modifications by Helene Muller-Landau to simplify read-in to R. 
 Columns: Family mnemonic	Genus	SpeciesName	Rank Supspecies IDlevel supspMnemonic
