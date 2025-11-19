@@ -21,7 +21,7 @@ DIRCHECK <- "tocheck/"
 
 # input files # all in director DIRINSP
 FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
-FNFGEOSPLISTIN <- "Forestgeo/ViewTaxonomy_2024-09-10HM.xlsx"
+FNFGEOSPLISTIN <- "Forestgeo/2025-11-17FromSuzanne/ViewTaxonomy_bci.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-09-08FromSuzanne/FloraPanama_8Sept25.xlsx"
 
 # output files 
@@ -325,28 +325,41 @@ genus_check2
 # check that a single genus always has the same first 4 letters of species code:
 genus_check3 <- allsp %>%
   group_by(Accepted_genus) %>%
-  summarise(n_genuscode = n_distinct(genuscode), .groups = "drop") %>%
+  summarise(n_genuscode = n_distinct(genuscode), 
+            genuscode_list = paste(sort(unique(genuscode)), collapse = ", "),
+            .groups = "drop") %>%
   filter(n_genuscode > 1)
 genus_check3
+# in many cases it doesn't but it looks like this is due to name changes for the most part except perhaps
+# Maripa: mari and mar2
 
-genus_violations <- allsp %>%
-  filter(!is.na(genuscode)) %>%
-  group_by(Accepted_genus) %>%
-  filter(n_distinct(genuscode) > 1) %>%
-  distinct(Accepted_genus,genuscode) %>%
-  arrange(Accepted_genus) %>%
-  dplyr::select(Accepted_genus,genuscode)
-# looks like all of these related to species name changes where code is kept
-
-
-genus_violations2 <- allsp %>%
-  filter(!is.na(genuscode)) %>%
+# find cases where same genuscode corresponds to more than 1 Accepted genus
+genus_check4 <- allsp %>%
   group_by(genuscode) %>%
-  filter(n_distinct(Accepted_genus) > 1) %>%
-  distinct(Accepted_genus,genuscode) %>%
-  arrange(genuscode) %>%
-  dplyr::select(genuscode,Accepted_genus)
-# again looks like all are related to species name changes where code is kept
+  summarise(
+    Accepted_gen4_list = paste(sort(unique(substr(Accepted_genus,1,4))),collapse=", "),
+    Accepted_gen3_list = paste(sort(unique(substr(Accepted_genus,1,3))),collapse=", "),
+    n_Accepted_genus = n_distinct(Accepted_genus),
+    Accepted_genus_list = paste(sort(unique(Accepted_genus)), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  filter(n_Accepted_genus > 1)
+
+# just get cases in which there are multiple genus names that have the same first 3 letters as the genus code:  
+genus_check5 <- allsp %>%
+  filter(!is.na(genuscode)) %>%
+  mutate(prefix3 = substr(genuscode, 1, 3),
+         genus_prefix3 = tolower(substr(Accepted_genus, 1, 3))) %>%
+  # keep only genus names matching the first 3 letters of genuscode
+  filter(genus_prefix3 == prefix3) %>%
+  group_by(genuscode) %>%
+  summarise(
+    n_distinct_genus = n_distinct(Accepted_genus),
+    Accepted_genus_list = paste(sort(unique(Accepted_genus)), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  filter(n_distinct_genus > 1) %>%
+  arrange(genuscode)
 
 genusdf <- allsp %>%
   group_by(Accepted_genus) %>%
