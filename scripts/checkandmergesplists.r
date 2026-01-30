@@ -19,7 +19,7 @@ DIRMIDSP <- "splists_mid/"
 DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
-# input files # all in director DIRINSP
+# input files # all in directory DIRINSP
 FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/2025-11-17FromSuzanne/ViewTaxonomy_bci.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-09-08FromSuzanne/FloraPanama_8Sept25.xlsx"
