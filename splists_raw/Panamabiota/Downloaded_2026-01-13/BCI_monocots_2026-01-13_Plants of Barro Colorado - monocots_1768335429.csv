@@ -1,0 +1,479 @@
+Family,ScientificName,ScientificNameAuthorship,Notes,TaxonId
+AGAVACEAE,"Cordyline fruticosa","(L.) A. Chev.",,63538
+ALISMATACEAE,"Sagittaria lancifolia",L.,,69293
+ALISMATACEAE,"Sagittaria lancifolia subsp. lancifolia",,,78094
+ALISMATACEAE,"Sagittaria lancifolia subsp. media","(Micheli) Bogin, 1955",,122150
+AMARYLLIDACEAE,"Amaryllis belladonna",L.,,61621
+AMARYLLIDACEAE,"Crinum bulbispermum","(Burm. f.) Milne-Redh. & Schweick.",,63618
+AMARYLLIDACEAE,"Crinum erubescens",Aiton,,63620
+AMARYLLIDACEAE,"Hymenocallis littoralis","(Jacq.) Salisb.",,65585
+AMARYLLIDACEAE,"Hymenocallis pedalis",Herb.,,65586
+ARACEAE,"Adelonema wendlandii","(Schott) S.Y.Wong & Croat",,180791
+ARACEAE,"Alocasia navicularis","(K.Koch & C.D.Bouché) K.Koch & C.D.Bouché",,176386
+ARACEAE,"Anthurium acutangulum",Engl.,,61713
+ARACEAE,"Anthurium bakeri","Hook. f.",,61721
+ARACEAE,"Anthurium brownii",Mast.,,61726
+ARACEAE,"Anthurium clavigerum",Poepp.,,61738
+ARACEAE,"Anthurium concolor","K. Krause",,61746
+ARACEAE,"Anthurium durandii",Engl.,,61764
+ARACEAE,"Anthurium flexile",Schott,,61769
+ARACEAE,"Anthurium flexile subsp. flexile",,,176426
+ARACEAE,"Anthurium friedrichsthalii",Schott,,61774
+ARACEAE,"Anthurium gracile","(Rudge) Schott",,61779
+ARACEAE,"Anthurium kunthii",Poepp.,,61795
+ARACEAE,"Anthurium obtusum","(Engl.) Grayum",,61816
+ARACEAE,"Anthurium ochranthum","K. Koch",,61817
+ARACEAE,"Anthurium paludosum",Engl.,,61822
+ARACEAE,"Anthurium pentaphyllum","(Aubl.) G. Don",,61828
+ARACEAE,"Anthurium pentaphyllum var. bombacifolium","(Schott) Madison",,78162
+ARACEAE,"Anthurium salvinii",Hemsl.,,61849
+ARACEAE,"Anthurium scandens","(Aubl.) Engl.",,61852
+ARACEAE,"Anthurium schlechtendalii",,,61853
+ARACEAE,"Anthurium schlechtendalii subsp. schlechtendalii",,,77947
+ARACEAE,"Caladium bicolor","(Aiton) Vent.",,62597
+ARACEAE,"Dieffenbachia isthmia",Croat,,64095
+ARACEAE,"Dieffenbachia longispatha","Engl. & K. Krause",,64097
+ARACEAE,"Dieffenbachia obscurinervia",Croat,,64100
+ARACEAE,"Dieffenbachia oerstedii",Schott,,64101
+ARACEAE,"Dieffenbachia pittieri","Engl. & K. Krause",,64103
+ARACEAE,"Dracontium soconuscum",Matuda,,64251
+ARACEAE,"Homalomena wendlandii",Schott,,65526
+ARACEAE,"Monstera adansonii",Schott,,66898
+ARACEAE,"Monstera adansonii var. laniata","(Schott) Madison",,78375
+ARACEAE,"Monstera dubia","(Kunth) Engl. & K. Krause",,66902
+ARACEAE,"Monstera involuta","Croat & Grayum",,106956
+ARACEAE,"Monstera pinnatipartita",Schott,,66911
+ARACEAE,"Montrichardia arborescens","(L.) Schott",,66919
+ARACEAE,"Philodendron alliodorum","Croat & Grayum",,67924
+ARACEAE,"Philodendron brevispathum",Schott,,67934
+ARACEAE,"Philodendron ernestii",Engl.,,67954
+ARACEAE,"Philodendron fragrantissimum","(Hook.) G. Don",,67958
+ARACEAE,"Philodendron grandipes","K. Krause",,67960
+ARACEAE,"Philodendron guttiferum",Kunth,,67963
+ARACEAE,"Philodendron hederaceum","(Jacq.) Schott",,67966
+ARACEAE,"Philodendron hederaceum var. hederaceum",,,78407
+ARACEAE,"Philodendron immixtum",Croat,,67970
+ARACEAE,"Philodendron inaequilaterum",Liebm.,,67971
+ARACEAE,"Philodendron jacquinii",Schott,,67972
+ARACEAE,"Philodendron nervosum",Kunth,,67983
+ARACEAE,"Philodendron opacum","Croat & Grayum",,67985
+ARACEAE,"Philodendron panamense","K. Krause",,67986
+ARACEAE,"Philodendron pterotum","K. Koch & Augustin",,67990
+ARACEAE,"Philodendron radiatum",Schott,,67992
+ARACEAE,"Philodendron radiatum radiatum",,,191498
+ARACEAE,"Philodendron radiatum var. radiatum",,,78412
+ARACEAE,"Philodendron rayanum","Croat & Grayum",,67993
+ARACEAE,"Philodendron rigidifolium","K. Krause",,67995
+ARACEAE,"Philodendron rigidifolium subsp. rigidifolium",,,171629
+ARACEAE,"Philodendron sagittifolium",Liebm.,,67998
+ARACEAE,"Philodendron scandens","K.Koch & Sello",,80263
+ARACEAE,"Philodendron tripartitum","(Jacq.) Schott",,68011
+ARACEAE,"Pistia stratiotes",L.,,68371
+ARACEAE,"Rhodospatha moritziana",Schott,,69094
+ARACEAE,"Rhodospatha wendlandii",Schott,,69097
+ARACEAE,"Spathiphyllum friedrichsthalii",Schott,,69883
+ARACEAE,"Spathiphyllum phryniifolium",Schott,,69889
+ARACEAE,"Stenospermation angustifolium",Hemsl.,,70022
+ARACEAE,"Syngonium erythrophyllum","Birdsey ex G.S. Bunting",,70138
+ARACEAE,"Syngonium podophyllum",Schott,,70146
+ARACEAE,"Syngonium wendlandii",Schott,,70150
+ARACEAE,"Xanthosoma helleborifolium","(Jacq.) Schott",,70949
+ARACEAE,"Xanthosoma mexicanum",Liebm.,,70950
+ARECACEAE,"Acrocomia aculeata","(Jacq.) Lodd. ex Mart.",,61431
+ARECACEAE,"Astrocaryum standleyanum","L.H. Bailey",,62136
+ARECACEAE,"Attalea butyracea","(Mutis ex L. f.) Wess. Boer",,62145
+ARECACEAE,"Attalea rostrata",Oerst.,,62147
+ARECACEAE,"Bactris barronis","L.H. Bailey",,62184
+ARECACEAE,"Bactris coloniata","L.H. Bailey",,62187
+ARECACEAE,"Bactris coloradonis","L.H. Bailey",,62188
+ARECACEAE,"Bactris gasipaes",Kunth,,62189
+ARECACEAE,"Bactris major",Jacq.,,62195
+ARECACEAE,"Bactris major var. infesta","(Mart.) Drude",,172232
+ARECACEAE,"Bactris major var. major",,,78175
+ARECACEAE,"Chamaedorea tepejilote",Liebm.,,62991
+ARECACEAE,"Cocos nucifera",L.,,63354
+ARECACEAE,"Cryosophila warscewiczii","(H. Wendl.) Bartlett",,63677
+ARECACEAE,"Desmoncus myriacanthos",Dugand,,63991
+ARECACEAE,"Desmoncus orthacanthos",Mart.,,63992
+ARECACEAE,"Desmoncus panamensis",Linden,,80174
+ARECACEAE,"Elaeis oleifera","(Kunth) Cortés",,64353
+ARECACEAE,"Geonoma cuneata","H. Wendl. ex Spruce",,65007
+ARECACEAE,"Geonoma cuneata subsp. indivisa",A.J.Hend.,,172889
+ARECACEAE,"Geonoma cuneata subsp. procumbens","(H.Wendl. ex Spruce) A.J.Hend.",,172891
+ARECACEAE,"Geonoma cuneata var. cuneata",,,78296
+ARECACEAE,"Geonoma interrupta","(Ruiz & Pav.) Mart.",,65013
+ARECACEAE,"Geonoma interrupta subsp. interrupta",,,172896
+ARECACEAE,"Geonoma interrupta subsp. magnifica","(Linden & H.Wendl.) A.J.Hend.",,169877
+ARECACEAE,"Geonoma pinnatifrons",Willd.,,65020
+ARECACEAE,"Geonoma pinnatifrons subsp. binervia","(Oerst.) A.J.Hend.",,172901
+ARECACEAE,"Geonoma procumbens","H. Wendl. ex Spruce",,65021
+ARECACEAE,"Oenocarpus mapora","H. Karst.",,67238
+ARECACEAE,"Oenocarpus mapora subsp. mapora",,,122101
+ARECACEAE,"Phytelephas macrocarpa","Ruiz & Pav.",,68085
+ARECACEAE,"Socratea exorrhiza","(Mart.) H. Wendl.",,69753
+ARECACEAE,"Synechanthus warscewiczianus","H. Wendl.",,70134
+BROMELIACEAE,"Aechmea magdalenae","(André) André ex Baker",,61488
+BROMELIACEAE,"Aechmea pubescens",Baker,,61492
+BROMELIACEAE,"Aechmea setigera","Mart. ex Schult. & Schult. f.",,61493
+BROMELIACEAE,"Aechmea tillandsioides","(Mart. ex Schult. & Schult. f.) Baker",,61495
+BROMELIACEAE,"Ananas comosus","(L.) Merr.",,61653
+BROMELIACEAE,"Billbergia macrolepis","L.B. Sm.",,62338
+BROMELIACEAE,"Billbergia porteana","Brongn. ex Beer",,62339
+BROMELIACEAE,"Catopsis sessiliflora","(Ruiz & Pav.) Mez",,62809
+BROMELIACEAE,"Guzmania lingulata","(L.) Mez",,65233
+BROMELIACEAE,"Guzmania lingulata var. concolor","Proctor & Cedeño-Mald.",,176963
+BROMELIACEAE,"Guzmania monostachia","(L.) Rusby ex Mez",,65236
+BROMELIACEAE,"Lemeltonia monadelpha","(É.Morren) Barfuss & W.Till",,172023
+BROMELIACEAE,"Tillandsia bulbosa",Hook.,,70431
+BROMELIACEAE,"Tillandsia elongata",Kunth,,70436
+BROMELIACEAE,"Tillandsia fasciculata",Sw.,,70438
+BROMELIACEAE,"Tillandsia monadelpha","(E. Morren) Baker",,70444
+BROMELIACEAE,"Tillandsia usneoides","(L.) L.",,70452
+BROMELIACEAE,"Vriesea heliconioides","(Kunth) Hook. ex Walp.",,70855
+BROMELIACEAE,"Vriesea sanguinolenta","Cogn. & Marchal",,70864
+BROMELIACEAE,"Wallisia anceps","(G.Lodd.) Barfuss & W.Till",,181823
+BROMELIACEAE,"Werauhia gladioliflora","(H. Wendl.) J.R. Grant",,70892
+BROMELIACEAE,"Werauhia sanguinolenta","(Cogn. & Marchal) J.R. Grant",,70906
+BURMANNIACEAE,"Thismia luetzelburgii","Goebel & Suess.",,70409
+BURMANNIACEAE,"Thismia panamensis","(Standl.) Jonker",,70410
+COMMELINACEAE,"Callisia ciliata",Kunth,,62638
+COMMELINACEAE,"Callisia repens","(Jacq.) L.",,62643
+COMMELINACEAE,"Commelina erecta",L.,,63447
+COMMELINACEAE,"Commelina erecta subsp. erecta",,,176668
+COMMELINACEAE,"Commelina rufipes",Seub.,,63449
+COMMELINACEAE,"Commelina rufipes var. glabrata","(D.R. Hunt) Faden & D.R. Hunt",,78234
+COMMELINACEAE,"Commelina rufipes var. rufipes",,,78235
+COMMELINACEAE,"Dichorisandra amabilis","J.R. Grant",,64050
+COMMELINACEAE,"Dichorisandra hexandra","(Aubl.) Kuntze ex Hand.-Mazz.",,64051
+COMMELINACEAE,"Gibasis geniculata","(Jacq.) Rohweder",,65031
+COMMELINACEAE,"Tradescantia zanonia","(L.) Sw.",,70513
+COMMELINACEAE,"Tripogandra serrulata","(Vahl) Handlos",,70642
+COSTACEAE,"Costus allenii",Maas,,63555
+COSTACEAE,"Costus glaucus",Maas,,63559
+COSTACEAE,"Costus guanaiensis",Rusby,,63560
+COSTACEAE,"Costus guanaiensis var. macrostrobilus","(K. Schum.) Maas",,78244
+COSTACEAE,"Costus laevis","Ruiz & Pav.",,63561
+COSTACEAE,"Costus pulverulentus","C. Presl",,63566
+COSTACEAE,"Costus scaber","Ruiz & Pav.",,63567
+COSTACEAE,"Costus villosissimus",Jacq.,,63568
+COSTACEAE,"Dimerocostus strobilaceus",Kuntze,,64131
+COSTACEAE,"Dimerocostus strobilaceus subsp. strobilaceus",,,77992
+CYCLANTHACEAE,"Asplundia alata",Harling,,62107
+CYCLANTHACEAE,"Carludovica drudei",Mast.,,62756
+CYCLANTHACEAE,"Carludovica palmata","Ruiz & Pav.",,62757
+CYCLANTHACEAE,"Cyclanthus bipartitus","Poit. ex A. Rich.",,63806
+CYCLANTHACEAE,"Ludovia integrifolia","(Woodson) Harling",,66196
+CYPERACEAE,"Calyptrocarya glomerulata","(Brongn.) Urb.",,62669
+CYPERACEAE,"Cladium jamaicense",Crantz,,63173
+CYPERACEAE,"Cyperus blepharoleptos",Steud.,,180843
+CYPERACEAE,"Cyperus chorisanthos","C.B. Clarke",,63841
+CYPERACEAE,"Cyperus conservator-davidii",G.C.Tucker,,176717
+CYPERACEAE,"Cyperus diffusus",Vahl,,63845
+CYPERACEAE,"Cyperus giganteus",Vahl,,63848
+CYPERACEAE,"Cyperus haspan",L.,,63849
+CYPERACEAE,"Cyperus hortensis","(Salzm. ex Steud.) Dorr",,181960
+CYPERACEAE,"Cyperus laxus",Lam.,,63855
+CYPERACEAE,"Cyperus luzulae","(L.) Rottb. ex Retz.",,63857
+CYPERACEAE,"Cyperus odoratus",L.,,63861
+CYPERACEAE,"Cyperus rotundus",L.,,63867
+CYPERACEAE,"Cyperus sesquiflorus","(Torr.) Mattf. & Kük.",,159255
+CYPERACEAE,"Cyperus simplex",Kunth,,63868
+CYPERACEAE,"Cyperus tenuis",Sw.,,63872
+CYPERACEAE,"Eleocharis geniculata","(L.) Roem. & Schult.",,64450
+CYPERACEAE,"Eleocharis interstincta","(Vahl) Roem. & Schult.",,64451
+CYPERACEAE,"Eleocharis plicarhachis","(Griseb.) Svenson",,64458
+CYPERACEAE,"Fimbristylis dichotoma","(L.) Vahl",,64917
+CYPERACEAE,"Fuirena umbellata",Rottb.,,64960
+CYPERACEAE,"Hypolytrum longifolium","(Rich.) Nees",,65637
+CYPERACEAE,"Hypolytrum longifolium subsp. nicaraguense","(Liebm.) T. Koyama",,78010
+CYPERACEAE,"Hypolytrum schraderianum","Nees in Mart.",,81175
+CYPERACEAE,Kyllinga,,,16924
+CYPERACEAE,"Kyllinga brevifolia var. leiolepis","(Franch. & Sav.) H.Hara",,181526
+CYPERACEAE,"Kyllinga odorata",Vahl,,65921
+CYPERACEAE,"Kyllinga pumila",Michx.,,65922
+CYPERACEAE,"Oxycaryum cubense","(Poepp. & Kunth) Palla",,67401
+CYPERACEAE,"Rhynchospora cephalotes","(L.) Vahl",,69119
+CYPERACEAE,"Rhynchospora contracta","(Nees) J. Raynal",,69120
+CYPERACEAE,"Rhynchospora corymbosa","(L.) Britton",,69121
+CYPERACEAE,"Rhynchospora corymbosa var. corymbosa",,,78455
+CYPERACEAE,"Rhynchospora nervosa","(Vahl) Boeckeler",,69133
+CYPERACEAE,"Rhynchospora nervosa subsp. ciliata","T. Koyama",,78088
+CYPERACEAE,"Rhynchospora pedersenii",Guagl.,,69135
+CYPERACEAE,"Rhynchospora radicans","(Schltdl. & Cham.) H. Pfeiff.",,69138
+CYPERACEAE,"Rhynchospora radicans subsp. microcephala","(Bertero ex Spreng.) W.W. Thomas",,78090
+CYPERACEAE,"Rhynchospora radicans subsp. radicans",,,78091
+CYPERACEAE,"Scleria eggersiana",Boeckeler,,69473
+CYPERACEAE,"Scleria gaertneri",Raddi,,181041
+CYPERACEAE,"Scleria macrophylla","J. Presl & C. Presl",,69476
+CYPERACEAE,"Scleria mitis","P.J. Bergius",,69479
+CYPERACEAE,"Scleria pterota","K. Presl ex C.B. Clarke",,80314
+CYPERACEAE,"Scleria secans","(L.) Urb.",,69482
+DIOSCOREACEAE,"Dioscorea alata",L.,,64146
+DIOSCOREACEAE,"Dioscorea haenkeana","C. Presl",,64154
+DIOSCOREACEAE,"Dioscorea hondurensis","R. Knuth",,64155
+DIOSCOREACEAE,"Dioscorea mexicana",Scheidw.,,64159
+DIOSCOREACEAE,"Dioscorea polygonoides","Humb. & Bonpl. ex Willd.",,64162
+DIOSCOREACEAE,"Dioscorea pubescens",Poir.,,181522
+DIOSCOREACEAE,"Dioscorea trifida","L. f.",,64167
+DIOSCOREACEAE,"Dioscorea urophylla",Hemsl.,,64169
+HAEMODORACEAE,"Xiphidium caeruleum",Aubl.,,70957
+HELICONIACEAE,"Heliconia curtispatha",Petersen,,65340
+HELICONIACEAE,"Heliconia irrasa","Lane ex R.R. Sm.",,65348
+HELICONIACEAE,"Heliconia latispatha",Benth.,,65350
+HELICONIACEAE,"Heliconia mariae","Hook. f.",,65360
+HELICONIACEAE,"Heliconia metallica","Planch. & Linden ex Hook.",,65362
+HELICONIACEAE,"Heliconia platystachys",Baker,,65369
+HELICONIACEAE,"Heliconia pogonantha",Cufod.,,65370
+HELICONIACEAE,"Heliconia psittacorum","L. f.",,65371
+HELICONIACEAE,"Heliconia subulata","Ruiz & Pav.",,65379
+HELICONIACEAE,"Heliconia vaginalis",Benth.,,65385
+HELICONIACEAE,"Heliconia vaginalis subsp. vaginalis",,,78006
+HELICONIACEAE,"Heliconia wagneriana",Petersen,,65387
+HYDROCHARITACEAE,"Apalanthe granatensis",Planch.,,88803
+HYDROCHARITACEAE,"Hydrilla verticillata","(L. f.) Royle",,65559
+HYDROCHARITACEAE,"Limnobium laevigatum",Heine,,103602
+IRIDACEAE,"Neomarica gracilis",Sprague,,81180
+IRIDACEAE,"Neomarica variegata","(M. Martens & Galeotti) Henrich & Goldblatt",,67066
+MARANTACEAE,"Calathea crotalifera","S. Watson",,62604
+MARANTACEAE,"Calathea latifolia",Klotzsch,,80117
+MARANTACEAE,"Calathea lutea","(Aubl.) Schult.",,62608
+MARANTACEAE,"Calathea marantifolia",Standl.,,80118
+MARANTACEAE,"Calathea micans",Ko|2rn.,,80119
+MARANTACEAE,"Goeppertia inocephala","(Kuntze) H. Kenn. & Nicolson",,155826
+MARANTACEAE,"Goeppertia panamensis","(Rowlee ex Standl.) Borchs. & S. Suárez",,77637
+MARANTACEAE,"Goeppertia villosa","(Lodd. ex Sweet) Borchs. & S. Suárez",,77645
+MARANTACEAE,"Ischnosiphon arouma","(Aubl.) Körn.",,65796
+MARANTACEAE,"Ischnosiphon leucophaeus","(Poepp. & Endl.) Körn.",,65800
+MARANTACEAE,"Pleiostachya pruinosa","(Regel) K. Schum.",,68436
+MARANTACEAE,"Stromanthe jacquinii","(Roem. & Schult.) H. Kenn. & Nicolson",,70078
+MARANTACEAE,"Thalia geniculata",L.,,70314
+MUSACEAE,"Musa paradisiaca",L.,,66974
+MUSACEAE,"Musa sapientum",L.,,80237
+ORCHIDACEAE,"Acianthera verecunda","(Schltr.) Pridgeon & M.W. Chase",,61411
+ORCHIDACEAE,"Aspasia epidendroides",Lindl.,,62045
+ORCHIDACEAE,"Aspasia principissa","Rchb. f.",,62046
+ORCHIDACEAE,"Brassavola nodosa","(L.) Lindl.",,62488
+ORCHIDACEAE,"Brassia caudata","(L.) Lindl.",,62490
+ORCHIDACEAE,"Brassia maculata","R. Br.",,62491
+ORCHIDACEAE,"Bulbophyllum pachyrachis","(A. Rich.) Griseb.",,62541
+ORCHIDACEAE,"Campylocentrum micranthum","(Lindl.) Rolfe",,62686
+ORCHIDACEAE,"Campylocentrum pachyrrhizum","(Rchb. f.) Rolfe",,62687
+ORCHIDACEAE,"Campylocentrum panamense",Ames,,62688
+ORCHIDACEAE,"Catasetum bicolor",Klotzsch,,62800
+ORCHIDACEAE,"Catasetum viridiflavum",Hook.,,62802
+ORCHIDACEAE,"Caularthron bilamellatum","(Rchb. f.) R.E. Schultes",,62814
+ORCHIDACEAE,"Chelyorchis ampliata","(Lindl.) Dressler & N.H. Williams",,63013
+ORCHIDACEAE,"Chysis bruennowiana","Rchb. f. & Warsz.",,63117
+ORCHIDACEAE,"Clowesia warczewitzii","(Lindl. & Paxton) Dodson",,63264
+ORCHIDACEAE,"Cochleanthes aromatica","(Rchb. f.) R.E. Schult. & Garay",,63345
+ORCHIDACEAE,"Cohniella nuda","(Bateman ex Lindl.) Christenson",,63364
+ORCHIDACEAE,"Cohniella nuda subsp. stipitata","Dressler & N.H. Williams",,166920
+ORCHIDACEAE,"Coryanthes maculata",Hook.,,63545
+ORCHIDACEAE,"Dichaea panamensis",Lindl.,,64022
+ORCHIDACEAE,"Dimerandra emarginata","(G. Mey.) Hoehne",,64130
+ORCHIDACEAE,"Elleanthus longibracteatus","(Lindl. ex Griseb.) Fawc.",,64480
+ORCHIDACEAE,"Encyclia cordigera","(Kunth) Dressler",,64499
+ORCHIDACEAE,"Epidendrum chlorocorymbos",Schltr.,,64542
+ORCHIDACEAE,"Epidendrum coronatum","Ruiz & Pav.",,64546
+ORCHIDACEAE,"Epidendrum difforme",Jacq.,,64550
+ORCHIDACEAE,"Epidendrum flexuosum","G. Mey.",,64558
+ORCHIDACEAE,"Epidendrum nocturnum",Jacq.,,64584
+ORCHIDACEAE,"Epidendrum radicans","Pav. ex Lindl.",,64611
+ORCHIDACEAE,"Epidendrum schlechterianum",Ames,,64620
+ORCHIDACEAE,"Epidendrum stamfordianum",Bateman,,64625
+ORCHIDACEAE,"Epidendrum stangeanum","Rchb. f.",,64626
+ORCHIDACEAE,"Eulophia alta","(L.) Fawc. & Rendle",,64794
+ORCHIDACEAE,"Gongora fulva",Lindl.,,65081
+ORCHIDACEAE,"Gongora leucochila",Lem.,,65084
+ORCHIDACEAE,"Gongora pleiochroma","Rchb. f.",,65086
+ORCHIDACEAE,"Gongora quinquenervis","Ruiz & Pav.",,65087
+ORCHIDACEAE,"Guarianthe skinneri","(Bateman) Dressler & W.E. Higgins",,100148
+ORCHIDACEAE,"Habenaria alata",Hook.,,65267
+ORCHIDACEAE,"Habenaria repens",Nutt.,,65279
+ORCHIDACEAE,"Habenaria trifida",Kunth,,65281
+ORCHIDACEAE,"Ionopsis satyrioides","(Sw.) Rchb. f.",,65747
+ORCHIDACEAE,"Ionopsis utricularioides","(Sw.) Lindl.",,65748
+ORCHIDACEAE,"Leochilus scriptus","(Scheidw.) Rchb. f.",,66017
+ORCHIDACEAE,"Liparis elata",Lindl.,,66129
+ORCHIDACEAE,"Lockhartia acuta","(Lindl.) Rchb. f.",,66153
+ORCHIDACEAE,"Lockhartia micrantha","Rchb. f.",,66156
+ORCHIDACEAE,"Lockhartia oerstedii","Rchb. f.",,66158
+ORCHIDACEAE,"Lycaste powellii",Schltr.,,66233
+ORCHIDACEAE,"Masdevallia livingstoneana","Roezl & Rchb.f.",,81177
+ORCHIDACEAE,"Masdevallia rolfeana",Kraenzl.,,80224
+ORCHIDACEAE,"Maxillaria camaridii","Rchb. f.",,105481
+ORCHIDACEAE,"Maxillaria friedrichsthalii","Rchb. f.",,66521
+ORCHIDACEAE,"Maxillaria neglecta","(Schltr.) L.O. Williams",,66544
+ORCHIDACEAE,"Maxillaria porrecta",Lindl.,,66553
+ORCHIDACEAE,"Maxillaria uncata",Lindl.,,66575
+ORCHIDACEAE,"Maxillaria variabilis","Bateman ex Lindl.",,66579
+ORCHIDACEAE,"Maxillariella acervata","(Rchb. f.) M.A. Blanco & Carnevali",,80226
+ORCHIDACEAE,"Mormodes powellii",Schltr.,,81179
+ORCHIDACEAE,"Notylia barkeri",Lindl.,,67154
+ORCHIDACEAE,"Notylia pentachne","Rchb. f.",,67155
+ORCHIDACEAE,"Oncidium ampliatum",Lindl.,,81265
+ORCHIDACEAE,"Oncidium sphacelatum",Lindl.,,181730
+ORCHIDACEAE,"Oncidium stenotis","Rchb. f.",,67284
+ORCHIDACEAE,"Ornithocephalus bicornis","Lindl. ex Benth.",,67347
+ORCHIDACEAE,"Ornithocephalus powellii",Schltr.,,67350
+ORCHIDACEAE,"Palmorchis nitida",Dressler,,67468
+ORCHIDACEAE,"Palmorchis powellii","(Ames) C. Schweinf. & Correll",,67469
+ORCHIDACEAE,"Peristeria elata",Hook.,,67880
+ORCHIDACEAE,"Pleurothallis acrisepala","Ames & C. Schweinf.",,112424
+ORCHIDACEAE,"Pleurothallis crocodiliceps","Rchb. f.",,68463
+ORCHIDACEAE,"Polystachya foliosa","(Hook.) Rchb. f.",,68603
+ORCHIDACEAE,"Polystachya lineata","Rchb. f.",,113461
+ORCHIDACEAE,"Polystachya masayensis","Rchb. f.",,68604
+ORCHIDACEAE,"Prosthechea aemula","(Lindl.) W.E. Higgins",,68714
+ORCHIDACEAE,"Prosthechea chacaoensis","(Rchb. f.) W.E. Higgins",,68717
+ORCHIDACEAE,"Prosthechea fragrans","(Sw.) W.E. Higgins",,68720
+ORCHIDACEAE,"Psygmorchis pusilla","(L.) Dodson & Dressler",,68914
+ORCHIDACEAE,"Rossioglossum ampliatum","(Lindl.) M.W.Chase & N.H.Williams",,182095
+ORCHIDACEAE,"Sacoila lanceolata","(Aubl.) Garay",,77856
+ORCHIDACEAE,"Scaphyglottis behrii","(Rchb. f.) Benth. & Hook. f. ex Hemsl.",,69368
+ORCHIDACEAE,"Scaphyglottis livida","(Lindl.) Schltr.",,69384
+ORCHIDACEAE,"Scaphyglottis longicaulis","S. Watson",,69385
+ORCHIDACEAE,"Scaphyglottis prolifera","(Sw.) Cogn.",,69392
+ORCHIDACEAE,"Sievekingia suavis","Rchb. f.",,69662
+ORCHIDACEAE,"Sobralia bletiae",Rchb.f.,,117268
+ORCHIDACEAE,"Sobralia decora",Bateman,,69735
+ORCHIDACEAE,"Sobralia fragrans",Lindl.,,69738
+ORCHIDACEAE,"Specklinia brighamii","(S. Watson) Pridgeon & M.W. Chase",,69896
+ORCHIDACEAE,"Specklinia grobyi","(Bateman ex Lindl.) F. Barros",,69901
+ORCHIDACEAE,"Stelis crescentiicola",Schltr.,,69975
+ORCHIDACEAE,"Teuscheria pickiana","(Schltr.) Garay",,70312
+ORCHIDACEAE,"Trichocentrum capistratum","Linden & Rchb. f.",,70542
+ORCHIDACEAE,"Trichocentrum lacerum","(Lindl.) J.M.H.Shaw",,169582
+ORCHIDACEAE,"Trichopilia maculata","Rchb. f.",,70590
+ORCHIDACEAE,"Trichopilia subulata","(Sw.) Rchb. f.",,70594
+ORCHIDACEAE,"Trigonidium egertonianum","Bateman ex Lindl.",,70621
+ORCHIDACEAE,"Triphora debilis","(Schltr.) Schltr.",,70631
+ORCHIDACEAE,"Triphora gentianoides","(Sw.) Ames & Schltr.",,70632
+ORCHIDACEAE,"Vanilla planifolia",Andrews,,70754
+ORCHIDACEAE,"Vanilla pompona",Schiede,,70755
+ORCHIDACEAE,"Warczewiczella lipscombiae","(Rolfe) Fowlie",,70869
+ORCHIDACEAE,"Xylobium foveatum","(Lindl.) G. Nicholson",,70960
+POACEAE,"Acroceras zizanioides","(Kunth) Dandy",,61430
+POACEAE,"Andropogon bicornis",L.,,61663
+POACEAE,"Andropogon glomeratus","(Walter) Britton, Sterns & Poggenb.",,61665
+POACEAE,"Andropogon glomeratus var. pumilus","(Vasey) Vasey ex L.H. Dewey",,78154
+POACEAE,"Andropogon leucostachyus",Kunth,,61666
+POACEAE,"Andropogon virginicus",L.,,61669
+POACEAE,"Andropogon virginicus var. virginicus",,,78155
+POACEAE,"Anthephora hermaphrodita","(L.) Kuntze",,61708
+POACEAE,"Axonopus compressus","(Sw.) P. Beauv.",,62162
+POACEAE,"Bambusa bambos","(L.) Voss",,62205
+POACEAE,"Bambusa multiplex","(Lour.) Raeusch. ex Schult. & Schult. f.",,62208
+POACEAE,"Bambusa multiplex var. multiplex",,,78176
+POACEAE,"Bothriochloa bladhii","(Retz.) S.T. Blake",,62460
+POACEAE,"Bothriochloa insculpta","(Hochst. ex A.Rich.) A.Camus",,181512
+POACEAE,"Cenchrus brownii","Roem. & Schult.",,62883
+POACEAE,"Chloris barbata",Sw.,,93224
+POACEAE,"Chloris radiata","(L.) Sw.",,63031
+POACEAE,"Chusquea simpliciflora",Munro,,63110
+POACEAE,"Cynodon dactylon","(L.) Pers.",,63831
+POACEAE,"Digitaria bicornis","(Lam.) Roem. & Schult.",,64112
+POACEAE,"Digitaria ciliaris","(Retz.) Koeler",,64114
+POACEAE,"Digitaria horizontalis",Willd.,,64119
+POACEAE,"Digitaria violascens",Link,,64125
+POACEAE,"Eleusine indica","(L.) Gaertn.",,64465
+POACEAE,"Guadua amplexifolia","J. Presl",,65147
+POACEAE,"Guadua macclurei","R.W. Pohl & Davidse",,65149
+POACEAE,"Gynerium sagittatum","(Aubl.) P. Beauv.",,65265
+POACEAE,"Homolepis aturensis","(Kunth) Chase",,65528
+POACEAE,"Hymenachne amplexicaulis","(Rudge) Nees",,65577
+POACEAE,"Hymenachne grandis",Zuloaga,,181551
+POACEAE,"Hyparrhenia rufa","(Nees) Stapf",,65616
+POACEAE,"Ichnanthus pallens","(Sw.) Munro ex Benth.",,65660
+POACEAE,"Ichnanthus tenuis","(J. Presl & C. Presl) Hitchc. & Chase",,65661
+POACEAE,"Imperata contracta","(Kunth) Hitchc.",,65680
+POACEAE,"Isachne polygonoides","(Lam.) Döll",,65791
+POACEAE,"Ischaemum indicum","(Houtt.) Merr.",,65792
+POACEAE,"Ischaemum rugosum",Salisb.,,65794
+POACEAE,"Ischaemum timorense",Kunth,,65795
+POACEAE,"Lasiacis oaxacensis","(Steud.) Hitchc.",,65969
+POACEAE,"Lasiacis oaxacensis var. oaxacensis",,,78340
+POACEAE,"Lasiacis procerrima","(Hack.) Hitchc.",,65970
+POACEAE,"Lasiacis sorghoidea","(Desv. ex Ham.) Hitchc. & Chase",,65976
+POACEAE,"Lasiacis sorghoidea var. sorghoidea",,,78343
+POACEAE,"Leersia hexandra",Sw.,,66005
+POACEAE,"Leptochloa virgata","(L.) P. Beauv.",,66081
+POACEAE,"Lithachne pauciflora","(Sw.) P. Beauv.",,66148
+POACEAE,"Luziola subintegra",Swallen,,66228
+POACEAE,"Megathyrsus maximus","(Jacq.) B.K. Simon & S.W.L. Jacobs",,77727
+POACEAE,"Ocellochloa pulchella","(Raddi) Zuloaga & Morrone",,177218
+POACEAE,"Olyra ecaudata",Döll,,67253
+POACEAE,"Olyra latifolia",L.,,67256
+POACEAE,"Oplismenus burmanni","(Retz.) P.Beauv.",,159398
+POACEAE,"Oplismenus burmannii","(Retz.) P. Beauv.",,67292
+POACEAE,"Oplismenus burmannii var. nudicaulis","(Vasey) McVaugh",,78381
+POACEAE,"Oplismenus hirtellus","(L.) P. Beauv.",,67293
+POACEAE,"Oplismenus hirtellus subsp. hirtellus",,,78038
+POACEAE,"Oplismenus hirtellus subsp. setarius","(Lam.) Mez ex Ekman",,78039
+POACEAE,"Orthoclada laxa","(Rich.) P. Beauv.",,67352
+POACEAE,"Oryza alta",,,108829
+POACEAE,"Oryza latifolia",Desv.,,67362
+POACEAE,"Oryza sativa",L.,,67363
+POACEAE,"Panicum altum","Hitchc. & Chase",,67473
+POACEAE,"Panicum mertensii",Roth,,67483
+POACEAE,"Panicum pilosum",,,67484
+POACEAE,"Panicum polygonatum",Schrad.,,80255
+POACEAE,"Panicum trichanthum",Nees,,67492
+POACEAE,"Panicum trichoides",Sw.,,67494
+POACEAE,"Paspalidium geminatum",Stapf,,80257
+POACEAE,"Paspalum conjugatum","P.J. Bergius",,67542
+POACEAE,"Paspalum corcovadense",Raddi,,67544
+POACEAE,"Paspalum decumbens",Sw.,,67546
+POACEAE,"Paspalum microstachyum","J. Presl",,67553
+POACEAE,"Paspalum notatum",Flüggé,,67557
+POACEAE,"Paspalum paniculatum",L.,,67560
+POACEAE,"Paspalum plicatulum",Michx.,,67564
+POACEAE,"Paspalum repens","P.J. Bergius",,67566
+POACEAE,"Paspalum saccharoides","Nees ex Trin.",,67568
+POACEAE,"Paspalum virgatum",L.,,67577
+POACEAE,"Pharus latifolius",L.,,67908
+POACEAE,"Pharus parvifolius",Nash,,67910
+POACEAE,"Pharus parvifolius subsp. elongatus",Judz.,,78047
+POACEAE,"Pharus virescens",Döll,,67911
+POACEAE,"Phragmites australis","(Cav.) Trin. ex Steud.",,68053
+POACEAE,"Polytrias amaura","(Buse) Kuntze",,80277
+POACEAE,"Polytrias indica","(Houtt.) Veldkamp",,171783
+POACEAE,"Rhipidocladum racemiflorum","(Steud.) McClure",,69084
+POACEAE,"Rottboellia cochinchinensis","(Lour.) Clayton",,69198
+POACEAE,"Rugoloa pilosa","(Sw.) Zuloaga",,77853
+POACEAE,"Rugoloa polygonata","(Schrad.) Zuloaga",,77854
+POACEAE,"Saccharum officinarum",L.,,69284
+POACEAE,"Saccharum spontaneum",L.,,69285
+POACEAE,"Sacciolepis striata","(L.) Nash",,69287
+POACEAE,"Schizachyrium condensatum",Nees,,115907
+POACEAE,"Schizachyrium microstachyum","(Desv. ex Ham.) Roseng., B.R. Arrill. & Izag.",,69428
+POACEAE,"Setaria geminata","(Forssk.) Veldkamp",,69618
+POACEAE,"Setaria palmifolia","(J. Koenig) Stapf",,69619
+POACEAE,"Setaria paniculifera","(Steud.) E. Fourn. ex He",,80315
+POACEAE,"Setaria parviflora","(Poir.) Kerguélen",,69620
+POACEAE,"Setaria vulpiseta","(Lam.) Roem. & Schult.",,69625
+POACEAE,"Sporobolus indicus","(L.) R. Br.",,69949
+POACEAE,"Sporobolus jacquemontii",Kunth,,69950
+POACEAE,"Streptochaeta sodiroana",Hack.,,70074
+POACEAE,"Streptochaeta spicata","Schrad. ex Nees",,70075
+POACEAE,"Streptochaeta spicata subsp. spicata",,,78109
+POACEAE,"Streptogyna americana","C.E. Hubb.",,70076
+POACEAE,"Urochloa fusca","(Sw.) B.F. Hansen & Wunderlin",,70708
+POACEAE,"Urochloa mutica","(Forssk.) T.Q. Nguyen",,70711
+PONTEDERIACEAE,"Eichhornia azurea","(Sw.) Kunth",,64339
+PONTEDERIACEAE,"Eichhornia crassipes","(Mart.) Solms",,64340
+PONTEDERIACEAE,"Pontederia rotundifolia","L. f.",,68619
+SMILACACEAE,"Smilax domingensis",Willd.,,69717
+SMILACACEAE,"Smilax febrifuga",Kunth,,69718
+SMILACACEAE,"Smilax lanceolata",Walter,,80317
+SMILACACEAE,"Smilax mollis","Humb. & Bonpl. ex Willd.",,69721
+SMILACACEAE,"Smilax panamensis",Morong,,80318
+SMILACACEAE,"Smilax purhampuy",Ruiz,,171932
+SMILACACEAE,"Smilax spinosa",Mill.,,69723
+SMILACACEAE,"Smilax spinosa var. spinosa",Mill.,,122704
+SMILACACEAE,"Smilax spissa","Killip & C.V. Morton",,69724
+SMILACACEAE,"Smilax subpubescens","A. DC.",,69725
+TYPHACEAE,"Typha domingensis",Pers.,,70679
+ZINGIBERACEAE,"Renealmia alpinia","(Rottb.) Maas",,69050
+ZINGIBERACEAE,"Renealmia cernua","(Sw. ex Roem. & Schult.) J.F. Macbr.",,69052
+ZINGIBERACEAE,"Zingiber officinale",Roscoe,,71021
