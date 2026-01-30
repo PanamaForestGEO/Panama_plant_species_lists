@@ -1,5 +1,8 @@
 This directory contains species lists from Panamabiota.org.  At this time, these files focus on lists of plant species found on Barro Colorado Island, BCI.  
 
+These files are downloaded from https://panamabiota.org/stri/checklists/checklist.php?clid=180&pid=20
+The downloaded files are renamed to include the date on which they are downloaded.  
+
 Here is information from Ed Gilbert about these lists.  This is from an email he sent (from egbot@asu.edu) to Helene Muller-Landau on 2026-01-14, in response to her query 
 
 
