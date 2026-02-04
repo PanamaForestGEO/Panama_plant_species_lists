@@ -651,7 +651,7 @@ outtaxaplus <-  outtaxaplus %>%
 
 # Save file as modification
 
-write_xlsx(outtaxaplus,paste0(tools::file_path_sans_ext(FNPANAMATAXA),"_MOD.xlsx"))
+write_xlsx(outtaxaplus,paste0(tools::file_path_sans_ext(FNPANAMASPCOMB),"_MOD.xlsx"))
 
 
 
@@ -854,3 +854,35 @@ write_xlsx(outtaxa,FNPANAMATAXA)
 
 ```
 
+# Synonims file
+
+```{r synonims}
+# make a file that gives the synonyms as 1-to-1 list
+synonymdf <- outtaxaplus %>%
+  drop_na(synonyms) %>%  # Remove rows where there are no synonyms
+  separate_rows(synonyms, sep = ", ") %>%  # Split synonyms into separate rows
+  rename(Old_name = synonyms)  %>% # Rename column
+  dplyr::select(Old_name,Current_name,sp6,sp6curr,sp6prior,sp4) %>%
+  arrange(Old_name)
+
+synonymdftnrs <- TNRS(synonymdf$Old_name)
+table(synonymdftnrs$Name_matched_rank,synonymdftnrs$Name_submitted!=synonymdftnrs$Name_matched)
+# there are 5 that don't match up 
+subset(synonymdftnrs,Name_submitted!=Name_matched)
+
+names(synonymdftnrs) <- paste0("Old_",names(synonymdftnrs))
+synonymdftnrs <-rename(synonymdftnrs,Old_name=Old_Name_submitted)
+synonymdfout <- left_join(synonymdf,synonymdftnrs[,c("Old_name",paste0("Old_",tnrscols))],
+                       by="Old_name") %>% 
+  mutate(currnameequalsaccepted=Current_name==Old_Accepted_name)
+
+table(synonymdfout$Current_name==synonymdfout$Old_Accepted_name)
+
+write_xlsx(synonymdfout,FNSYNONYMS)
+```
+
+```{r synonymdout}
+if (nrow(synonymdfout) > 0) { 
+  knitr::kable(synonymdfout, caption="Synonims")
+} 
+```
