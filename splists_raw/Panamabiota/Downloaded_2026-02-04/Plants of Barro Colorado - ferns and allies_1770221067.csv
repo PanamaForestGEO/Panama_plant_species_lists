@@ -1,0 +1,150 @@
+Family,ScientificName,ScientificNameAuthorship,Notes,TaxonId
+ASPLENIACEAE,"Asplenium abscissum",Willd.,,62057
+ASPLENIACEAE,"Asplenium auritum",Sw.,,62061
+ASPLENIACEAE,"Asplenium hoffmannii",Hieron.,,62075
+ASPLENIACEAE,"Asplenium juglandifolium",Lam.,,62077
+ASPLENIACEAE,"Asplenium serratum",L.,,62100
+ASPLENIACEAE,"Hymenasplenium delitescens","(Maxon) L. Regalado & Prada",,176767
+BLECHNACEAE,"Blechnum occidentale",L.,,62403
+BLECHNACEAE,"Telmatoblechnum serrulatum","(Rich.) Perrie, D. J. Ohlsen & Brownsey",,181543
+CYATHEACEAE,"Alsophila cuspidata","(Kunze) D.S. Conant",,61597
+CYATHEACEAE,"Alsophila firma","(Baker) D.S. Conant",,61599
+CYATHEACEAE,"Cyathea bicrenata",Liebm.,,63754
+CYATHEACEAE,"Cyathea divergens",Kunze,,63762
+CYATHEACEAE,"Cyathea microdonta","(Desv.) Domin",,63771
+CYATHEACEAE,"Cyathea petiolata","(Hook.) R.M. Tryon",,63776
+DAVALLIACEAE,"Nephrolepis biserrata","(Sw.) Schott",,67086
+DAVALLIACEAE,"Nephrolepis obtusiloba","A. Rojas",,177207
+DAVALLIACEAE,"Nephrolepis pendula","(Raddi) J. Sm.",,67089
+DENNSTAEDTIACEAE,"Dennstaedtia cicutaria","(Sw.) T. Moore",,63955
+DENNSTAEDTIACEAE,"Lindsaea stricta","(Sw.) Dryand.",,66126
+DENNSTAEDTIACEAE,"Lindsaea stricta var. stricta",,,78349
+DENNSTAEDTIACEAE,"Saccoloma elegans",Kaulf.,,69288
+DENNSTAEDTIACEAE,"Saccoloma elegans subsp. chartaceum","G.B. Nair ex Cremers & K.U. Kramer",,78092
+DENNSTAEDTIACEAE,"Saccoloma inaequale","(Kunze) Mett.",,69289
+DRYOPTERIDACEAE,"Acrostichum aureum",L.,,61433
+DRYOPTERIDACEAE,"Acrostichum danaeifolium","Langsd. & Fisch.",,61434
+DRYOPTERIDACEAE,"Dryopteris patula","(Sw.) Underw.",,64300
+DRYOPTERIDACEAE,"Maxonia apiifolia","(Sw.) C. Chr.",,66581
+DRYOPTERIDACEAE,"Maxonia apiifolia var. dualis","(Donn. Sm.) C. Chr.",,78360
+DRYOPTERIDACEAE,"Mickelia nicotianifolia","(Sw.) Alston",,155906
+DRYOPTERIDACEAE,"Polybotrya caudata",Kunze,,68551
+DRYOPTERIDACEAE,"Polybotrya polybotryoides","(Baker) Christ",,68553
+DRYOPTERIDACEAE,"Stigmatopteris sordida","(Maxon) C. Chr.",,70069
+GLEICHENIACEAE,"Dicranopteris flexuosa","(Schrad.) Underw.",,64061
+GLEICHENIACEAE,"Gleichenella pectinata","(Willd.) Ching",,77618
+GLEICHENIACEAE,"Sticherus bifidus","(Willd.) Ching",,70041
+GLEICHENIACEAE,"Sticherus ferrugineus","(Desv.) J. Gonzales",,155860
+GRAMMITIDACEAE,"Alansmia elastica","(Bory ex Willd.) Moguel & M. Kessler",,77429
+HYMENOPHYLLACEAE,"Didymoglossum curtii","(Rosenst.) Pic. Serm.",,155817
+HYMENOPHYLLACEAE,"Didymoglossum ekmanii","(Wess. Boer) Ebihara & Dubuisson",,155818
+HYMENOPHYLLACEAE,"Didymoglossum godmanii","(Hook.) Ebihara & Dubuisson",,155819
+HYMENOPHYLLACEAE,"Didymoglossum kapplerianum","(J.W. Sturm) Ebihara & Dubuisson",,185773
+HYMENOPHYLLACEAE,"Didymoglossum kraussii","(Hook. & Grev.) Presl",,169664
+HYMENOPHYLLACEAE,"Didymoglossum membranaceum","(L.) Vareschi",,96083
+HYMENOPHYLLACEAE,"Didymoglossum ovale",Fourn.,,169666
+HYMENOPHYLLACEAE,"Didymoglossum punctatum",,,185774
+HYMENOPHYLLACEAE,"Didymoglossum punctatum subsp. sphenoides","(Kunze) Boudrie & Cremers",,185775
+HYMENOPHYLLACEAE,"Hymenophyllum abruptum",Hook.,,65588
+HYMENOPHYLLACEAE,"Hymenophyllum brevifrons",Kunze,,65590
+HYMENOPHYLLACEAE,"Trichomanes diversifrons","(Bory) Mett. ex Sadeb.",,70559
+HYMENOPHYLLACEAE,"Trichomanes kapplerianum","J.W. Sturm",,70568
+HYMENOPHYLLACEAE,"Trichomanes pinnatifidum","v. d. Bosch",,177691
+HYMENOPHYLLACEAE,"Trichomanes pinnatum",Hedw.,,70575
+HYMENOPHYLLACEAE,"Trichomanes polypodioides",L.,,70577
+HYMENOPHYLLACEAE,"Trichomanes punctatum",Poir.,,70578
+HYMENOPHYLLACEAE,"Trichomanes punctatum subsp. labiatum",,,122170
+HYMENOPHYLLACEAE,"Trichomanes punctatum subsp. sphenoides","(Kunze) Wess. Boer",,78123
+HYMENOPHYLLACEAE,"Trichomanes sphenoides",Kunze,,120291
+LOMARIOPSIDACEAE,"Bolbitis portoricensis","(Spreng.) Hennipman",,62437
+LOMARIOPSIDACEAE,"Elaphoglossum hayesii","(Mett. ex Kuhn) Maxon",,64395
+LOMARIOPSIDACEAE,"Elaphoglossum herminieri","(Bory & Fée) T. Moore",,64396
+LOMARIOPSIDACEAE,"Elaphoglossum hieracioides",Mickel,,64398
+LOMARIOPSIDACEAE,"Elaphoglossum longicrure",Christ,,64405
+LOMARIOPSIDACEAE,"Elaphoglossum peltatum","(Sw.) Urb.",,64421
+LOMARIOPSIDACEAE,"Elaphoglossum sporadolepis","(Kunze ex Kuhn) T. Moore",,64435
+LOMARIOPSIDACEAE,"Lomariopsis vestita","E. Fourn.",,66169
+LYCOPODIACEAE,"Palhinhaea cernua","(L.) Carv. Vasc. & Franco",,173129
+LYCOPODIACEAE,"Phlegmariurus dichotomus","(Jacq.) W. H. Wagner",,181004
+MARATTIACEAE,"Danaea nodosa","(L.) Sm.",,63905
+METAXYACEAE,"Metaxya rostrata","(Humb. & Bonpl. ex Willd.) C. Presl",,66668
+OPHIOGLOSSACEAE,"Ophioglossum reticulatum",L.,,67291
+POLYPODIACEAE,"Campyloneurum angustifolium","(Sw.) Fée",,62694
+POLYPODIACEAE,"Campyloneurum aphanophlebium","(Kunze) T. Moore",,62695
+POLYPODIACEAE,"Campyloneurum brevifolium","(Lodd. ex Link) Link",,62696
+POLYPODIACEAE,"Campyloneurum costatum","(Kunze) C. Presl",,62697
+POLYPODIACEAE,"Campyloneurum phyllitidis","(L.) C. Presl",,62703
+POLYPODIACEAE,"Microgramma lycopodioides","(L.) Copel.",,66797
+POLYPODIACEAE,"Microgramma mauritiana","(Willd.) Tardieu",,181539
+POLYPODIACEAE,"Microgramma percussa","(Cav.) de la Sota",,66799
+POLYPODIACEAE,"Microgramma reptans","(Cav.) A.R. Sm.",,66801
+POLYPODIACEAE,"Niphidium crassifolium","(L.) Lellinger",,67105
+POLYPODIACEAE,"Niphidium oblanceolatum","A. Rojas",,67107
+POLYPODIACEAE,"Pecluma hygrometrica","(Splitg.) M.G. Price",,67695
+POLYPODIACEAE,"Pecluma pectinata","(L.) M.G. Price",,67696
+POLYPODIACEAE,"Pleopeltis christensenii","A. R. Sm.",,182079
+POLYPODIACEAE,"Pleopeltis panamensis","(Weath.) Pic. Serm.",,68443
+POLYPODIACEAE,"Pleopeltis polypodioides","(L.) E.G.Andrews & Windham",,112403
+POLYPODIACEAE,"Serpocaulon maritimum","(Hieron.) A.R. Sm.",,77878
+POLYPODIACEAE,"Serpocaulon triseriale","(Sw.) A.R. Sm.",,77880
+POLYPODIACEAE,"Serpocaulon wagneri","(Mett.) A. R. Sm.",,159476
+PTERIDACEAE,"Adiantopsis radiata","(L.) Fée",,61452
+PTERIDACEAE,"Adiantum decoratum","Maxon & Weath.",,61458
+PTERIDACEAE,"Adiantum fructuosum","Poepp. ex Spreng.",,61460
+PTERIDACEAE,"Adiantum humile",Kunze,,61461
+PTERIDACEAE,"Adiantum lucidum","(Cav.) Sw.",,61464
+PTERIDACEAE,"Adiantum lunulatum","Burm. f.",,80082
+PTERIDACEAE,"Adiantum obliquum",Willd.,,61466
+PTERIDACEAE,"Adiantum patens",Willd.,,87404
+PTERIDACEAE,"Adiantum petiolatum",Desv.,,61467
+PTERIDACEAE,"Adiantum pulverulentum",L.,,61470
+PTERIDACEAE,"Adiantum seemannii",Hook.,,61471
+PTERIDACEAE,"Adiantum tetraphyllum","Humb. & Bonpl. ex Willd.",,61475
+PTERIDACEAE,"Adiantum villosum",L.,,61479
+PTERIDACEAE,"Adiantum x variopinnatum","Jermy & T.G. Walker",,155773
+PTERIDACEAE,"Ananthacorus angustifolius","(Sw.) Underw. & Maxon",,61655
+PTERIDACEAE,"Anetium citrifolium","(L.) Splitg.",,61683
+PTERIDACEAE,"Ceratopteris deltoidea",Benedict,,80138
+PTERIDACEAE,"Ceratopteris pteridoides","(Hook.) Hieron.",,62928
+PTERIDACEAE,"Hemionitis palmata",L.,,65407
+PTERIDACEAE,"Pityrogramma calomelanos","(L.) Link",,68405
+PTERIDACEAE,"Pteris altissima",Poir.,,68922
+PTERIDACEAE,"Pteris grandifolia",L.,,68926
+PTERIDACEAE,"Pteris propinqua","J. Agardh",,68936
+PTERIDACEAE,"Pteris pungens",Willd.,,68937
+PTERIDACEAE,"Vittaria graminifolia",Kaulf.,,70829
+PTERIDACEAE,"Vittaria lineata","(L.) Sm.",,70830
+SALVINIACEAE,"Salvinia auriculata",Aubl.,,69321
+SCHIZAEACEAE,"Anemia millefolia","(Gardner) C. Presl",,61672
+SCHIZAEACEAE,"Anemia oblongifolia","(Cav.) Sw.",,61673
+SCHIZAEACEAE,"Lygodium radiatum",Prantl,,66270
+SCHIZAEACEAE,"Lygodium venustum",Sw.,,66271
+SCHIZAEACEAE,"Schizaea elegans","(Vahl) Sw.",,69431
+SELAGINELLACEAE,"Selaginella arthritica",Alston,,69510
+SELAGINELLACEAE,"Selaginella exaltata","(Kunze) Spring",,69521
+SELAGINELLACEAE,"Selaginella flabellata","(L.) Spring",,177519
+SELAGINELLACEAE,"Selaginella flagellata",Spring,,69522
+SELAGINELLACEAE,"Selaginella haematodes","(Kunze) Spring",,69525
+SELAGINELLACEAE,"Selaginella horizontalis","(C. Presl) Spring",,69527
+SELAGINELLACEAE,"Selaginella mollis","A. Braun",,69534
+TECTARIACEAE,"Ctenitis ampla",Ching,,94938
+TECTARIACEAE,"Cyclopeltis semicordata","(Sw.) J. Sm.",,63810
+TECTARIACEAE,"Tectaria incisa",Cav.,,70227
+TECTARIACEAE,"Tectaria nicotianifolia","(Baker) C. Chr.",,70233
+TECTARIACEAE,"Tectaria panamensis","(Hook.) R.M.Tryon & A.F.Tryon",,119136
+TECTARIACEAE,"Tectaria pilosa","(Fée) R.C. Moran",,70234
+TECTARIACEAE,"Triplophyllum funestum","(Kunze) Holttum",,70638
+THELYPTERIDACEAE,"Amauropelta balbisii","A.R. Sm.",,166492
+THELYPTERIDACEAE,"Amblovenatum opulentum","(Kaulf.) J. P. Roux",,181509
+THELYPTERIDACEAE,"Christella dentata","Brownsey & Jermy",,166864
+THELYPTERIDACEAE,"Christella hispidula",Holttum,,166865
+THELYPTERIDACEAE,"Cyclosorus interruptus","(Willd.) H. Itô",,77533
+THELYPTERIDACEAE,"Goniopteris nicaraguensis","(E. Fourn.) Salino & T. E. Almeida",,169911
+THELYPTERIDACEAE,"Goniopteris poiteana","(Bory) C. Presl",,169912
+THELYPTERIDACEAE,"Macrothelypteris torresiana","(Gaudich.) Ching",,66329
+THELYPTERIDACEAE,"Meniscium arborescens","Humb. & Bonpl. ex Willd.",,170241
+THELYPTERIDACEAE,"Meniscium serratum",Cav.,,170244
+THELYPTERIDACEAE,"Thelypteris totta","(Thunb.) Schelpe",,70387
+WOODSIACEAE,"Diplazium cristatum","(Desr.) Alston",,64183
+WOODSIACEAE,"Diplazium grandifolium","(Sw.) Sw.",,64188
+WOODSIACEAE,"Hemidictyum marginatum","(L.) C. Presl",,65405
