@@ -1,0 +1,1119 @@
+---
+title: "checkandmergesplits"
+author: "Helene Muller-Landau, Paula Uzcategui"
+date: "2026-02-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Check and merge splits Markdown
+
+Put this document in the main folder to run it
+
+This document is intented to help correct errors in a woody species list and correcting and filling missing information for:
+species code (sp6, sp4), species name, autor, order, genus, family, subspecies, voucher. And also to leave a register of synonims or names changes.
+
+Make sure to save the html output of running document with the name and date of the raw species lists in the reports folder
+
+Some errors that can be automatically converted, others need manual verification. 
+
+
+```{r setpath, include=FALSE}
+rm(list=ls())
+```
+
+```{r libraries, echo=TRUE, results="hide"}
+library("readxl")
+library("writexl")
+library("dplyr")
+library(tidyr)
+library("TNRS")
+library("stringi")
+library("stringr")
+library(rWCVP) # this two libraries need to be installed from github
+library(rWCVPdata)
+
+```
+
+```{r initialsetup, echo=TRUE, results="hide"}
+redotnrs <- FALSE  # if this is true, all the TNRS checks are redone 
+FIX_SPECIES = TRUE # a new file will be saved with the fixed species names. 
+
+DIRINSP <- "splists_raw/"
+DIRMIDSP <- "splists_mid/"
+DIROUTSP <- "splists_out/"
+DIRCHECK <- "tocheck/"
+
+# input files # all in directory DIRINSP
+FNWRIGHTSPLISTIN <- "Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
+FNFGEOSPLISTIN <- "Forestgeo/2025-11-17FromSuzanne/ViewTaxonomy_bci.xlsx"
+FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx" 
+
+# output files 
+FNWRIGHTSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNWRIGHTSPLISTIN)),"_tnrs.xlsx")
+FNFGEOSPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNFGEOSPLISTIN)),"_tnrs.xlsx")
+FNPANAMASPLISTTNRS <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_tnrs.xlsx")
+FNPANAMASPLISTWCVP <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_WCVP_MATCH.xlsx")
+FNPANAMASPCOMB <- paste0(DIROUTSP,"PanamaSpCombined_",Sys.Date(),".xlsx")
+FNSYNONYMS <- paste0(DIROUTSP,"Synonyms_",Sys.Date(),".xlsx")
+FNPANAMATAXA <- paste0(DIROUTSP,"AllTaxa_",Sys.Date(),".xlsx")
+# the last is the list of all unique accepted species, genera, and families for photo labeling
+
+tnrscols <- c("Name_matched","Name_matched_rank","Accepted_name","Accepted_name_author",
+              "Accepted_name_rank","Accepted_family")
+tnrscols2 <- c("Name_submitted",tnrscols)
+tnrscols3 <- c("binomial",tnrscols)
+tnrscols4 <- c("Current_name",tnrscols)
+
+
+
+# Joe Wright's taxonomy dataset (includes 4-letter codes and some non-woody species as well as trees and lianas)
+if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
+  usejoetaxa <- read_excel(FNWRIGHTSPLISTTNRS)
+} else {
+  joetaxa <- read_excel(paste0(DIRINSP,FNWRIGHTSPLISTIN))
+  joetaxa <- joetaxa[,1:21]
+  joetaxa <- mutate(joetaxa,
+                    sp6=ifelse(sp6=="na",NA,sp6),
+                    binomialorig=gsub("_"," ",binomialorig))
+  joetaxa <- rename(joetaxa,
+                    binomial=binomialorig)
+  sp6dupsj <- joetaxa %>% filter(!is.na(sp6)) %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
+  binomialdupsj <- joetaxa %>% group_by(binomial) %>% filter(n()>1) %>% 
+    ungroup() %>% arrange(binomial)
+  # no duplicates
+  joetaxatnrs <- TNRS(joetaxa$binomial)
+  joetaxatnrs <-rename(joetaxatnrs,binomial=Name_submitted)
+  usejoetaxa <- left_join(joetaxa,joetaxatnrs[,tnrscols3],by="binomial")
+  usejoetaxa$tnrsdate <- Sys.Date()
+  write_xlsx(usejoetaxa,FNWRIGHTSPLISTTNRS)
+  rm(joetaxa,sp6dupsj,binomialdupsj,joetaxatnrs)
+}
+
+#################################################
+
+# ForestGEO dataset of taxonomy for species codes used in Panama plot censuses - includes morphospecies
+if (file.exists(FNFGEOSPLISTTNRS) & !redotnrs) {
+  fgeotaxa <- read_excel(FNFGEOSPLISTTNRS) 
+} else {
+  treetaxa <- read_excel(paste0(DIRINSP,FNFGEOSPLISTIN))
+  treetaxa <- rename(treetaxa,
+                     sp6=Mnemonic)
+  sp6dups <- treetaxa %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
+  # these sp6dups are all cases of subspecies, so ignore
+  treetaxa <- subset(treetaxa, !duplicated(sp6))
+  treetaxa <- mutate(treetaxa,
+                     binomial=paste(Genus,SpeciesName))
+  treetaxa <- mutate(treetaxa,
+                     binomial=ifelse(Genus=="Unidentified",paste(Genus,sp6),binomial))
+  treetaxa$binomial <- stri_trans_general(treetaxa$binomial,"Latin-ASCII")
+  binomialdups <- treetaxa %>% group_by(binomial) %>% filter(n()>1) %>% ungroup() %>% arrange(binomial)
+  treetaxauniqbinomial <- subset(treetaxa,!duplicated(binomial)) # for matching on binomials 
+  
+  treetaxatnrs <- TNRS(treetaxauniqbinomial$binomial)
+  treetaxatnrs <-rename(treetaxatnrs,binomial=Name_submitted)
+  fgeotaxa <- left_join(treetaxauniqbinomial,treetaxatnrs[,tnrscols3],by="binomial")
+  fgeotaxa$tnrsdate <- Sys.Date()
+  write_xlsx(fgeotaxa,FNFGEOSPLISTTNRS)
+  rm(treetaxa,sp6dups,binomialdups,treetaxauniqbinomial,treetaxatnrs)
+}
+
+```
+
+## Load species: 
+
+```{r loadsp, echo=TRUE, results="hide"}
+# ForestGEO Panama woody plant species list 
+read_excel(paste0(DIRINSP,FNPANAMASPLISTIN),col_types="text")  %>%
+  rename(Current_order=taxorder,
+         Current_family=family,
+         Current_genus=genus,
+         Current_species=speciesname,
+         Current_name_author=authority,
+         Current_subspecies=subspecies,
+         synonyms=synonyms,
+         sp6curr=mnemonic,
+         vouchers=herbarium,
+         habit=liana) %>%
+  mutate(sp6curr=tolower(sp6curr),
+         habit=ifelse(habit=="l","Climbing","Freestanding"),
+         Current_name=ifelse(is.na(Current_subspecies),
+                                paste0(Current_genus," ",Current_species),
+                                paste0(Current_genus," ",Current_species," ",Current_subspecies))) %>%
+  mutate(habit=ifelse(is.na(habit),"Freestanding",habit),
+         sp6prior=fgeotaxa$sp6[match(Current_name,fgeotaxa$binomial)]) -> 
+  alltaxa
+
+# fix problems matching on binomial for these subspecies
+alltaxa$sp6prior[alltaxa$sp6curr=="swars1"] <- "swars1"
+alltaxa$sp6prior[alltaxa$sp6curr=="swars2"] <- "swars2"
+
+nrow(alltaxa)
+```
+
+Number of species: `r paste(nrow(alltaxa))`
+
+## Check duplicated names
+```{r checkduplicate, echo=TRUE, results="hide"}
+# check for duplicate binomials and address if needed
+bindups <- alltaxa %>% group_by(Current_name) %>% arrange(Current_name) %>% filter(n()>1) %>% ungroup()
+
+nrow(bindups)
+```
+
+- Duplicated species names: `r paste(nrow(bindups))`
+
+```{r showbindups}
+if (nrow(bindups) > 0) { 
+    knitr::kable(bindups %>% select(Current_name, sp6curr), captio="Duplicated species names")
+    write_xlsx(bindups,paste0(DIRCHECK,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_nombreduplicado.xlsx"))
+}
+``` 
+
+⚠️ If there are duplicates, manually check and leave the correct species in the "_touse" file:
+```{r manuadupcheck}
+if (nrow(bindups)>0 & file.exists(paste0(DIRCHECK,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_touse.xlsx"))) 
+  {
+  # currently no duplicates!
+  # previously, I manually went through and picked one of the entries as correct for each duplicated Current_name
+  # exception is Swartzia simplex, where both are good
+  alltaxa <- filter(alltaxa, !Current_name %in% bindups$Current_name)
+  gooddups <- read_excel(paste0(DIRCHECK,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_touse.xlsx"))
+  alltaxa <- rbind(alltaxa,gooddups)
+} else{
+  print("Found no file to repair duplicates")
+}
+```
+
+
+## Check for malformed sp6 codes
+
+```{r checksp, echo=TRUE}
+alltaxa <- alltaxa %>% mutate(sp6 = coalesce(sp6curr, sp6prior))
+
+sp6dups <- alltaxa %>% filter(!is.na(sp6)) %>% group_by(sp6) %>% 
+  arrange(sp6) %>% filter(n()>1) %>% ungroup()
+
+# check for 6-letter codes in the Fgeo codes list that are not in the Panama woody plant species list
+# but that are for good species
+sp6dropped <- subset(fgeotaxa,!sp6 %in% alltaxa$sp6 & 
+                       Accepted_name_rank %in% c("species","subspecies","variety")
+                     &IDLevel=="species") %>%
+      mutate(binomial_in_flora=binomial %in% alltaxa$Current_name) %>%
+      arrange(sp6)
+
+
+sp6problems <- alltaxa %>%
+  filter(
+    is.na(sp6) | 
+      (!is.na(sp6) & !is.na(sp6prior) & sp6 != sp6prior) | 
+      (!is.na(sp6) & nchar(sp6) != 6) | 
+      (sp6 %in% sp6dups) | 
+      (sp6 %in% sp6dropped)
+  ) %>%
+  mutate(problem_reason = case_when(
+    is.na(sp6)                ~ "Code is missing (NULL)",
+    sp6 != sp6prior           ~ "Code mismatch with prior record",
+    nchar(sp6) != 6           ~ "Code is not 6 characters",
+    sp6 %in% sp6dups          ~ "Duplicate species code",
+    sp6 %in% sp6dropped       ~ "Not in ForestGEO dataset",
+    TRUE                      ~ "Unknown error"
+  ))
+  
+write_xlsx(sp6problems,paste0(DIRCHECK,tools::file_path_sans_ext(basename(FNPANAMASPLISTIN)),"_sp6prob.xlsx"))
+
+if(nrow(sp6problems) > 0){
+  knitr::kable(sp6problems %>%
+    select(sp6, sp6curr, sp6prior, Current_name, problem_reason), caption="Species with code problems")
+}
+
+```
+
+⚠️  Fix problems
+
+This species is unidentified so I will remove it from the dataset
+
+```{r fixcodes, echo=TRUE}
+
+alltaxa <- alltaxa %>% filter(sp6 != "ery22")
+
+```
+
+## Check for species names changes with WCVP v13 directly
+
+Change the Current_name to forestgeo_name
+Many names in the original file will change after using WCVP but mainly because of spelling differences.
+```{r changenames, echo=TRUE, results="hide"}
+
+alltaxa <- alltaxa %>% 
+  rename(
+    forestgeo_name = Current_name,
+    forestgeo_genus = Current_genus,
+    forestgeo_species = Current_species,
+    forestgeo_family = Current_family,
+    forestgeo_order = Current_order,
+    forestgeo_author = Current_name_author,
+    forestgeo_subspecies = Current_subspecies
+  )
+
+```
+
+### Add sp4 data from Wright list
+
+```{r sp4check, echo=TRUE, results="hide"}
+
+# add sp4 codes from Wright list
+table(table(usejoetaxa$sp4)) # 938 unique sp4 codes
+table(usejoetaxa$Name_matched_rank,is.na(usejoetaxa$sp4)) # most of them for taxa with species-level IDs
+
+# Fisrt match by sp6 
+m1 <- ifelse(is.na(alltaxa$sp6),NA,
+             match(alltaxa$sp6,usejoetaxa$sp6))
+
+alltaxa[is.na(m1), c("sp6", "forestgeo_name")]
+
+sum(!is.na(m1))
+
+dup_m1 <- as.data.frame(table(table(m1)))
+colnames(dup_m1) <- c("Times_used", "Number_sp4_codes")
+
+m1dups <- as.numeric(names(table(m1)[table(m1)>1]))
+m1dups_table <- usejoetaxa[m1dups, c("sp4", "Accepted_name")]
+
+# Second, match by Accepted name 
+m2 <-ifelse(is.na(alltaxa$forestgeo_name),NA,
+            match(alltaxa$forestgeo_name,usejoetaxa$Accepted_name))
+table(m1==m2)
+
+m2 <- ifelse(m2 %in% m1 | 
+               !usejoetaxa$Accepted_name_rank[m2] %in% c("species","subspecies","variety") ,
+             NA,m2)
+
+table(m1==m2)
+sum(m1!=m2,  na.rm=TRUE)
+dup_m2 <- as.data.frame(table(table(m2)))
+colnames(dup_m2) <- c("Times_used", "Number_sp4_codes")
+m2dups <- as.numeric(names(table(m2)[table(m2)>1]))
+m2dups_table <- usejoetaxa[m2dups,c("sp4","Accepted_name","Accepted_name_rank")]
+
+table(table(m2))
+table(is.na(m1),is.na(m2))
+
+# Merge the matched codes by sp6 or by Accepted name:
+table(is.na(m1),is.na(m2))
+m3 <- ifelse(!is.na(m1),m1,m2)
+
+dup_m3 <- as.data.frame(table(table(m3)))
+colnames(dup_m3) <- c("Times_used", "Number_sp4_codes")
+m3dups <- as.numeric(names(table(m3)[table(m3)>1]))
+m3dups_table <- usejoetaxa[m3dups,c("sp4","sp6","Accepted_name")]
+
+
+alltaxa$sp4 <-usejoetaxa$sp4[m3]
+
+```
+
+The strategy to add the  sp4 names to our species list:
+(Duplicates refer to multiple woody taxa mapping to the same Wright sp4 code.)
+
+1. Match by sp6 code
+  
+`r sum(!is.na(m1))` rows in our woody species list found a match with the sp4 code in wright.
+
+
+```{r showm1dups, echo=TRUE}
+if (length(m1dups) > 0) { 
+  knitr::kable(m1dups_table, caption="Duplicates")
+  }
+``` 
+
+
+2.  Match by Accepted name
+
+`r sum(is.na(m1) & !is.na(m2))` rows in our woody species list found a match via Accepted name where no sp6 match was found.
+
+```{r showm2dups, echo=TRUE}
+if (length(m2dups) > 0) { 
+  knitr::kable(m2dups_table, captio="Duplicates")
+  }
+``` 
+
+
+`r paste(sum(!is.na(alltaxa$sp4)), "/", nrow(alltaxa))` woody taxa were successfully assigned an sp4 code.
+
+
+The following block is to fix special cases:
+```{r fixspecialsp4,  echo=TRUE, results="hide"}
+
+alltaxa$sp4[alltaxa$sp6=="swars1"] <- "SWA1"
+alltaxa$sp4[alltaxa$sp6=="swars2"] <- "SWA2"
+alltaxa$sp4[alltaxa$sp6=="guargr"] <- "GUA1"
+alltaxa$sp4[alltaxa$sp6=="guargu"] <- "GUA2"
+alltaxa$sp4[alltaxa$sp6=="quaras"] <- "QUA1"# BCI Quararibea was formerly known as asterolepis, but is now stenophylla
+alltaxa$sp4[alltaxa$sp6=="quara1"] <- NA  # BCI Quararibea was formerly known as asterolepis, but is now stenophylla
+sp4dups <- names(table(alltaxa$sp4)[table(alltaxa$sp4)>1])
+table(table(alltaxa$sp4))
+
+# see if there is NA
+sum(!is.na(alltaxa$sp4))
+sum(is.na(alltaxa$sp4))
+
+```
+
+
+Match species names with wcvp:
+```{r trywcvp, echo=TRUE, resultes="hide"}
+
+# load the wcvp names
+# match with the species list
+# check for duplicates and fix
+# merge with the accepted names
+
+
+########### MATCHING NAMES USING WCVP ###########################################################
+
+wcvp_names <- rWCVPdata::wcvp_names 
+
+# function to look for accepted name by the accepted name id returned from the wcvp library matching function
+matchaccepted_names<- function(matcheswcvp){
+  matcheswcvp %>% 
+    left_join(wcvp_names %>% select(plant_name_id, genus, species, taxon_rank, family, primary_author, infraspecific_rank, infraspecies, lifeform_description, taxon_status),
+              by=c("wcvp_accepted_id"="plant_name_id")) %>% 
+    mutate(
+      Accepted_name = case_when(
+        is.na(species) | species == "" ~ genus,
+        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
+        TRUE ~ paste(genus, species))
+    ) %>%
+    rename(
+      Accepted_family= family,
+      Accepted_name_rank = taxon_rank,
+      Accepted_name_author = primary_author,
+      Accepted_name_status = taxon_status,
+      Accepted_name_genus = genus, 
+      Accepted_name_species = species, 
+      Accepted_name_infraspecific_rank = infraspecific_rank, 
+      Accepted_name_infraspecies = infraspecies
+    )
+}
+
+
+####################### Merge taxa with wcvp names 
+# this can take a while, so save the file when finished
+if(file.exists(FNPANAMASPLISTWCVP)){
+  alltaxawcvp <- read_excel(FNPANAMASPLISTWCVP)  
+} else{
+  alltaxawcvp <-wcvp_match_names(alltaxa, wcvp_names, name_col="forestgeo_name")
+  write_xlsx(alltaxawcvp, FNPANAMASPLISTWCVP)
+}
+
+# This should be TRUE
+all(unique(alltaxawcvp$forestgeo_name) %in% unique(alltaxa$forestgeo_name))
+
+# There can be multiple matches for one species, but only one is considered accepted
+#sanity check of that
+alltaxawcvp %>%
+  group_by(forestgeo_name) %>%
+  summarise(
+    n_rows = n(),
+    n_accepted = sum(wcvp_status == "Accepted", na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_accepted > 1)
+
+
+# If they have two accepted names its probably because they were registered twice. The two records have different ids
+# rules to keep 1 name per species:
+# if there is only one record with the current name keep that.
+# if there are more than one keep the one with wcvp_status = "Accepted"
+alltaxawcvp_clean <- alltaxawcvp %>%
+  mutate(
+    status_priority = case_when(
+      wcvp_status == "Accepted"     ~ 1,
+      wcvp_status == "Synonym"      ~ 2,
+      wcvp_status == "Illegitimate" ~ 3,
+      wcvp_status == "Unplaced"     ~ 4,
+      TRUE                          ~ 5
+    )
+  ) %>%
+  group_by(forestgeo_name) %>%
+  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(-status_priority)
+
+# Now this should be TRUE.
+nrow(alltaxawcvp_clean) == nrow(alltaxa) 
+
+# sanity check one species per row
+alltaxawcvp_clean %>%
+  group_by(forestgeo_name) %>%
+  summarise(
+    n_rows = n(),
+    .groups = "drop"
+  ) %>%
+  filter(n_rows > 1)
+
+# Add the accepted names
+alltaxawcvp_clean <- matchaccepted_names(alltaxawcvp_clean)
+
+# Now left join to make sure the number of species is consistent.
+alltaxawcvpplus <-   alltaxa %>%
+  left_join(alltaxawcvp_clean %>% 
+              select(forestgeo_name, wcvp_name, wcvp_authors,wcvp_rank, wcvp_status, 
+                     Accepted_name, Accepted_family, Accepted_name_rank, Accepted_name_author, Accepted_name_status,
+                     Accepted_name_genus,
+                     Accepted_name_species, 
+                     Accepted_name_infraspecific_rank, 
+                     Accepted_name_infraspecies,
+                     lifeform_description, match_similarity, match_edit_distance),
+            by="forestgeo_name") %>%
+  rename(
+    Name_matched = wcvp_name,
+    Name_matched_rank = wcvp_rank
+  )
+
+# This should be TRUE
+nrow(alltaxawcvpplus)  == nrow(alltaxa) 
+
+# For mysterious reasons some species have accepted status but dont have accepted name ...
+alltaxawcvpplus %>% filter(is.na(Accepted_name)) %>% select(forestgeo_name, Name_matched, wcvp_status)
+
+# in that case leave the Name-matched as the accepted_name 
+inc <- alltaxawcvpplus$Accepted_name=="" | is.na(alltaxawcvpplus$Accepted_name)
+if (any(inc, na.rm = TRUE)) {
+  table(inc)
+  alltaxawcvpplus$Accepted_name[inc] <- alltaxawcvpplus$Name_matched[inc]
+  alltaxawcvpplus$Accepted_name_rank[inc] <- alltaxawcvpplus$Name_matched_rank[inc]
+  alltaxawcvpplus$Accepted_name_author[inc] <- ifelse(is.na(alltaxawcvpplus$Accepted_name_author[inc]) & alltaxawcvpplus$Accepted_name[inc] == alltaxawcvpplus$forestgeo_name[inc],
+                                                      alltaxawcvpplus$forestgeo_author[inc],
+                                                      alltaxawcvpplus$Accepted_name_author[inc]
+  )
+}
+
+# lets see the taxonomic status of the matches
+alltaxawcvpplus %>% 
+  count(wcvp_status, name = "n")
+
+```
+
+
+
+This should TRUE if the code is matching correctly one wcvp pair to one species name:
+```{r wcvpsanity}
+ nrow(alltaxawcvp_clean) == nrow(alltaxa)
+```
+
+Species matched and their taxonomic status:
+```{r wcvpstatus}
+ alltaxawcvpplus %>% 
+  count(wcvp_status, name = "n")
+```
+
+
+Next we will detect inconsistency in the matched names and the accepted names and correct errors as we go. A record of the changes will be kept in a separate file. 
+
+```{r setwcvpname, echo=TRUE, results="hide"}
+
+# For now lets assume the original name is correct 
+alltaxawcvpplus <- alltaxawcvpplus %>% mutate(
+  currwcvp_name = forestgeo_name,
+  currwcvp_family = forestgeo_family,
+  currwcvp_genus = forestgeo_genus,
+  currwcvp_species = forestgeo_species,
+  currwcvp_subspecies = forestgeo_subspecies,
+  currwcvp_author = forestgeo_author,
+  currforestgeochanged = FALSE,
+  currnotes = ""
+)
+
+```
+
+## No Accepted name found
+
+Some species are very recent and don't show in wcvp. We will leave their names as in forestgeo
+```{r speciesrevision2, echo=TRUE, results="hide"}
+species_na_wcvp <- alltaxawcvpplus %>% filter(is.na(wcvp_status))
+
+if(nrow(species_na_wcvp)>0){
+  knitr::kable(species_na_wcvp %>% select(sp6, forestgeo_name))
+}
+```
+
+Remove Swartzia
+```{r removena, echo=TRUE, results="hide"}
+alltaxawcvpplus <- alltaxawcvpplus %>% filter(forestgeo_name != "Swartzia sp.")
+```
+
+
+## Changes in spelling:
+
+When the fwcvp status is Accepted but the name matched by wcvp is different from the accepted name. 
+
+Should be only typos or spelling: These will be changed to keep the version with the wcvp spelling
+
+```{r wcvpmatcherrors, echo=TRUE}
+##########   Check for errors while matching (should be just spelling)  
+
+# Matching errors should be only on typos or spelling errors:
+# subspecies and hybrids are common errors. 
+matchingerrors <- alltaxawcvpplus %>%
+  filter((is.na(Name_matched) | forestgeo_name !=Name_matched) & wcvp_status == "Accepted") %>%
+  arrange(match_similarity)  %>%
+  mutate(row_id = row_number())
+
+print(n=28, matchingerrors %>% select(row_id, forestgeo_name,Name_matched, Accepted_name, match_similarity))
+
+# If genus, species or subspecies seem very different (not just spelling). It is probably a mistake
+# If the error is a small spelling, leave the name in WCVP (accepted name)
+# For the species that the match is weird, lets leave the current name as accepted name.
+if(nrow(matchingerrors)>0){
+  knitr::kable(matchingerrors %>% select(row_id, forestgeo_name,Name_matched, Accepted_name, match_similarity))
+}
+```
+
+```{r wcvpmatchingerror2}
+
+# list of species name that we will change as they have a different spelling
+changes_spelling1 <- matchingerrors 
+  #filter(row_id %in% c(13:19, 21:49)) %>% # select all the species that have just spelling changes.
+
+inc <- with(alltaxawcvpplus, alltaxawcvpplus$forestgeo_name %in% changes_spelling1$forestgeo_name)
+
+species_modified1 <- alltaxawcvpplus[inc,] %>% mutate(note = "Spelling changed")
+
+if (any(inc, na.rm=TRUE)) {
+  
+  tmp <- alltaxawcvpplus[inc, ]
+  
+  # Perform calculations on the subset
+  tmp$currforestgeochanged <- TRUE
+  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
+  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
+  tmp$currwcvp_species    <- tmp$Accepted_name_species
+  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
+  tmp$currwcvp_name       <- tmp$Accepted_name
+  tmp$currnotes            <- "Spelling changed in wcvp"
+  
+  # Re-assign the modified subset back to the original rows
+  alltaxawcvpplus[inc, ] <- tmp
+}
+
+
+```
+
+
+## Changes in names
+Some species have changed their name, that is normal.
+
+First lets check that wcvp didin't make a mistake while matching
+A mismatch could mean the WCVP matching is not good, and changing the species name can be misleading
+```{r namechanges, echo=TRUE, results="hide"}
+
+# Some species have changed their name, that is normal. Lets check that wcvp didint make a mistake the matching
+noacceptedwcvpname <- alltaxawcvpplus %>% 
+  filter(
+    (is.na(wcvp_status) | wcvp_status != "Accepted") &
+      !is.na(forestgeo_name) &
+      !is.na(Name_matched) &
+      forestgeo_name != Name_matched
+  ) %>%
+  arrange(wcvp_status, match_similarity) %>%
+  mutate(row_id = row_number()) %>%
+  select(row_id, forestgeo_name, Name_matched, Accepted_name, wcvp_status, match_similarity) 
+
+paste0("⚠️ Species where the match is not exact and the name changes:",  nrow(noacceptedwcvpname))
+if(nrow(noacceptedwcvpname)>0){
+  knitr::kable(noacceptedwcvpname)
+}
+
+```
+
+The matches are for spelling errors nothing to worry about. Just change the name to the correct spelling: 
+```{r fixspelling2, echo=TRUE, reuslts="hide"}
+
+# If the matched name is very different needs revision
+# otherwise its probably a spelling error, the accepted name is okay
+change_spelling2 <- noacceptedwcvpname
+  #filter(row_id %in% c(2:4)) %>%
+
+inc <- with(alltaxawcvpplus, alltaxawcvpplus$forestgeo_name %in% change_spelling2$forestgeo_name)
+
+species_modified2 <- alltaxawcvpplus[inc,] %>% mutate(note = "Spelling changed")
+
+if (any(inc, na.rm=TRUE)) {
+  tmp <- alltaxawcvpplus[inc, ]
+  
+  # Perform calculations on the subset
+  tmp$currforestgeochanged <- TRUE
+  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
+  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
+  tmp$currwcvp_species    <- tmp$Accepted_name_species
+  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
+  tmp$currwcvp_name       <- tmp$Accepted_name
+  tmp$currnotes            <- "Name changed in wcvp"
+  
+  # Re-assign the modified subset back to the original rows
+  alltaxawcvpplus[inc, ] <- tmp
+}
+
+```
+
+Cases in which forestgeo species now have the same name under wcvp:
+
+This means the species are considered the same under wcvp. Needs manual checking. 
+```{r dupsnames, echo=TRUE}
+
+########### Check for duplicate species 
+
+# Two species can now have the same accepted name. 
+# One is now considered a synonym or illegitimate and the other is the accepted name
+
+# OR the synonim could be a different species but with a matching error. Lets check. 
+
+acceptednamesdup <- alltaxawcvpplus %>% 
+  filter(!is.na(Accepted_name)) %>%
+  group_by(Accepted_name) %>% 
+  arrange(Accepted_name) %>% filter(n()>1) %>% ungroup() %>%
+  mutate(mismatch = (forestgeo_name != Name_matched)) %>% 
+  arrange(Accepted_name, mismatch, match_similarity) %>%
+  select( sp6, Accepted_name, forestgeo_name, Name_matched, wcvp_status, mismatch, match_similarity )
+
+paste0("⚠️ Two species have now the same name:",  nrow(acceptednamesdup))
+if( nrow(acceptednamesdup) > 0){
+  knitr::kable(acceptednamesdup %>% select(sp6, Accepted_name, forestgeo_name, Name_matched ))
+}
+
+```
+
+
+```{r duplicatedaccepted}
+
+# Lets change the names of the following species: 
+current_name_species_merge <- c(
+  "Cestrum haberi", "Tournefortia bicolor", "Guarea grandifolia", "Neea laetevirens", "Passiflora panamensis"
+)
+
+affected_accepted <- alltaxawcvpplus %>%
+  filter(forestgeo_name %in% current_name_species_merge) %>%
+  pull(Accepted_name) %>%
+  unique()
+
+# remove the species that are now duplicated with the same accepted name. 
+alltaxawcvpplus <- alltaxawcvpplus %>%
+  group_by(Accepted_name) %>%
+  mutate(
+    synonyms = if_else(
+      Accepted_name %in% affected_accepted & wcvp_status == "Accepted",
+      paste(
+        unique(forestgeo_name[
+          forestgeo_name %in% current_name_species_merge &
+            wcvp_status != "Accepted"
+        ]),
+        collapse = "; "
+      ),
+      synonyms
+    )
+  ) %>%
+  ungroup() %>%
+  filter(!forestgeo_name %in% current_name_species_merge)
+
+
+
+```
+
+## Family changed
+
+Some species kept the same name but the family they belong to changed!
+
+```{r familychanged2}
+
+familychanged <-  alltaxawcvpplus %>% filter( forestgeo_name == Accepted_name & currwcvp_family != Accepted_family &  wcvp_status == "Accepted") 
+
+paste0("Species with changes in family ",  nrow(familychanged))
+if( nrow(familychanged) > 0){
+  knitr::kable(familychanged %>%  select(forestgeo_family, Accepted_family, forestgeo_name, Accepted_name, wcvp_status, currnotes), caption="Species with changes in family")
+}
+
+# set family to the accepted family:
+inc <- with(alltaxawcvpplus,(
+        (!is.na(forestgeo_name) & !is.na(Accepted_name) &  forestgeo_name == Accepted_name &   wcvp_status == "Accepted" & forestgeo_name %in% familychanged$forestgeo_name)))
+
+species_modified4 <- alltaxawcvpplus[inc,]
+
+if (any(inc, na.rm = TRUE)) {
+  tmp <- alltaxawcvpplus[inc, ]
+  
+  # Perform calculations on the subset
+  tmp$currforestgeochanged <- TRUE
+  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$currwcvp_family     <- tmp$Accepted_family
+  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
+  tmp$currwcvp_species    <- tmp$Accepted_name_species
+  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
+  tmp$currwcvp_name       <- tmp$Accepted_name
+  tmp$currnotes            <- paste0("Family changed")
+  
+  # Re-assign the modified subset back to the original rows
+  alltaxawcvpplus[inc, ] <- tmp
+}
+
+#sanity check: a single genus always has the same family:
+genus_many_families <- alltaxawcvpplus %>%
+  group_by(currwcvp_name) %>%
+  summarise(n_families = n_distinct(currwcvp_family), .groups = "drop") %>%
+  filter(n_families > 1)
+genus_many_families
+
+```
+
+##Change species name when the match was perfect and WCVP reported a name change:
+```{r acceptednamechange }
+
+
+# if for some reason species name change but should be left alone. 
+leave_current_names = c(
+  "Swartzia simplex var. continentalis", # no match with the subspecies
+  "Swartzia simplex var. grandiflora"  # no match with the subspecies
+)
+
+# Now the species names we would like to change:
+# No missmatch between Name_matched and Current_name and The state is non accepted.
+
+inc <- with(alltaxawcvpplus,(
+        (!is.na(forestgeo_name) & !is.na(Name_matched) & forestgeo_name == Name_matched & wcvp_status != "Accepted") &
+        (!is.na(forestgeo_name) & !forestgeo_name  %in% leave_current_names)
+        ))
+
+species_modified4 <- alltaxawcvpplus[inc,]
+
+if (any(inc, na.rm = TRUE)) {
+  tmp <- alltaxawcvpplus[inc, ]
+  
+  # Perform calculations on the subset
+  tmp$currforestgeochanged <- TRUE
+  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
+  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
+  tmp$currwcvp_species    <- tmp$Accepted_name_species
+  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
+  tmp$currwcvp_name       <- tmp$Accepted_name
+  tmp$currnotes            <- paste0("Name changed in wcvp")
+  
+  # Re-assign the modified subset back to the original rows
+  alltaxawcvpplus[inc, ] <- tmp
+}
+
+```
+
+
+
+## Species that were modified:
+
+```{r finaloutput, echo=TRUE, results="hide"}
+# added problematic sp6 to the list of problems that need revision
+
+species_modified <- alltaxawcvpplus %>% filter( currforestgeochanged == TRUE) %>% arrange(currnotes, forestgeo_name)
+
+paste0("Total of species modified: ",  nrow(species_modified))
+if( nrow(species_modified) > 0){
+  knitr::kable(species_modified %>%  select(sp6,  forestgeo_name, currwcvp_name, forestgeo_family,  currwcvp_family,  wcvp_status, currnotes))
+}
+
+
+```
+
+## Sanity check:
+```{r speciesrevision}
+
+# species that remain with a different name form wcvp
+species_no_wcvp <- alltaxawcvpplus %>% filter(is.na(currwcvp_name) | is.na(Accepted_name) | currwcvp_name!=Accepted_name)
+species_no_wcvp %>% select(sp6, forestgeo_name, currwcvp_name, Name_matched ,Accepted_name, currforestgeochanged)
+
+paste0("Species were accepted name is still different from wcvp : ",  nrow(species_modified))
+if( nrow(species_modified) > 0){
+  knitr::kable(species_modified %>%  select(sp6,  forestgeo_name, currwcvp_name, forestgeo_family,  currwcvp_family,  wcvp_status, currnotes), caption="Species modified")
+}
+
+
+# species with duplicated accepted name
+acceptednamesdup <- alltaxawcvpplus %>% 
+  filter(!is.na(currwcvp_name)) %>%
+  group_by(currwcvp_name) %>% 
+  arrange(currwcvp_name) %>% filter(n()>1) %>% ungroup() %>%
+  mutate(mismatch = (forestgeo_name != Name_matched)) %>% 
+  arrange(currwcvp_name, mismatch, match_similarity) %>%
+  select( sp6, currwcvp_name, forestgeo_name, Name_matched, wcvp_status, mismatch, match_similarity )
+
+if( nrow(acceptednamesdup) > 0){
+  knitr::kable(acceptednamesdup,caption="Duplicated species")
+}
+
+
+```
+## Check for missing information and consistency
+
+The Unplaced  status can have missing information. 
+
+```{r checkmissing, echo=TRUE}
+
+missing_info <- alltaxawcvpplus %>% filter(
+  (!is.na(currwcvp_name ) &word(currwcvp_name, 1) != currwcvp_genus) |
+  is.na(currwcvp_genus) | is.na(currwcvp_family) | is.na(currwcvp_author) | is.na(currwcvp_species))   
+
+missing_info %>% select(sp6, currwcvp_name, forestgeo_name, currwcvp_species, forestgeo_species, currwcvp_genus, forestgeo_genus,currwcvp_family, forestgeo_family, currwcvp_author, forestgeo_author, currforestgeochanged, wcvp_status, currnotes)
+
+# set genus in name as genus
+alltaxawcvpplus <- alltaxawcvpplus %>% 
+  mutate(currwcvp_genus  = word(currwcvp_name, 1),
+         currwcvp_species  = word(currwcvp_name, 2))
+
+
+```
+
+
+## Save fixes:
+```{r}
+
+if(FIX_SPECIES){
+  write_xlsx(alltaxawcvpplus,paste0(tools::file_path_sans_ext(FNPANAMASPCOMB),"_MOD.xlsx"))
+}
+```
+
+
+
+# Check taxa at higher level:
+
+The correct names should be under the prefix currwcvp_ 
+
+```{r checkhigher, echo=TRUE, results="hide"}
+
+allsp <- alltaxawcvpplus # the fixed list
+
+# currwcvp_name is now the correct name, based on the fixes previously done. 
+allsp <- allsp %>% mutate(
+       genus = currwcvp_genus,
+       family = currwcvp_family,
+       genuscode=ifelse(is.na(sp6),NA,substr(sp6,1,4)))
+
+# check that a single genus always has the same family:
+genus_check1 <- allsp %>%
+  group_by(genus) %>%
+  summarise(n_families = n_distinct(family), .groups = "drop") %>%
+  filter(n_families > 1)
+genus_check1
+
+# check whether a single genus always has the same lifeform:
+genus_check2 <- allsp %>%
+  group_by(genus) %>%
+  summarise(
+    habit_class = case_when(
+      n_distinct(habit) == 1 & first(habit) == "Climbing"     ~ "Climbing only",
+      n_distinct(habit) == 1 & first(habit) == "Freestanding" ~ "Freestanding only",
+      n_distinct(habit)  > 1                                  ~ "Both"
+    ),
+    .groups = "drop"
+  ) %>%
+  count(habit_class, name = "n_genera")
+genus_check2
+
+# to print genus and species with different habits
+genera_both <- allsp %>%
+  group_by(genus) %>%
+  filter(n_distinct(habit) > 1) %>%
+  ungroup()
+
+table_2rows <- genera_both %>%
+  group_by(genus, habit) %>%
+  summarise(
+    Species = paste(sort(unique(currwcvp_name)), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  arrange(genus, habit)
+
+
+# check that a single genus always has the same first 4 letters of species code:
+genus_check3 <- allsp %>%
+  group_by(genus) %>%
+  summarise(n_genuscode = n_distinct(genuscode), 
+            genuscode_list = paste(sort(unique(genuscode)), collapse = ", "),
+            .groups = "drop") %>%
+  filter(n_genuscode > 1)
+genus_check3
+
+# find cases where same genuscode corresponds to more than 1 Accepted genus
+genus_check4 <- allsp %>%
+  group_by(genuscode) %>%
+  summarise(
+    Accepted_gen4_list = paste(sort(unique(substr(genus,1,4))),collapse=", "),
+    Accepted_gen3_list = paste(sort(unique(substr(genus,1,3))),collapse=", "),
+    n_Accepted_genus = n_distinct(genus),
+    Accepted_genus_list = paste(sort(unique(genus)), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  filter(n_Accepted_genus > 1)
+genus_check4
+
+
+# just get cases in which there are multiple genus names that have the same first 3 letters as the genus code:  
+genus_check5 <- allsp %>%
+  filter(!is.na(genuscode)) %>%
+  mutate(prefix3 = substr(genuscode, 1, 3),
+         genus_prefix3 = tolower(substr(genus, 1, 3))) %>%
+  # keep only genus names matching the first 3 letters of genuscode
+  filter(genus_prefix3 == prefix3) %>%
+  group_by(genuscode) %>%
+  summarise(
+    n_distinct_genus = n_distinct(genus),
+    Accepted_genus_list = paste(sort(unique(genus)), collapse = ", "),
+    .groups = "drop"
+  ) %>%
+  filter(n_distinct_genus > 1) %>%
+  arrange(genuscode)
+genus_check5
+
+# i changed this, the previous version could count species twice in different genus
+genusdfall <- allsp %>%
+  group_by(genus) %>%
+  summarize(nsptree=sum(habit=="Freestanding"),
+            nspliana=sum(habit=="Climbing")) %>%
+  ungroup() %>% 
+  mutate(Accepted_name=genus,
+         Accepted_name_rank="genus")  %>%
+  dplyr::select(Accepted_name,Accepted_name_rank,nsptree,nspliana)
+
+#sanity check
+sum(genusdfall$nspliana + genusdfall$nsptree)
+nrow(allsp)
+
+familydfall <- allsp %>%
+  group_by(family) %>%
+  summarize(nsptree=sum(habit=="Freestanding"),
+            nspliana=sum(habit=="Climbing")) %>%
+  ungroup() %>% 
+  mutate(Accepted_name=family,
+         Accepted_name_rank="family")  %>%
+  dplyr::select(Accepted_name,Accepted_name_rank,nsptree,nspliana)
+
+#sanity check
+sum(familydfall$nspliana + familydfall$nsptree)
+nrow(allsp)
+
+# Merge genus and family in higher taxa
+allhighertaxa <- rbind(genusdfall,familydfall) %>%
+  mutate(lifeform=paste0(ifelse(nsptree>0,"A",""),ifelse(nspliana>0,"L",""))) %>%
+  dplyr::select(Accepted_name,Accepted_name_rank,lifeform)
+
+```
+Checking consistency in higher taxa: 
+
+1. Genus names related to more than 1 family: `r nrow(genus_check1)`
+
+```{r genuscheck1}
+if (nrow(genus_check1) > 0) { 
+  knitr::kable(genus_check1, caption="Genus with more than 1 family")
+} 
+```
+
+2. Genus with species with different life forms: `r nrow(genus_check2$n_genera[genus_check2$habit_class == "Both"])` 
+
+```{r genuscheck2}
+if (nrow(genus_check2) > 0) { 
+  knitr::kable(genus_check2, caption="Genus lifeform. Check wether a single genus always has the same life form")
+} 
+
+if(genus_check2$n_genera[genus_check2$habit_class == "Both"] > 0){
+  knitr::kable(table_2rows, caption="Genus with species with two life forms")
+}
+```
+
+3. Codes that don't match genus (probably because of name changes): `r nrow(genus_check3)`
+
+```{r genuscheck3}
+if (nrow(genus_check3) > 0) { 
+  knitr::kable(head(genus_check3, 10), caption="Genus with codes that dont match genus name")
+} 
+```
+
+4. Codes that match to more than one genus (probably because of name changes): `r nrow(genus_check4)`
+
+```{r genuscheck4}
+if (nrow(genus_check4) > 0) { 
+  knitr::kable(head(genus_check4, 10), caption="Genus with codes that match more than one genus")
+} 
+```
+
+
+5. Codes that match to more than one genus (probably because of name changes): `r nrow(genus_check5)`
+
+```{r genuscheck5}
+if (nrow(genus_check5) > 0) { 
+  knitr::kable(head(genus_check5,10), caption="Genus with the same 3 letters of code")
+} 
+```
+
+# Write taxa summary
+
+```{r taxasummary, echo=TRUE, results="hide"}
+
+spdfall <- allsp %>%
+  mutate(lifeform=ifelse(habit=="Freestanding","A","L")) %>%
+  select(currwcvp_name,sp6,sp4,Accepted_name_rank,lifeform) %>%
+  rename(Accepted_name=currwcvp_name,sp6=sp6)
+
+outtaxa <- bind_rows(spdfall,allhighertaxa) %>%
+  rename(namerank=Accepted_name_rank,taxaname=Accepted_name) %>%
+  arrange(taxaname)
+table(outtaxa$namerank)
+
+write_xlsx(outtaxa,FNPANAMATAXA)
+
+```
+
+# Synonims file
+
+```{r synonims}
+
+# TODO redo this with wcvp
+
+# make a file that gives the synonyms as 1-to-1 list
+
+'
+synonymdf <- outtaxaplus %>%
+  drop_na(synonyms) %>%  # Remove rows where there are no synonyms
+  separate_rows(synonyms, sep = ", ") %>%  # Split synonyms into separate rows
+  rename(Old_name = synonyms)  %>% # Rename column
+  dplyr::select(Old_name,Current_name,sp6,sp6curr,sp6prior,sp4) %>%
+  arrange(Old_name)
+
+synonymdftnrs <- TNRS(synonymdf$Old_name)
+table(synonymdftnrs$Name_matched_rank,synonymdftnrs$Name_submitted!=synonymdftnrs$Name_matched)
+# there are 5 that dont match up 
+subset(synonymdftnrs,Name_submitted!=Name_matched)
+
+names(synonymdftnrs) <- paste0("Old_",names(synonymdftnrs))
+synonymdftnrs <-rename(synonymdftnrs,Old_name=Old_Name_submitted)
+synonymdfout <- left_join(synonymdf,synonymdftnrs[,c("Old_name",paste0("Old_",tnrscols))],
+                       by="Old_name") %>% 
+  mutate(currnameequalsaccepted=Current_name==Old_Accepted_name)
+
+table(synonymdfout$Current_name==synonymdfout$Old_Accepted_name)
+
+write_xlsx(synonymdfout,FNSYNONYMS)
+'
+```
+
+```{r synonymdout}
+
+#if (nrow(synonymdfout) > 0) { 
+#  knitr::kable(synonymdfout, caption="Synonims")
+#} 
+```
