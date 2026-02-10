@@ -1,0 +1,350 @@
+---
+title: "Comparte TNRS and WCVP"
+author: "Paula Uzcategui"
+date: "2026-02-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraires}
+library("readxl")
+library("writexl")
+library("dplyr")
+library(tidyr)
+library("TNRS")
+library("stringi")
+library("stringr")
+library(rWCVP) # this two libraries need to be installed from github
+library(rWCVPdata)
+
+
+raw_species_list_path <- "splists_raw/PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx"
+
+tnrs_matched_path <- "splists_mid/FloradePanama_dec4_2025_HM_TNRS.xlsx"
+  
+wcvp_matched_path <- "splists_mid/FloradePanama_dec4_2025_HM_WCVP.xlsx"
+
+```
+# Comparing name matching with WCVP and TNRS
+
+This document is intended to compare species name resolution using two systems: TNRS and WCVP
+
+```{r loadtaxa}
+
+# ForestGEO Panama woody plant species list 
+read_excel(raw_species_list_path,col_types="text")  %>%
+  rename(Current_order=taxorder,
+         Current_family=family,
+         Current_genus=genus,
+         Current_species=speciesname,
+         Current_name_author=authority,
+         Current_subspecies=subspecies,
+         synonyms=synonyms,
+         sp6curr=mnemonic,
+         vouchers=herbarium,
+         habit=liana) %>%
+  mutate(sp6curr=tolower(sp6curr),
+         habit=ifelse(habit=="l","Climbing","Freestanding"),
+         Current_name=ifelse(is.na(Current_subspecies),
+                                paste0(Current_genus," ",Current_species),
+                                paste0(Current_genus," ",Current_species," ",Current_subspecies))) %>%
+  mutate(habit=ifelse(is.na(habit),"Freestanding",habit)) -> 
+  alltaxa
+
+tnrscols <- c("Name_matched","Name_matched_rank","Accepted_name","Accepted_name_author",
+              "Accepted_name_rank","Accepted_family")
+tnrscols2 <- c("Name_submitted",tnrscols)
+tnrscols3 <- c("binomial",tnrscols)
+tnrscols4 <- c("Current_name",tnrscols)
+```
+
+## Check for species names changes with TNRS:
+```{r tnrscheck, echo=TRUE, results="hide"}
+
+##################### TNRS  #########################################################
+
+if(file.exists(tnrs_matched_path)){
+  alltaxaplus <- read_excel(tnrs_matched_path)
+}else{
+alltaxatnrs <- TNRS(alltaxa$Current_name)
+table(alltaxatnrs$Name_submitted==alltaxatnrs$Name_matched)
+alltaxatnrs <-rename(alltaxatnrs,Current_name=Name_submitted)
+alltaxaplus <- left_join(alltaxa,alltaxatnrs[,tnrscols4],by="Current_name")
+alltaxaplus$tnrsdate <- Sys.Date()
+write_xlsx(alltaxaplus ,tnrs_matched_path)
+}
+# For mysterious reasons TNRS can make huge mistakes. Like matching a completely wrong species name!
+# So we will have cases where Currentname = Name_matched that don't make any sense
+# I think this happens because of server overload of TNRS
+# When the names are checked on the TNRS website they are right! https://tnrs.biendata.org/
+
+as.data.frame(alltaxaplus[alltaxaplus$Current_name!=alltaxaplus$Name_matched,])
+
+# In some few cases, for mysterious reasons, TNRS matches the name but does not associate an accepted name. 
+# species with no accepted name
+noopioniontnrs <- alltaxaplus %>% filter(is.na(Accepted_name) ) 
+
+
+matchednamesdup <- alltaxaplus %>% 
+  filter(!is.na(Name_matched)) %>% 
+  group_by(Name_matched) %>% 
+  arrange(Name_matched) %>% filter(n()>1) %>% ungroup()
+matchednamesdup %>% select(Accepted_name, Current_name, Name_matched )
+
+# check for duplicates in accepted names
+acceptednamesdup <- alltaxaplus %>% 
+  filter(!is.na(Accepted_name)) %>% 
+  group_by(Accepted_name) %>% 
+  arrange(Accepted_name) %>% filter(n()>1) %>% ungroup()
+
+acceptednamesdup %>% select( Accepted_name, Current_name, Name_matched )
+
+
+# In these cases, use the matched name as the accepted name.
+inc <- alltaxaplus$Accepted_name=="" | is.na(alltaxaplus$Accepted_name)
+if (any(inc, na.rm = TRUE)) {
+  table(inc)
+
+  alltaxaplus$Accepted_name[inc] <- alltaxaplus$Name_matched[inc]
+  alltaxaplus$Accepted_name_rank[inc] <- alltaxaplus$Name_matched_rank[inc]
+  alltaxaplus$Accepted_name_author[inc] <- ifelse(is.na(alltaxaplus$Accepted_name_author[inc]) & alltaxaplus$Accepted_name[inc] == alltaxaplus$Current_name[inc],
+                                                  alltaxaplus$Current_name_author[inc],
+                                                  alltaxaplus$Accepted_name_author[inc]
+                                                  )
+}
+
+sum(is.na(alltaxaplus$Accepted_name))
+
+# check taxa that are matched at genus or higher rather than species
+taxahighrank <- as.data.frame(subset(alltaxaplus, 
+                                     !is.na(Accepted_name_rank) & !Accepted_name_rank %in% c("species","subspecies","variety")))
+
+# changes in accepted names
+namestnrschanges <- alltaxaplus  %>%
+  filter(Current_name != Name_matched | Current_name!=Accepted_name) %>%
+  mutate(Accepted_genus=word(Accepted_name,1),
+         orig_genus=word(Current_name,1),
+         genus_change = orig_genus != Accepted_genus)
+
+
+```
+
+
+
+## WCVP v13
+
+```{r trywcvp, echo=TRUE, results="hide"}
+
+########### MATCHING NAMES USING WCVP ###########################################################
+
+library(rWCVP)
+library(rWCVPdata)
+
+wcvp_names <- rWCVPdata::wcvp_names 
+
+matchaccepted_names<- function(matcheswcvp){
+  matcheswcvp %>% 
+    left_join(wcvp_names %>% select(plant_name_id, genus, species, taxon_rank, family, primary_author, infraspecific_rank, infraspecies, lifeform_description, taxon_status),
+              by=c("wcvp_accepted_id"="plant_name_id")) %>% 
+    mutate(
+      Accepted_name = case_when(
+        is.na(species) | species == "" ~ genus,
+        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
+        TRUE ~ paste(genus, species))
+    ) %>%
+    rename(
+      Accepted_family= family,
+      Accepted_name_rank = taxon_rank,
+      Accepted_name_author = primary_author,
+      Accepted_name_status = taxon_status,
+      Accepted_name_genus = genus, 
+      Accepted_name_species = species, 
+      Accepted_name_infraspecific_rank = infraspecific_rank, 
+      Accepted_name_infraspecies = infraspecies
+    )
+}
+
+
+####################### Merge taxa with wcvp names 
+if(file.exists(wcvp_matched_path)){
+  alltaxawcvp <- read_excel(wcvp_matched_path)  
+} else{
+  alltaxawcvp <-wcvp_match_names(alltaxa, wcvp_names, name_col="Current_name")
+  write_xlsx(alltaxawcvp, wcvp_matched_path)
+}
+
+
+
+all(unique(alltaxawcvp$Current_name) %in% unique(alltaxa$Current_name))
+
+# There can be multiple matches for one species, but only one is considered accepted
+#sanity check of that
+alltaxawcvp %>%
+  group_by(Current_name) %>%
+  summarise(
+    n_rows = n(),
+    n_accepted = sum(wcvp_status == "Accepted", na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  filter(n_accepted > 1)
+
+
+# If they have two accepted names its probably because they were registered twice. The two records have different ids
+
+
+# rules to keep 1 name per species:
+# if there is only one record with the current name keep that.
+# if there are more than one keep the one with wcvp_status = "Accepted"
+alltaxawcvp_clean <- alltaxawcvp %>%
+  mutate(
+    status_priority = case_when(
+      wcvp_status == "Accepted"     ~ 1,
+      wcvp_status == "Synonym"      ~ 2,
+      wcvp_status == "Illegitimate" ~ 3,
+      wcvp_status == "Unplaced"     ~ 4,
+      TRUE                          ~ 5
+    )
+  ) %>%
+  group_by(Current_name) %>%
+  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  select(-status_priority)
+
+
+nrow(alltaxawcvp)
+# Now this should be TRUE.
+nrow(alltaxawcvp_clean) == nrow(alltaxa) 
+
+# sanity check one species per row
+alltaxawcvp_clean %>%
+  group_by(Current_name) %>%
+  summarise(
+    n_rows = n(),
+    .groups = "drop"
+  ) %>%
+  filter(n_rows > 1)
+
+
+alltaxawcvp_clean <- matchaccepted_names(alltaxawcvp_clean)
+
+# Now left join 
+alltaxawcvpplus <-   alltaxa %>%
+  left_join(alltaxawcvp_clean %>% 
+              select(Current_name, wcvp_name, wcvp_authors,wcvp_rank, wcvp_status, 
+                     Accepted_name, Accepted_family, Accepted_name_rank, Accepted_name_author, Accepted_name_status,
+                     Accepted_name_genus,
+                     Accepted_name_species, 
+                     Accepted_name_infraspecific_rank, 
+                     Accepted_name_infraspecies,
+                     lifeform_description, match_similarity, match_edit_distance),
+            by="Current_name") %>%
+  rename(
+    Name_matched = wcvp_name,
+    Name_matched_rank = wcvp_rank
+  )
+nrow(alltaxawcvpplus)
+
+
+# some species have accepted status but dont have accepted name for mysterious reasons...
+alltaxawcvpplus %>% filter(is.na(Accepted_name)) %>% select(Current_name, Name_matched, wcvp_status)
+
+# in that case leave the Name-matched as the accepted_name 
+inc <- alltaxawcvpplus$Accepted_name=="" | is.na(alltaxawcvpplus$Accepted_name)
+if (any(inc, na.rm = TRUE)) {
+  table(inc)
+  alltaxawcvpplus$Accepted_name[inc] <- alltaxawcvpplus$Name_matched[inc]
+  alltaxawcvpplus$Accepted_name_rank[inc] <- alltaxawcvpplus$Name_matched_rank[inc]
+  alltaxawcvpplus$Accepted_name_author[inc] <- ifelse(is.na(alltaxawcvpplus$Accepted_name_author[inc]) & alltaxawcvpplus$Accepted_name[inc] == alltaxawcvpplus$Current_name[inc],
+                                                      alltaxawcvpplus$Current_name_author[inc],
+                                                      alltaxawcvpplus$Accepted_name_author[inc]
+  )
+}
+
+# lets see the taxonomic status of the matches
+alltaxawcvpplus %>% 
+  count(wcvp_status, name = "n")
+
+
+```
+
+This should TRUE if the code is matching correctly one wcvp pair to one species name:
+```{r wcvpsanity}
+ nrow(alltaxawcvp_clean) == nrow(alltaxa)
+```
+
+Species matched and their taxonomic status:
+```{r wcvpstatus}
+ alltaxawcvpplus %>% 
+  count(wcvp_status, name = "n")
+```
+
+
+## Comparing results with TNRS and WCVP v13
+
+```{r comparingmatchingsystems, echo=TRUE, results="hide"}
+###################################### comparing TNRS and WCVP results #############################################
+
+comparematching <- alltaxaplus %>%
+  left_join(alltaxawcvpplus %>% select(Current_name, Name_matched, Accepted_name, wcvp_status),
+            by = "Current_name", suffix = c("", "_wcvp"))
+
+comparematching %>% filter(Accepted_name!=Accepted_name_wcvp) %>% select(Current_name, Name_matched, Name_matched_wcvp, Accepted_name, Accepted_name_wcvp)
+
+comparematching2 <- comparematching %>%
+  mutate(
+    tnrs_changed = !is.na(Accepted_name) & Accepted_name != Current_name,
+    wcvp_changed = !is.na(Accepted_name_wcvp) & Accepted_name_wcvp != Current_name
+  )
+
+change_table <- comparematching2 %>%
+  count(tnrs_changed, wcvp_changed) %>%
+  mutate(
+    TNRS = ifelse(tnrs_changed, "Changed", "Same"),
+    WCVP = ifelse(wcvp_changed, "Changed", "Same")
+  ) %>%
+  select(TNRS, WCVP, n)
+
+compare_table_species <- comparematching2 %>%
+  mutate(
+    category = case_when(
+      !tnrs_changed & !wcvp_changed ~ "TNRS same – WCVP same",
+      !tnrs_changed &  wcvp_changed ~ "TNRS same – WCVP changed",
+      tnrs_changed & !wcvp_changed ~ "TNRS changed – WCVP same",
+      tnrs_changed &  wcvp_changed & Accepted_name == Accepted_name_wcvp ~
+        "Both changed (same accepted name)",
+      tnrs_changed &  wcvp_changed & Accepted_name != Accepted_name_wcvp ~
+        "Both changed (different accepted names)"
+    )
+  ) %>%
+  select(category, Current_name, Accepted_name, Accepted_name_wcvp)
+
+comp1 <- compare_table_species %>% filter(category == "TNRS same – WCVP changed")
+comp2 <- compare_table_species %>% filter(category == "TNRS changed – WCVP same")
+comp3<- compare_table_species %>% filter(category == "Both changed (different accepted names)")
+
+#######################################################################################
+```
+
+A general look in the differences:
+```{r compare1}
+knitr::kable(
+  change_table,
+  caption = "Comparison of name changes between TNRS and WCVP"
+)
+
+if(nrow(comp1) > 0){
+  knitr::kable( comp1, caption="Comparing two species matching systems: TNRS same – WCVP changed")
+}
+
+if(nrow(comp2) > 0){
+  knitr::kable( comp2, caption="Comparing two species matching systems: TNRS changed – WCVP same")
+}
+
+if(nrow(comp3) > 0){
+  knitr::kable( comp3, caption="Comparing two species matching systems: Both changed (different accepted names)")
+}
+
+```

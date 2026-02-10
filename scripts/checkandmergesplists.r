@@ -42,7 +42,7 @@ tnrscols4 <- c("Current_name",tnrscols)
 ###########################################
 
 # Joe Wright's taxonomy dataset (includes 4-letter codes and some non-woody species as well as trees and lianas)
-if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
+if (!redotnrs) {
   usejoetaxa <- read_excel(FNWRIGHTSPLISTTNRS) 
 } else {
   joetaxa <- read_excel(paste0(DIRINSP,FNWRIGHTSPLISTIN))
@@ -67,7 +67,7 @@ if (file.exists(FNWRIGHTSPLISTTNRS) & !redotnrs) {
 #################################################
 
 # ForestGEO dataset of taxonomy for species codes used in Panama plot censuses - includes morphospecies
-if (file.exists(FNFGEOSPLISTTNRS) & !redotnrs) {
+if ( !redotnrs) {
   fgeotaxa <- read_excel(FNFGEOSPLISTTNRS) 
 } else {
   treetaxa <- read_excel(paste0(DIRINSP,FNFGEOSPLISTIN))
