@@ -37,7 +37,7 @@ panamabiotaWCVP_path <- "splists_mid/PanamaBiotaBCI_WCVP_2026-02-10.xlsx"
 
 save_plantlists_dir = "splists_out/Plantnet species/"
 
-lastwoody_path <-  "splists_out/PanamaSpCombined_2026-02-10.xlsx"
+lastwoody_path <-  "splists_out/PanamaSpCombined_2026-02-11.xlsx"
 
 bci_angiosperms_path <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Plants of Barro Colorado - eudicots, magnoliids, and basal angiosperms_1770221196.csv"
 bci_ferns_path <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Plants of Barro Colorado - ferns and allies_1770221067.csv"
@@ -53,8 +53,6 @@ panamabiotalianas <- "splists_raw/Panamabiota/Downloaded_2026-02-04/CTFS Liana A
 
 ```{r prep, echo=TRUE, results="hide"}
 
-lastwoody <- read_excel(lastwoody_path)
-nrow(lastwoody)
 
 bciangio <- read.csv(bci_angiosperms_path, sep = ",")
 bciferns <- read.csv(bci_ferns_path, sep = ",")
@@ -362,7 +360,7 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currpbiotachanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
@@ -420,13 +418,13 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currpbiotachanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
   tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
   tmp$currwcvp_name       <- tmp$Accepted_name
-  tmp$currnotes            <-"Spelling changed in wcvp"
+  tmp$currnotes            <-"Accepted name changed"
   
   # Re-assign the modified subset back to the original rows
   bcibiotawcvpplus[inc, ] <- tmp
@@ -447,6 +445,7 @@ acceptednamesdup <- bcibiotawcvpplus %>%
   arrange(Accepted_name) %>% filter(n()>1) %>% ungroup() %>%
   arrange(match_similarity, Accepted_name) %>%
   mutate(row_id = row_number()) %>% 
+  filter(wcvp_status != "Accepted" | pbiota_name != Name_matched) %>%
   select(row_id, Accepted_name,pbiota_name, pbiota_name, Name_matched, wcvp_status, match_similarity )
 
 if( nrow(acceptednamesdup) > 0){
@@ -461,41 +460,34 @@ if( nrow(acceptednamesdup) > 0){
 # For this species we dont want the accepted name to change to the current name. Because we would loose information
 # we will leave those unchanged. The reste change them
 change_names_ <- acceptednamesdup %>% 
-  filter(!row_id %in% c(1:2, 4:7, 10)) %>%
+  filter(!row_id %in% c(1:7)) %>%
   select(pbiota_name, Accepted_name)
 
-if( nrow(change_names_) > 0){
-  knitr::kable(change_names_, caption="Species to remove because they have the same accepted name as another species.")
-}
-
-
-affected_accepted <- bcibiotawcvpplus %>%
-  filter(pbiota_name %in% change_names_$pbiota_name) %>%
-  pull(Accepted_name) %>%
-  unique()
-
 rmeovesp <- bcibiotawcvpplus %>% filter(pbiota_name %in% change_names_$pbiota_name)
-rmeovesp$currnotes <- "Species panamabiota has now the same accepted name in wcvp as another species. Removed species"
+rmeovesp$currnotes <- "Species panamabiota_name has now the same accepted name in wcvp as another species. Removed species"
 removed_species <- rmeovesp
 
+# Create a "Lookup Table" that maps the Accepted Name to the synonym being removed
+synonym_lookup <- bcibiotawcvpplus %>%
+  filter(pbiota_name %in% change_names_$pbiota_name) %>%
+  select(Accepted_name, synonym_to_add = pbiota_name)
+
 # remove the species that are now duplicated with the same accepted name. 
+bcibiotawcvpplus <- bcibiotawcvpplus  %>%
+  filter(!pbiota_name %in% change_names_$pbiota_name)
+
+# Add the synonyms to the remaining rows
 bcibiotawcvpplus <- bcibiotawcvpplus %>%
-  group_by(Accepted_name) %>%
+  left_join(synonym_lookup, by = "Accepted_name") %>%
   mutate(
-    synonyms = if_else(
-      Accepted_name %in% affected_accepted & wcvp_status == "Accepted",
-      paste(
-        unique(pbiota_name[
-          pbiota_name %in% change_names_$pbiota_name &
-            wcvp_status != "Accepted"
-        ]),
-        collapse = "; "
-      ),
-      synonyms
+    synonyms = case_when(
+      !is.na(synonym_to_add) & (is.na(synonyms) | synonyms == "") ~ synonym_to_add,
+      !is.na(synonym_to_add) ~ paste(synonyms, synonym_to_add, sep = "; "),
+      TRUE ~ synonyms
     )
   ) %>%
-  ungroup() %>%
-  filter(!pbiota_name %in% change_names_$pbiota_name)
+  select(-synonym_to_add) # Remove the helper column
+
 
 ```
 
@@ -541,7 +533,7 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currpbiotachanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_authors)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name)
+  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
@@ -652,16 +644,16 @@ Saved `r nrow(outtaxa)` species in Panama Biota lists with their names verified 
 ### MERGE WOODY AND BCI ##################################
 
 bcibiotafix_clean <- outtaxa
-# Left join woodypanama and bcibiota
 
-# woody species that ARE in BCI
+lastwoody <- read_excel(lastwoody_path)
+nrow(lastwoody)
+
 woodybci <- lastwoody %>%
   filter(currwcvp_name %in% bcibiotafix_clean$currwcvp_name)
 
 nrow(woodybci)
+#write_xlsx(woodybci, paste0(save_plantlists_dir, "woody_in_panamabiota_bci_",Sys.Date(),".xlsx"))
 
-
-write_xlsx(woodybci, paste0(save_plantlists_dir, "woody_in_panamabiota_bci_",Sys.Date(),".xlsx"))
 
 # woody species NOT in BCI
 woodynotbci <- lastwoody %>%
@@ -669,8 +661,7 @@ woodynotbci <- lastwoody %>%
 
 nrow(woodynotbci)
 
-write_xlsx(woodynotbci, paste0(save_plantlists_dir, "woody_not_in_panamabiota_bci_",Sys.Date(),".xlsx"))
-
+#write_xlsx(woodynotbci, paste0(save_plantlists_dir, "woody_not_in_panamabiota_bci_",Sys.Date(),".xlsx"))
 
 # BCI species NOT in woody list
 bcinotwoody <- bcibiotafix_clean %>%
@@ -678,8 +669,7 @@ bcinotwoody <- bcibiotafix_clean %>%
          source != "ferns"
          )
 
-write_xlsx(bcinotwoody, paste0(save_plantlists_dir, "panama_biota_bci_not_woody_",Sys.Date(),".xlsx"))
-
+#write_xlsx(bcinotwoody, paste0(save_plantlists_dir, "panama_biota_bci_not_woody_",Sys.Date(),".xlsx"))
 
 bcinotwoody %>% select(currwcvp_name, source, wcvp_lifeform_description)
 nrow(bcinotwoody)
@@ -688,25 +678,112 @@ nrow(bcinotwoody)
 bcimaybewoody <- bcinotwoody %>%
   filter(wcvp_lifeform_description %in% unique(lastwoody$wcvp_lifeform_description))
 
-write_xlsx(bcimaybewoody, paste0(save_plantlists_dir, "panama_biota_bci_maybe_woody_",Sys.Date(),".xlsx"))
+#write_xlsx(bcimaybewoody, paste0(save_plantlists_dir, "panama_biota_bci_maybe_woody_",Sys.Date(),".xlsx"))
+
+```
+
+### Species in forestgeo woody list that are not in BCI but could be:
+```{r listbiota, echo=TRUE, results="hide"}
+
+# add these species to woody bci
+bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
+  woody_name = (bcibiotafix_clean$currwcvp_name %in% woodybci$currwcvp_name))
 
 
+# Some species synonyms in forestgeo refer to the name the species had for a long time but then was correctly identified and the species name changed. 
+# lets see if some woody species synonyms is in BCI
+
+#woodynotbci %>% filter(!is.na(forestgeo_synonyms)) %>% select(forestgeo_name, currwcvp_name, synonyms, forestgeo_synonyms)
+
+pattern_wcvp <- paste(bcinotwoody$currwcvp_name, collapse = "|")
+pattern_pbiota <- paste(bcinotwoody$pbiota_name, collapse = "|")
+
+speciesrevision <- woodynotbci %>% 
+     filter(grepl(pattern_wcvp, forestgeo_synonyms) | grepl(pattern_pbiota, forestgeo_synonyms)) 
+
+speciesrevision %>% select(forestgeo_name, currwcvp_name, synonyms, forestgeo_synonyms)
+                
+lista <- strsplit(speciesrevision$forestgeo_synonyms, ",")
+vector_final <- unlist(lista)
+forestgeo_synonymslist <- trimws(vector_final)
+
+# synonyms in forestgeo that are in the PanamaBiota BCI list
+bcibiotawcvpplus %>%
+  filter(currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ) %>%
+  mutate(notesyn = ifelse(currwcvp_name %in% forestgeo_synonymslist, "forestgeo synonym is another species", "")) %>%
+  select(currwcvp_name, pbiota_name, wcvp_status, currnotes, notesyn)
+
+
+bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
+  woody_synonym = (currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ),
+  woody = woody_synonym | woody_name
+  )
+
+####### Save to file
+write_xlsx(bcibiotafix_clean, paste0(save_plantlists_dir, "PANAMA_BIOTA_BCI_",Sys.Date(),".xlsx"))
+
+```
+
+
+```{r woodylist, results="hide", echo=TRUE}
+# Woody species
+
+forestgeo_regional_list <- read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
+
+# Column of forestgeo regional list
+sum(is.na(forestgeo_regional_list$Mnemonic))
+
+match12 <- match(lastwoody$sp6, forestgeo_regional_list$Mnemonic)            
+
+lastwoody[is.na(match12),] %>% select(sp6, currwcvp_name , forestgeo_name)
+
+match21 <- match(forestgeo_regional_list$Mnemonic, lastwoody$sp6)            
+
+nomatchview <- forestgeo_regional_list[is.na(match21),] %>% select(Mnemonic, SpeciesName)
+#almost everything that didint match is unidentified
+#nomatchview$SpeciesName
+
+
+### add column if its in the plots
+abundall <- read_excel("splists_raw/Plots/abundance_plots_HM.xlsx")
+
+abundall <- abundall %>% select(sp, binomial, bci, `bci 10 ha plot`,P14, P11)%>% 
+                      filter( bci >0 | `bci 10 ha plot` > 0 | P14 > 0| P11 >0)
+
+match21 <- match(abundall$sp, lastwoody$sp6)            
+nomatchview <- abundall[is.na(match21),] %>% select(sp, binomial)
+
+plotbci_list <- abundall %>% filter(bci >0)
+plotbci10ha_list <- abundall %>% filter(`bci 10 ha plot`  >0)
+plotp14_list <- abundall %>% filter(P14 >0)
+plotp11_list <- abundall %>% filter(P11 >0)
+
+
+### Add columns #################
+
+lastwoody <- lastwoody %>% mutate(
+  biota_bci_name = currwcvp_name %in%  bcibiotafix_clean$currwcvp_name,
+  biota_bci_synonym = currwcvp_name %in% speciesrevision$currwcvp_name,
+  forestgeo_regional = sp6 %in% forestgeo_regional_list$Mnemonic,
+  plotbci = sp6 %in% plotbci_list$sp,
+  plotbci10 = sp6 %in% plotbci10ha_list$sp,
+  plotp14 = sp6 %in% plotp14_list$sp,
+  plotp11 = sp6 %in% plotp11_list$sp,
+  biota_bci = biota_bci_name | biota_bci_synonym | plotbci | plotbci10 | plotp14 | plotp11,
+)
+
+
+#################### save new woody species list: 
+
+write_xlsx(lastwoody, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
+
+
+```
+
+
+## Print
+```{r printlists}
 # Function to reshape a list into 5 columns (filling vertically)
-make_5_col_list <- function(df, col_name = "currwcvp_name") {
-  vec <- df[[col_name]]
-  n <- length(vec)
-  cols <- 5
-  rows <- ceiling(n / cols)
-  
-  # Pad with empty strings to make it divisible by 5
-  vec_padded <- c(vec, rep("", (rows * cols) - n))
-  
-  # Create a matrix and fill by column
-  mat <- matrix(vec_padded, nrow = rows, ncol = cols, byrow = FALSE)
-  
-  return(as.data.frame(mat))
-}
-
 make_5_col_list <- function(vec) {
   n <- length(vec)
   cols <- 5
@@ -720,44 +797,9 @@ make_5_col_list <- function(vec) {
   
   return(as.data.frame(mat))
 }
+
+
 ```
-
-### Woody species in PanamaBiota BCI list: `r nrow(woodybci)`
-```{r}
-if(nrow(woodybci) > 0){
-  woodybci$currwcvp_name %>% 
-    make_5_col_list() %>% 
-    knitr::kable(col.names = NULL, caption="Panama Woody species in PanamBiota BCI list")
-}
-```
-
-
-### Woody species NOT in PanamaBiota BCI list: `r nrow(woodynotbci)`
-```{r}
-
-woody_families_not_bci <- unique(woodynotbci %>% filter(!currwcvp_family %in% bcibiotafix_clean$currwcvp_family) %>% select(currwcvp_family) )
-
-# since they are to many just print the families
-if(nrow(woody_families_not_bci) > 0){
-    woody_families_not_bci %>% 
-    make_5_col_list() %>% 
-    knitr::kable(col.names = NULL, caption="Panama woody families that are not in the BCI list")
-}
-```
-
-
-### Species in PanamaBiota BCI list not in Panama Woody list: `r nrow(bcinotwoody)`
-
-
-### Species that might be woody and are in BCI Panama Biota list: `r nrow(bcimaybewoody)`
-```{r}
-if(nrow(bcimaybewoody) > 0){
-  bcimaybewoody$currwcvp_name %>% 
-    make_5_col_list() %>% 
-    knitr::kable(col.names = NULL, caption="BCI species that might be woody per WCVP")
-}
-```
-
 
 ```{r snaity2}
 

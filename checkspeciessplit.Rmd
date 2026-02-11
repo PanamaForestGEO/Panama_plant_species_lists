@@ -259,7 +259,8 @@ alltaxa <- alltaxa %>%
     forestgeo_family = Current_family,
     forestgeo_order = Current_order,
     forestgeo_author = Current_name_author,
-    forestgeo_subspecies = Current_subspecies
+    forestgeo_subspecies = Current_subspecies,
+    forestgeo_synonyms = synonyms
   )
 
 ```
@@ -532,7 +533,8 @@ alltaxawcvpplus <- alltaxawcvpplus %>% mutate(
   currwcvp_subspecies = forestgeo_subspecies,
   currwcvp_author = forestgeo_author,
   currforestgeochanged = FALSE,
-  currnotes = ""
+  currnotes = "",
+  synonyms = NA, # the new synonyms after wcvp 
 )
 
 ```
@@ -603,7 +605,10 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = "; "))
+  
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
@@ -660,7 +665,9 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = "; "))
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
@@ -714,33 +721,33 @@ current_name_species_merge <- c(
   "Cestrum haberi", "Tournefortia bicolor", "Guarea grandifolia", "Neea laetevirens", "Passiflora panamensis"
 )
 
-affected_accepted <- alltaxawcvpplus %>%
+# Create a "Lookup Table" that maps the Accepted Name to the synonym being removed
+# This is key so we know exactly which name goes where
+synonym_lookup <- alltaxawcvpplus %>%
   filter(forestgeo_name %in% current_name_species_merge) %>%
-  pull(Accepted_name) %>%
-  unique()
+  select(Accepted_name, synonym_to_add = forestgeo_name)
 
 rmeovesp <- alltaxawcvpplus %>% filter(forestgeo_name %in% current_name_species_merge)
 rmeovesp$currnotes <- "Species forestgeo has now the same accepted name in wcvp as another species. Removed species"
 removed_species <- bind_rows(removed_species, rmeovesp)
 
 # remove the species that are now duplicated with the same accepted name. 
+alltaxawcvpplus <- alltaxawcvpplus  %>%
+  filter(!forestgeo_name %in% current_name_species_merge)
+
+# Add the synonyms to the remaining rows
 alltaxawcvpplus <- alltaxawcvpplus %>%
-  group_by(Accepted_name) %>%
+  left_join(synonym_lookup, by = "Accepted_name") %>%
   mutate(
-    synonyms = if_else(
-      Accepted_name %in% affected_accepted & wcvp_status == "Accepted",
-      paste(
-        unique(forestgeo_name[
-          forestgeo_name %in% current_name_species_merge &
-            wcvp_status != "Accepted"
-        ]),
-        collapse = "; "
-      ),
-      synonyms
+    synonyms = case_when(
+      !is.na(synonym_to_add) & (is.na(synonyms) | synonyms == "") ~ synonym_to_add,
+      !is.na(synonym_to_add) ~ paste(synonyms, synonym_to_add, sep = "; "),
+      TRUE ~ synonyms
     )
   ) %>%
-  ungroup() %>%
-  filter(!forestgeo_name %in% current_name_species_merge)
+  select(-synonym_to_add) # Remove the helper column
+
+
 ```
 
 Species removed because they have the same accepted name as another species in the list:
@@ -777,13 +784,7 @@ if (any(inc, na.rm = TRUE)) {
   
   # Perform calculations on the subset
   tmp$currforestgeochanged <- TRUE
-  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
   tmp$currwcvp_family     <- tmp$Accepted_family
-  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
-  tmp$currwcvp_species    <- tmp$Accepted_name_species
-  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
-  tmp$currwcvp_name       <- tmp$Accepted_name
   tmp$currnotes            <- paste0("Family changed")
   
   # Re-assign the modified subset back to the original rows
@@ -848,7 +849,9 @@ if (any(inc, na.rm = TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged <- TRUE
   tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = "; "))
   tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
   tmp$currwcvp_genus      <- tmp$Accepted_name_genus
   tmp$currwcvp_species    <- tmp$Accepted_name_species
