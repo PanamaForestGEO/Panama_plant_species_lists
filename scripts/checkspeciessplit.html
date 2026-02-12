@@ -3249,7 +3249,8 @@ differences.</p>
     forestgeo_family = Current_family,
     forestgeo_order = Current_order,
     forestgeo_author = Current_name_author,
-    forestgeo_subspecies = Current_subspecies
+    forestgeo_subspecies = Current_subspecies,
+    forestgeo_synonyms = synonyms
   )</code></pre>
 </div>
 </div>
@@ -3522,7 +3523,8 @@ alltaxawcvpplus &lt;- alltaxawcvpplus %&gt;% mutate(
   currwcvp_subspecies = forestgeo_subspecies,
   currwcvp_author = forestgeo_author,
   currforestgeochanged = FALSE,
-  currnotes = &quot;&quot;
+  currnotes = &quot;&quot;,
+  synonyms = NA, # the new synonyms after wcvp 
 )</code></pre>
 </div>
 <div id="case-when-no-accepted-name-was-found" class="section level2">
@@ -3824,7 +3826,10 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged &lt;- TRUE
   tmp$currwcvp_author     &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        &lt;- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = &quot;; &quot;))
+  
   tmp$currwcvp_family     &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      &lt;- tmp$Accepted_name_genus
   tmp$currwcvp_species    &lt;- tmp$Accepted_name_species
@@ -3923,7 +3928,9 @@ if (any(inc, na.rm=TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged &lt;- TRUE
   tmp$currwcvp_author     &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        &lt;- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = &quot;; &quot;))
   tmp$currwcvp_family     &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
   tmp$currwcvp_genus      &lt;- tmp$Accepted_name_genus
   tmp$currwcvp_species    &lt;- tmp$Accepted_name_species
@@ -4058,33 +4065,31 @@ current_name_species_merge &lt;- c(
   &quot;Cestrum haberi&quot;, &quot;Tournefortia bicolor&quot;, &quot;Guarea grandifolia&quot;, &quot;Neea laetevirens&quot;, &quot;Passiflora panamensis&quot;
 )
 
-affected_accepted &lt;- alltaxawcvpplus %&gt;%
+# Create a &quot;Lookup Table&quot; that maps the Accepted Name to the synonym being removed
+# This is key so we know exactly which name goes where
+synonym_lookup &lt;- alltaxawcvpplus %&gt;%
   filter(forestgeo_name %in% current_name_species_merge) %&gt;%
-  pull(Accepted_name) %&gt;%
-  unique()
+  select(Accepted_name, synonym_to_add = forestgeo_name)
 
 rmeovesp &lt;- alltaxawcvpplus %&gt;% filter(forestgeo_name %in% current_name_species_merge)
 rmeovesp$currnotes &lt;- &quot;Species forestgeo has now the same accepted name in wcvp as another species. Removed species&quot;
 removed_species &lt;- bind_rows(removed_species, rmeovesp)
 
 # remove the species that are now duplicated with the same accepted name. 
+alltaxawcvpplus &lt;- alltaxawcvpplus  %&gt;%
+  filter(!forestgeo_name %in% current_name_species_merge)
+
+# Add the synonyms to the remaining rows
 alltaxawcvpplus &lt;- alltaxawcvpplus %&gt;%
-  group_by(Accepted_name) %&gt;%
+  left_join(synonym_lookup, by = &quot;Accepted_name&quot;) %&gt;%
   mutate(
-    synonyms = if_else(
-      Accepted_name %in% affected_accepted &amp; wcvp_status == &quot;Accepted&quot;,
-      paste(
-        unique(forestgeo_name[
-          forestgeo_name %in% current_name_species_merge &amp;
-            wcvp_status != &quot;Accepted&quot;
-        ]),
-        collapse = &quot;; &quot;
-      ),
-      synonyms
+    synonyms = case_when(
+      !is.na(synonym_to_add) &amp; (is.na(synonyms) | synonyms == &quot;&quot;) ~ synonym_to_add,
+      !is.na(synonym_to_add) ~ paste(synonyms, synonym_to_add, sep = &quot;; &quot;),
+      TRUE ~ synonyms
     )
   ) %&gt;%
-  ungroup() %&gt;%
-  filter(!forestgeo_name %in% current_name_species_merge)</code></pre>
+  select(-synonym_to_add) # Remove the helper column</code></pre>
 <p>Species removed because they have the same accepted name as another
 species in the list:</p>
 <p>Cestrum haberi<br>Tournefortia bicolor<br>Guarea grandifolia<br>Neea
@@ -4377,13 +4382,7 @@ if (any(inc, na.rm = TRUE)) {
   
   # Perform calculations on the subset
   tmp$currforestgeochanged &lt;- TRUE
-  tmp$currwcvp_author     &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
-  tmp$synonyms        &lt;- paste(tmp$synonyms, tmp$forestgeo_name)
   tmp$currwcvp_family     &lt;- tmp$Accepted_family
-  tmp$currwcvp_genus      &lt;- tmp$Accepted_name_genus
-  tmp$currwcvp_species    &lt;- tmp$Accepted_name_species
-  tmp$currwcvp_subspecies &lt;- tmp$Accepted_name_infraspecies
-  tmp$currwcvp_name       &lt;- tmp$Accepted_name
   tmp$currnotes            &lt;- paste0(&quot;Family changed&quot;)
   
   # Re-assign the modified subset back to the original rows
@@ -4689,7 +4688,9 @@ if (any(inc, na.rm = TRUE)) {
   # Perform calculations on the subset
   tmp$currforestgeochanged &lt;- TRUE
   tmp$currwcvp_author     &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$currwcvp_author)
-  tmp$synonyms        &lt;- paste(tmp$synonyms, tmp$forestgeo_name)
+  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
+                         tmp$forestgeo_name, 
+                         paste(tmp$synonyms, tmp$forestgeo_name, sep = &quot;; &quot;))
   tmp$currwcvp_family     &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
   tmp$currwcvp_genus      &lt;- tmp$Accepted_name_genus
   tmp$currwcvp_species    &lt;- tmp$Accepted_name_species
@@ -5835,8 +5836,8 @@ datatable(
   options = list(scrollX = TRUE, pageLength = 10),
   rownames = FALSE
 )</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-4ae76eaa3ab4dc996517" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-4ae76eaa3ab4dc996517">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species with missing taxonomic information in wcvp<\/caption>","data":[["prunfo","sechpa","sechpi","sechve"],["Prunus fortunensis","Sechium panamense","Sechium pittieri","Sechium venosum"],["Prunus fortunensis","Sechium panamense","Sechium pittieri","Sechium venosum"],[null,null,null,null],["fortunensis","panamense","pittieri","venosum"],[null,null,null,null],["Prunus","Sechium","Sechium","Sechium"],["Rosaceae","Cucurbitaceae","Cucurbitaceae","Cucurbitaceae"],["Rosaceae","Cucurbitaceae","Cucurbitaceae","Cucurbitaceae"],["McPherson","(Wunderlin) Lira &amp; F. Chiang","(Cogn.) C. Jeffrey","(L.D. Gómez) Lira &amp; F. Chiang"],["McPherson","(Wunderlin) Lira &amp; F. Chiang","(Cogn.) C. Jeffrey","(L.D. Gómez) Lira &amp; F. Chiang"],[true,true,true,true],["Unplaced","Unplaced","Unplaced","Unplaced"],["Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>sp6<\/th>\n      <th>currwcvp_name<\/th>\n      <th>forestgeo_name<\/th>\n      <th>currwcvp_species<\/th>\n      <th>forestgeo_species<\/th>\n      <th>currwcvp_genus<\/th>\n      <th>forestgeo_genus<\/th>\n      <th>currwcvp_family<\/th>\n      <th>forestgeo_family<\/th>\n      <th>currwcvp_author<\/th>\n      <th>forestgeo_author<\/th>\n      <th>currforestgeochanged<\/th>\n      <th>wcvp_status<\/th>\n      <th>currnotes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"sp6","targets":0},{"name":"currwcvp_name","targets":1},{"name":"forestgeo_name","targets":2},{"name":"currwcvp_species","targets":3},{"name":"forestgeo_species","targets":4},{"name":"currwcvp_genus","targets":5},{"name":"forestgeo_genus","targets":6},{"name":"currwcvp_family","targets":7},{"name":"forestgeo_family","targets":8},{"name":"currwcvp_author","targets":9},{"name":"forestgeo_author","targets":10},{"name":"currforestgeochanged","targets":11},{"name":"wcvp_status","targets":12},{"name":"currnotes","targets":13}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-0ab1111ec6cb1c97f920" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-0ab1111ec6cb1c97f920">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species with missing taxonomic information in wcvp<\/caption>","data":[["prunfo","sechpa","sechpi","sechve"],["Prunus fortunensis","Sechium panamense","Sechium pittieri","Sechium venosum"],["Prunus fortunensis","Sechium panamense","Sechium pittieri","Sechium venosum"],[null,null,null,null],["fortunensis","panamense","pittieri","venosum"],[null,null,null,null],["Prunus","Sechium","Sechium","Sechium"],["Rosaceae","Cucurbitaceae","Cucurbitaceae","Cucurbitaceae"],["Rosaceae","Cucurbitaceae","Cucurbitaceae","Cucurbitaceae"],["McPherson","(Wunderlin) Lira &amp; F. Chiang","(Cogn.) C. Jeffrey","(L.D. Gómez) Lira &amp; F. Chiang"],["McPherson","(Wunderlin) Lira &amp; F. Chiang","(Cogn.) C. Jeffrey","(L.D. Gómez) Lira &amp; F. Chiang"],[true,true,true,true],["Unplaced","Unplaced","Unplaced","Unplaced"],["Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp","Previous Species name was Unplaced - Name changed in wcvp"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>sp6<\/th>\n      <th>currwcvp_name<\/th>\n      <th>forestgeo_name<\/th>\n      <th>currwcvp_species<\/th>\n      <th>forestgeo_species<\/th>\n      <th>currwcvp_genus<\/th>\n      <th>forestgeo_genus<\/th>\n      <th>currwcvp_family<\/th>\n      <th>forestgeo_family<\/th>\n      <th>currwcvp_author<\/th>\n      <th>forestgeo_author<\/th>\n      <th>currforestgeochanged<\/th>\n      <th>wcvp_status<\/th>\n      <th>currnotes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"sp6","targets":0},{"name":"currwcvp_name","targets":1},{"name":"forestgeo_name","targets":2},{"name":"currwcvp_species","targets":3},{"name":"forestgeo_species","targets":4},{"name":"currwcvp_genus","targets":5},{"name":"forestgeo_genus","targets":6},{"name":"currwcvp_family","targets":7},{"name":"forestgeo_family","targets":8},{"name":"currwcvp_author","targets":9},{"name":"forestgeo_author","targets":10},{"name":"currforestgeochanged","targets":11},{"name":"wcvp_status","targets":12},{"name":"currnotes","targets":13}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code># To fix this set genus in name as genus
 alltaxawcvpplus &lt;- alltaxawcvpplus %&gt;% 
   mutate(currwcvp_genus  = word(currwcvp_name, 1),
