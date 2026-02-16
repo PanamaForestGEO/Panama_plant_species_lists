@@ -703,8 +703,8 @@ Saved `r nrow(outtaxa)` species in Panama Biota lists with their names verified 
 
 ### MERGE WOODY AND BCI ##################################
 
-bcibiotafix_clean <- read_excel("splists_out/Plantnet species/BCI_PLANTS_panamabiota_WCVP_2026-02-13.xlsx")
-lastwoody_path <- "splists_out/PanamaSpCombined_2026-02-11.xlsx"
+bcibiotafix_clean <- outtaxa
+
 lastwoody <- read_excel(lastwoody_path)
 nrow(lastwoody)
 
@@ -742,35 +742,13 @@ bcimaybewoody <- bcinotwoody %>%
 
 ```
 
-#### Garwood 
-
-```{r garwood, echo=TRUE, results="hide"}
-
-garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1_WCVP_2026-02-13.xlsx")
-
-pattern_wcvp <- paste(bcibiotafix_clean$currwcvp_name, collapse = "|")
-pattern_pbiota <- paste(bcibiotafix_clean$pbiota_synonyms, collapse = "|")
-
-speciesrevision <- garwood_list %>% 
-     filter(grepl(pattern_pbiota, sourcesynonyms) | grepl(pattern_wcvp, sourcesynonyms)) 
-
-garwood_list <- garwood_list %>% mutate(
-  biota_bci_name = wcvp_name %in%  bcibiotafix_clean$currwcvp_name,
-  biota_synonym_name = wcvp_name %in%  speciesrevision$wcvp_name,
-  woody = wcvp_name %in% lastwoody$currwcvp_name
-)
-
-write_xlsx(garwood_list, paste0(save_plantlists_dir, "GARWOOD_",Sys.Date(),".xlsx"))
-
-
-```
-
-#### Panama biota
+### Species in forestgeo woody list that are not in BCI but could be:
 ```{r listbiota, echo=TRUE, results="hide"}
 
 # add these species to woody bci
 bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
   woody_name = (bcibiotafix_clean$currwcvp_name %in% woodybci$currwcvp_name))
+
 
 # Some species synonyms in forestgeo refer to the name the species had for a long time but then was correctly identified and the species name changed. 
 # lets see if some woody species synonyms is in BCI
@@ -789,16 +767,20 @@ lista <- strsplit(speciesrevision$forestgeo_synonyms, ",")
 vector_final <- unlist(lista)
 forestgeo_synonymslist <- trimws(vector_final)
 
+# synonyms in forestgeo that are in the PanamaBiota BCI list
+bcibiotawcvpplus %>%
+  filter(currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ) %>%
+  mutate(notesyn = ifelse(currwcvp_name %in% forestgeo_synonymslist, "forestgeo synonym is another species", "")) %>%
+  select(currwcvp_name, pbiota_name, wcvp_status, currnotes, notesyn)
+
+
 bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
   woody_synonym = (currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ),
-  woody = woody_synonym | woody_name,
-  garwood = currwcvp_name %in% garwood_list$wcvp_name
+  woody = woody_synonym | woody_name
   )
 
-bcibiotafix_clean %>% filter(!garwood & woody) %>% select(currwcvp_name)
-
 ####### Save to file
-write_xlsx(bcibiotafix_clean, paste0(save_plantlists_dir, "PANAMA_BIOTA_BCI_",Sys.Date(),".xlsx"))
+#write_xlsx(bcibiotafix_clean, paste0(save_plantlists_dir, "PANAMA_BIOTA_BCI_",Sys.Date(),".xlsx"))
 
 
 ```
@@ -849,18 +831,15 @@ lastwoody <- lastwoody %>% mutate(
   plotp14 = sp6 %in% plotp14_list$sp,
   plotp11 = sp6 %in% plotp11_list$sp,
   biota_bci = biota_bci_name | biota_bci_synonym | plotbci | plotbci10 | plotp14 | plotp11,
-  garwood = currwcvp_name %in% garwood_list$wcvp_name
 )
 
 
 #################### save new woody species list: 
 
-write_xlsx(lastwoody, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
+#write_xlsx(lastwoody, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
 
 
 ```
-
-### Woody species that are NOT in panama biota but they are in BCI plots
 
 ```{r sanitycheck_bci, fig.width=10}
 
@@ -870,129 +849,7 @@ write_xlsx(lastwoody, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".
 plotmatch <- lastwoody %>% filter(biota_bci & !biota_bci_name & !biota_bci_synonym) %>% select(currwcvp_name, forestgeo_name, forestgeo_synonyms, biota_bci, biota_bci_name, biota_bci_synonym, plotbci, plotbci10, plotp11, plotp11)
 
 
-knitr::kable(plotmatch, caption="Woody species dont match with panama biota but have been reported in bci plots")
+knitr::kable(plotmatch, caption="Species dont match with panama biota but have been reported in bci plots")
 
 
 ```
-
-
-### Woody species in garwood that are not in panama biota BCI or any of the BCI plots
-
-```{r sanitycheck_bci2, fig.width=10}
-
-# How do we verify that no species is being missed?
-
-# print species NOT in panama biota but they are in the plots
-plotmatch2 <- lastwoody %>% filter(!biota_bci & garwood) %>% select(currwcvp_name, forestgeo_name, forestgeo_synonyms, biota_bci, biota_bci_name, biota_bci_synonym, plotbci, plotbci10, plotp11, plotp11)
-
-
-datatable(
-    plotmatch2,
-    caption="Woody species are in garwood list but have NOT been reported in bci plots or panama biota",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-  
-
-```
-
-`r paste(plotmatch2$currwcvp_name, collapse="<br>")`
-
-### Garwood species that are not in panama biota BCI
-
-```{r sanitycheck_garwood, fig.width=10}
-
-# print species NOT in panama biota but they are in the plots
-# 1. Prepare the reference keys in the Biota list
-# We use unique() to make the checks faster and avoid many-to-many issues
-biota_genera <- unique(bcibiotafix_clean$currwcvp_genus)
-biota_species_keys <- unique(paste(bcibiotafix_clean$currwcvp_genus, bcibiotafix_clean$currwcvp_species))
-
-# 2. Process the Garwood species not in Biota
-garwood_nopbiota <- garwood_list %>% 
-  filter(!biota_bci_name & !biota_synonym_name) %>%
-  mutate(
-    # Create the Genus + Species key for matching
-    genusspecies_key = paste(wcvp_genus, wcvp_species),
-    
-    # Categorize why they didn't match
-    nota_match = case_when(
-      # Case 1: Genus and Species match (so the difference must be at the Subspecies/Var level)
-      genusspecies_key %in% biota_species_keys ~ "Species match, but Subspecies/Var is different",
-      
-      # Case 2: The Genus exists in Biota, but this specific Species does not
-      wcvp_genus %in% biota_genera ~ "Genus exists in Biota, but Species name does not",
-      
-      # Case 3: Even the Genus is missing from the Biota list
-      TRUE ~ "Genus is not in the Biota list"
-    )
-  ) %>% 
-  arrange(nota_match)
-
-# 3. Display results
-datatable(
-  garwood_nopbiota %>% 
-    select(wcvp_name, orig_name, nota_match, SYNONYMS, sourcesynonyms, origchanged, woody),
-  caption = "Garwood species NOT in Panama Biota: Breakdown of Mismatches",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
-)
-
-garwoodgenus_nobiota <- garwood_nopbiota %>% filter(nota_match == "Genus is not in the Biota list") %>% select(wcvp_genus)
-
-# 4. Summary Table
-garwood_summary <- garwood_nopbiota %>% 
-  group_by(nota_match) %>%
-  summarise(count = n(), .groups = "drop")
-
-knitr::kable(garwood_summary)
-
-```
-
-Genus in garwood that don't show at all in Panamabiota
-`r paste(garwoodgenus_nobiota, collapse="<br>")`
-
-```{r checksp}
-
-bcibiotafix_clean$genusspecies <- paste0(bcibiotafix_clean$currwcvp_genus, bcibiotafix_clean$currwcvp_species)
-# left join con panama biota solo para esas 40 especies
-
-subspecies_mismatch <- garwood_nopbiota %>% filter(nota_match == "Species match, but Subspecies/Var is different")
-
-subspecies_mismatch <- subspecies_mismatch %>% 
-  left_join(bcibiotafix_clean %>% select(currwcvp_name, genusspecies), by=c( "genusspecies_key" = "genusspecies"), relationship = "many-to-many") %>%
-  rename(wcvpbiota_name = currwcvp_name)
-
-datatable(
-  subspecies_mismatch %>% 
-    select(wcvp_name, orig_name, wcvpbiota_name),
-  caption = "Garwood species that could be in panama biota but subspecies dont match",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
-)
-
-write_xlsx(subspecies_mismatch, paste0(save_plantlists_dir, "GARWOOD_PANAMA_BIOTA_CLOSE_MISMATCH_",Sys.Date(),".xlsx"))
-
-
-```
-
-
-
-### Panama biota species that are not in Garwood
-
-```{r sanitycheck_pbiota, fig.width=10}
-
-# print species NOT in panama biota but they are in the plots
-bcibiota_nogarwood <- bcibiotafix_clean%>% filter(!garwood) %>% select(currwcvp_name, woody)
-
-datatable(
-    bcibiota_nogarwood,
-    caption="Panama biota species are NOT garwood list",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-  
-
-```
-
-
