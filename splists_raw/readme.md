@@ -3,8 +3,7 @@ Merging files for Panama woody plant species generally involves using the most u
 
 *Subdirectories*
 
-**FloraBCI** Contains electronic versions of plant species lists for BCI that have been carefully reviewed by botanists.  Most especially, this contains the file 
-**Garwood_2009_Appendix1.csv** An electronic version of Appendix 1 of Garwood 2009.  This appendix is a list of all plant species known to be found on BCI, updating the list in Croat 1978.  (Full citations given at the end of this readme.)  
+**BCIflora** Contains electronic versions of plant species lists for BCI that have been carefully reviewed by botanists.  Most especially, this contains electronic versions of Appendix 1 of Garwood 2009, a list of all plant species known to be found on BCI, updating the list in Croat 1978.  (Full citations given at the end of this readme.)  
 
 **Forestgeo** Contains files of tree species or woody plant species more generally that are present in ForestGEO plots or datasets in Panama, together with their 6-letter species codes and other info.  Includes recognized morphospecies and corresponding codes. 
 
