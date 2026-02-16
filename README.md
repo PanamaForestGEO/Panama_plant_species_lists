@@ -1,11 +1,11 @@
 # Panama_plant_species_lists
 
-This github repository is intended to provide an up-to-date database of scientific names of plants (mostly woody plants) in Panama, 
+This github repository is intended to provide an up-to-date database of scientific names of plants (with an emphasis on woody plants) in Panama in general and in specific study sites in Panama in particular, 
 together with their 6-letter and 4-letter codes (as used in Smithsonian research), and histories of changes in species names associated with these codes. 
 
 # Contributors
 
-Helene C. Muller-Landau created this github repository and wrote most of the code.  Antoine Caron-Guay wrote the code for generating the Labelbox lists, which includes linking to GBIF taxon ID.  
+Helene C. Muller-Landau created this github repository and wrote the initial code.  Paula Uzcategui contributed substantially to the code for merging in BCI species lists from Panamabiota and Garwood 2009.  Antoine Caron-Guay contributed code for generating the Labelbox lists, which includes linking to GBIF taxon ID.  
 
 The readme for the splists_raw directory includes information on the authors of the raw/original species lists.  *Please make sure to appropriately credit the list authors.*   
 
