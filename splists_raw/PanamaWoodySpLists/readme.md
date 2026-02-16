@@ -1,5 +1,14 @@
 **PanamaWoodySpLists** This subdirectory contains files that are lists of all tree species or all woody plant species more generally in the country of Panama, often together with 6-letter codes assigned to these species by ForestGEO, and other info.  Includes only species with scientific names, no morphospecies.  Below these files are organized by date from the current version to older versions.
 
+**2005-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx** is a slightly modified version of a file received from Suzanne Lao (dated 2025-12-04) that is a list of all woody plant taxa in Panama authored by Rolando Pérez, Salomón Aguilar and David Mitre.  The info tab describes changes to it.  
+Columns: taxorder	family	genus	speciesname	subspecies	authority	synonyms	herbarium	mnemonic	liana
+mnemonic is lowercase 6-letter species codes.  
+column "liana" has "l" for climbing species and nothing for other (freestanding) species.  
+
+**2025-11-19FromSuzanne/listspecies.xlsx**
+
+**2025-09-09FromSuzanne/FloraPanama_8Sept25.xlsx** 
+
 **2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx** is a file received from Suzanne Lao (dated 2025-08-28) that is a list of all woody plant taxa in Panama authored by 
 Rolando Pérez, Salomón Aguilar and David Mitre.  
 Columns: Order, Family, Genus, Species, Authority, Subspecies, Synonyms, Herbarium, Spcode, and Liana.
