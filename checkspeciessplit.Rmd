@@ -963,7 +963,7 @@ outtaxa <- alltaxawcvpplus %>%
     forestgeo_habit = habit,
     wcvp_lifeform_description = lifeform_description
   ) %>%
-  select(-Name_matched, -wcvp_authors, -Name_matched_rank, -Accepted_name,-wcvp_status, -Accepted_family,
+  select(-Name_matched, -wcvp_authors, -Name_matched_rank,-wcvp_status, -Accepted_family,
          -Accepted_name_rank, -Accepted_name_author, -Accepted_name_status, -Accepted_name_genus,             
           -Accepted_name_species, -Accepted_name_infraspecific_rank, -Accepted_name_infraspecies,            
           -match_similarity, -match_edit_distance  )
