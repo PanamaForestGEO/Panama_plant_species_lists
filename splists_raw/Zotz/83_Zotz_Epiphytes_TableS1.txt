@@ -1,0 +1,245 @@
+Species	Sp (Croat 1978)	Family	Fam (Croat 1978)	Life form	Lf (Croat 1978)	Source for additions
+Anthurium acutangulum		Araceae		e	E	
+Anthurium bakeri		Araceae		e	E	
+Anthurium brownii		Araceae		e	E	
+Anthurium concolor	**	Araceae		e		[Croat 8154]
+Anthurium durandii	Anthurium littorale	Araceae		e	E	
+Anthurium flexile		Araceae		e	E	
+Anthurium friedrichsthalii		Araceae		e	E	
+Anthurium gracile		Araceae		e	E	
+Anthurium kunthii	**	Araceae		e		[Croat 8238]
+Anthurium obtusum	**	Araceae		e		[Croat 14969]
+Anthurium paludosum	**	Araceae		e		[Croat 8513]
+Anthurium salvinii	**	Araceae		e		[Croat 7920]
+Anthurium scandens		Araceae		e	E	
+Anthurium schlechtendalii subsp. schlechtendalii 	Anthurium tetragonum	Araceae		e/t	E	
+Stenospermation angustifolium		Araceae		e	E	
+Oreopanax capitatus		Araliaceae		e	E	
+Asplenium abscissum	Asplenium laetum	Aspleniaceae	Polypodiaceae	e	E	
+Asplenium auritum		Aspleniaceae	Polypodiaceae	e	E	
+Asplenium juglandifolium	Asplenium falcinellum	Aspleniaceae	Polypodiaceae	e	E	
+Asplenium pteropus		Aspleniaceae	Polypodiaceae	e	E	
+Asplenium serratum		Aspleniaceae	Polypodiaceae	e	E	
+Hymenasplenium delitescens	Asplenium delitescens	Aspleniaceae	Polypodiaceae	e	E	
+Begonia hirsuta	Begonia filipes	Begoniaceae		e	FE	
+Aechmea pubescens		Bromeliaceae		e	E	
+Aechmea setigera		Bromeliaceae		e	E	
+Aechmea tillandsioides		Bromeliaceae		e	E	
+Billbergia macrolepis		Bromeliaceae		e	E	
+Catopsis sessiliflora		Bromeliaceae		e	E	
+Guzmania lingulata		Bromeliaceae		e	E	
+Guzmania monostachia	Guzmania monostachya	Bromeliaceae		e	E	
+Pitcairnia heterophylla		Bromeliaceae		e	E	
+Tillandsia anceps		Bromeliaceae		e	E	
+Tillandsia bulbosa		Bromeliaceae		e	E	
+Tillandsia elongata var. subimbricata	**	Bromeliaceae		e		Zotz et al. (1999)
+Tillandsia fasciculata		Bromeliaceae		e	E	
+Tillandsia monadelpha		Bromeliaceae		e	E	
+Tillandsia subulifera		Bromeliaceae		e	E	
+Vriesea gladioliflora		Bromeliaceae		e	E	
+Vriesea heliconioides		Bromeliaceae		e	E	
+Vriesea ringens		Bromeliaceae		e	E	
+Vriesea sanguinolenta		Bromeliaceae		e	E	
+Epiphyllum hookeri	**	Cactaceae		e		[Croat 8455]
+Epiphyllum phyllanthus		Cactaceae		e	E	
+Rhipsalis baccifera	Rhipsalis cassytha	Cactaceae		e	E	
+Ludovia integrifolia		Cyclanthaceae		e	E	
+Elaphoglossum doanense	**	Dryopteridaceae		e		Einzmann et al. (2015)
+Elaphoglossum hayesii		Dryopteridaceae	Polypodiaceae	e	E	
+Elaphoglossum latum	**	Dryopteridaceae		e		Einzmann et al. (2015)
+Elaphoglossum lherminieri	Elaphoglossum herminieri	Dryopteridaceae	Polypodiaceae	e	E	
+Elaphoglossum longicrure	**	Dryopteridaceae		e	E	[Croat 10860]
+Elaphoglossum peltatum	**	Dryopteridaceae		e		Einzmann et al. (2015)
+Elaphoglossum sporadolepis		Dryopteridaceae	Polypodiaceae	e	E	
+Chrysothemis friedrichsthaliana		Gesneriaceae		e	FE	
+Codonanthe crassifolia		Gesneriaceae		e	E	
+Codonanthe uleana		Gesneriaceae		e	E	
+Columnea billbergiana		Gesneriaceae		e	E	
+Columnea purpurata		Gesneriaceae		e	E	
+Drymonia serrulata		Gesneriaceae		e	E	
+Didymoglossum ekmanii 	Trichomanes ekmanii	Hymenophyllaceae		e	E	
+Didymoglossum godmanii	Trichomanes godmanii	Hymenophyllaceae		e	E	
+Didymoglossum kapplerianum	Trichomanes kapplerianum	Hymenophyllaceae		e	E	
+Didymoglossum kraussii	Trichomanes krausii	Hymenophyllaceae		e	E	
+Didymoglossum ovale 	Trichomanes ovale	Hymenophyllaceae		e	E	
+Didymoglossum punctatum 	Trichomanes punctatum	Hymenophyllaceae		e	E	
+Hymenophyllum brevifrons		Hymenophyllaceae		e	E	
+Trichomanes pinnatifidum	**	Hymenophyllaceae		e		[Croat 8767]
+Trichomanes polypodioides		Hymenophyllaceae		e	E	
+Phlegmariurus dichotomus	Lycopodium dichotomum	Lycopodiaceae		e	E	
+Topobea parasitica	Topobea praecox	Melastomataceae		e	E	
+Nephrolepis biserrata		Nephrolepidaceae	Polypodiaceae	e	E	
+Nephrolepis pendula		Nephrolepidaceae	Polypodiaceae	e	E	
+Acianthera verecunda	Pleurothallis verecunda	Orchidaceae		e	E	
+Aspasia principissa		Orchidaceae		e	E	
+Brassavola nodosa	**	Orchidaceae		e		Zotz et al. (1999)
+Brassia caudata		Orchidaceae		e	E	
+Bulbophyllum pachyrachis		Orchidaceae		e	E	
+Camaridium neglectum	Maxillaria neglecta	Orchidaceae		e	E	
+Camaridium ochroleucum	Maxillaria camaridii	Orchidaceae		e	E	
+Campylocentrum micranthum		Orchidaceae		e	E	
+Campylocentrum pachyrrhizum		Orchidaceae		e	E	
+Catasetum bicolor		Orchidaceae		e	E	
+Catasetum viridiflavum		Orchidaceae		e	E	
+Caularthron bilamellatum		Orchidaceae		e	E	
+Christensonella uncata	Maxillaria uncata	Orchidaceae		e	E	
+Chysis sp.	**	Orchidaceae		e		"C. Goebel, pers. obs., Dressler (1993)"
+Coryanthes maculata		Orchidaceae		e	E	
+Dichaea panamensis		Orchidaceae		e	E	
+Dichaea trulla		Orchidaceae		e	E	
+Dimerandra emarginata		Orchidaceae		e	E	
+Elleanthus longibracteatus		Orchidaceae		e	E	
+Epidendrum bifarium	Epidendrum anceps	Orchidaceae		e	E	
+Epidendrum coronatum		Orchidaceae		e	E	
+Epidendrum difforme		Orchidaceae		e	E	
+Epidendrum flexuosum	Epidendrum imatophyllum	Orchidaceae		e	E	
+Epidendrum laterale	Epidendrum rousseauae	Orchidaceae		e	E	
+Epidendrum lockhartioides		Orchidaceae		e	E	
+Epidendrum nocturnum		Orchidaceae		e	E	
+Epidendrum rigidum		Orchidaceae		e	E	
+Epidendrum schlechterianum		Orchidaceae		e	E	
+Epidendrum sculptum		Orchidaceae		e	E	
+Epidendrum stamfordianum	**	Orchidaceae		e		[Croat 7015]
+Epidendrum stangeanum		Orchidaceae		e	E	
+Epidendrum strobiliferum		Orchidaceae		e	E	
+Epidendrum umbilliferum	**	Orchidaceae		e	E	[Croat 10106]
+Erycina pusilla 	Psygmorchis pusilla	Orchidaceae		e	E	
+Gongora fulva	Gongora tricolor	Orchidaceae		e	E	
+Gongora quinquenervis		Orchidaceae		e	E	
+Guarianthe patinii	Cattleya patinii	Orchidaceae		e	E	
+Heterotaxis sessilis	Maxillaria crassifolia	Orchidaceae		e	E	
+Ionopsis satyrioides		Orchidaceae		e	E	
+Ionopsis utricularioides		Orchidaceae		e	E	
+Leochilus scriptus		Orchidaceae		e	E	
+Liparis nervosa	Liparis elata	Orchidaceae		e	E	
+Lockhartia acuta		Orchidaceae		e	E	
+Lockhartia pittieri		Orchidaceae		e	E	
+Lycaste powellii		Orchidaceae		e	E	
+Masdesvallia livingstoneana		Orchidaceae		e	E	
+Maxillaria porrecta	**	Orchidaceae		e		[Croat 10107]
+Maxillaria powelli		Orchidaceae		e	E	
+Maxillariella acervata	**	Orchidaceae		e		Einzmann et al. (2015)
+Maxillariella alba	Maxillaria alba	Orchidaceae		e	E	
+Maxillariella variabilis	Maxillaria variabilis	Orchidaceae		e	E	
+Mormodes powelli		Orchidaceae		e	E	
+Myoxanthus trachychlamys	Pleurothallis trachychlamys	Orchidaceae		e	E	
+Notylia albida		Orchidaceae		e	E	
+Notylia barkeri		Orchidaceae		e	E	
+Notylia pentachne		Orchidaceae		e	E	
+Oncidium stipitatum		Orchidaceae		e	E	
+Ornithocephalus bicornis		Orchidaceae		e	E	
+Ornithocephalus powellii		Orchidaceae		e	E	
+Polystachya foliosa		Orchidaceae		e	E	
+Polystachya masayensis		Orchidaceae		e	E	
+Prosthechea aemula	**	Orchidaceae		e		[Foster s.n.]
+Prosthechea chacaoensis	Encyclia chacaoensis	Orchidaceae		e	E	
+Prosthechea chimborazoensis	Encyclia chimborazoensis	Orchidaceae		e	E	
+Prosthechea pygmaea	Encyclia triptera	Orchidaceae		e	E	
+Rhetinantha friedrichsthalii	Maxillaria friedrichsthalii	Orchidaceae		e	E	
+Rodriguezia lanceolata	**	Orchidaceae		e		Zotz et al. (1999)
+Rossioglossum ampliatum	Oncidium ampliatum	Orchidaceae		e	E	
+Scaphyglottis graminifolia		Orchidaceae		e	E	
+Scaphyglottis longicaulis		Orchidaceae		e	E	
+Scaphyglottis prolifera		Orchidaceae		e	E	
+Sievekingia suavis		Orchidaceae		e	E	
+Sobralia bletiae	Sobralia suaveolens	Orchidaceae		e	E	
+Sobralia decora	Sobralia panamensis	Orchidaceae		e	E	
+Sobralia fragans		Orchidaceae		e	E	
+Sobralia rolfeana		Orchidaceae		e	E	
+Specklinia brighamii 	Pleurothallis brighamii	Orchidaceae		e	E	
+Specklinia grobyi	Pleurothallis grobyi	Orchidaceae		e	E	
+Stelis crescentiicola		Orchidaceae		e	E	
+Trichocentrum capistratum		Orchidaceae		e	E	
+Trichopilia maculata		Orchidaceae		e	E	
+Trichopilia subulata		Orchidaceae		e	E	
+Trigonidium egertonianum		Orchidaceae		e	E	
+Warczewiczella lipscombiae	Cochleanthes lipscombiae	Orchidaceae		e	E	
+Xylobium foveatum		Orchidaceae		e	E	
+Peperomia ciliolibractea		Piperaceae		e	E	
+Peperomia cordulata		Piperaceae		e	E	
+Peperomia ebingeri		Piperaceae		e	E	
+Peperomia elata	**	Piperaceae		e		[Schmalzel 1406]
+Peperomia glabella		Piperaceae		e	E	
+Peperomia killipi		Piperaceae		e	E	
+Peperomia macrostachya		Piperaceae		e	E	
+Peperomia mameiana		Piperaceae		e	E	
+Peperomia obscurifolia		Piperaceae		e	E	
+Peperomia obtusifolia		Piperaceae		e	E	
+Peperomia pellucida	**	Piperaceae		e		[Schmalzel 1406]
+Peperomia portobellensis	**	Piperaceae		e		[Croat 8055]
+Peperomia rotundifolia		Piperaceae		e	E	
+Peperomia tenuifolia	**	Piperaceae		e		[Croat 12857]
+Campyloneurum angustifolium	**	Polypodiaceae		e		[Croat 6281]
+Campyloneurum aphanophlebium	Polypodium occultum	Polypodiaceae		e	E	
+Campyloneurum brevifolium	**	Polypodiaceae		e		[Croat 8043]
+Campyloneurum costatum 	Polypodium costatum	Polypodiaceae		e	E	
+Campyloneurum phyllitidis	Polypodium phyllitidis	Polypodiaceae		e	E	
+Microgramma percussa 	Polypodium percussum	Polypodiaceae		e	E	
+Microgramma persicariifolia 	Polypodium lycopodioides	Polypodiaceae		e	E	
+Microgramma reptans	Polypodium ciliatum	Polypodiaceae		e	E	
+Niphidium crassifolium	Polypodium crassifolium	Polypodiaceae		e	E	
+Niphidium oblanceolatum	**	Polypodiaceae		e		[Croat 7264]
+Pecluma hygrometrica	Polypodium hygrometricum	Polypodiaceae		e	E	
+Pecluma plumula 	Polypodium pectinatum	Polypodiaceae		e	E	
+Pleopeltis christensenii	Dicranoglossum panamense	Polypodiaceae		e	E	
+Pleopeltis panamensis	**	Polypodiaceae		e		[Ebinger 231]
+Pleopeltis polypodioides	Polypodium polypodioides	Polypodiaceae		e	E	
+Serpocaulon maritimum	Polypodium maritimum	Polypodiaceae		e	E	
+Serpocaulon triseriale	Polypodium triseriale	Polypodiaceae		e	E	
+Serpocaulon wagneri	Polypodium costaricense	Polypodiaceae		e	E	
+Ananthacorus angustifolius		Pteridaceae	Polypodiaceae	e	E	
+Polytaenium citrifolium	Anetium citrifolium	Pteridaceae	Polypodiaceae	e	E	
+Vittaria graminifolia		Pteridaceae	Polypodiaceae	e	E	
+Vittaria lineata		Pteridaceae	Polypodiaceae	e	E	
+Not categorized as epiphytes any more:						
+						
+Anthurium clavigerum		Araceae		he	E	
+Anthurium pentaphyllum var. bombacifolium	Anthurium bombacifolium	Araceae		v/nv/he?	E	
+Monstera adansonii var. laniata	Monstera adansonii	Araceae		v/nv	E	
+Monstera dubia		Araceae		v/nv	E	
+Monstera pinnatipartita	Monstera dilacerata	Araceae		v/nv	E	
+Philodendron alliodorum	**	Araceae		v/nv		[Weichgrebe s.n.]
+Philodendron fragrantissimum		Araceae		v/nv/he?	E	
+Philodendron hederaceum var. hederaceum	Philodendron scandens	Araceae		v/nv	E	
+Philodendron immixtum	Philodendron inconcinnum	Araceae		v/nv	E	
+Philodendron inaequilaterum		Araceae		v/nv	E	
+Philodendron jacquinii	Philodendron hederaceum	Araceae		v/nv	E	
+Philodendron opacum	Philodendron nervosum	Araceae		v/nv	E	
+Philodendron panamense		Araceae		v/nv	E	
+Philodendron pterotum		Araceae		v/nv	E	
+Philodendron radiatum		Araceae		he	E	
+Philodendron rayanum	**	Araceae		v/nv		[Weichgrebe s.n.]
+Philodendron rigidifolium	Philodendron guttiferum	Araceae		v/nv	E	
+Philodendron sagittifolium		Araceae		v/nv	E	
+Philodendron tripartitum		Araceae		he	E	
+Rhodospatha wendlandii		Araceae		v/nv	E	
+Syngonium erythrophyllum		Araceae		v/nv	E	
+Syngonium podophyllum		Araceae		v/nv	E	
+Clusia flavida	Havetiopsis flexilis	Clusiaceae	Guttiferae	he	HE	
+Clusia minor	**	Clusiaceae	Guttiferae	he		Zotz et al. (1997)
+Clusia peninsulae	**	Clusiaceae	Guttiferae	he		[Croat 14050]
+Clusia uvitana	Clusia odorata	Clusiaceae	Guttiferae	he	HE	
+Mickelia nicotianifolia	Bolbiltis nicotianifolia	Dryopteridaceae	Polypodiaceae	v	E	
+Polybotrya caudata	Polybotrya villosula	Dryopteridaceae	Polypodiaceae	v	E	
+Lomariopsis vestita		Lomariopsidaceae	Polypodiaceae	he	E	
+Maxonia apiifolia		Lomariopsidaceae	Polypodiaceae	v	HE	
+Marcgravia nepenthoides		Marcgraviaceae		he	E	
+Souroubea sympetala		Marcgraviaceae		he	E	
+Ficus colubrinae		Moraceae		he	HE	
+Ficus curtipes	Ficus obtusifolia	Moraceae		he	HE	
+Ficus dugandii		Moraceae		he	HE	
+Ficus maxima	Ficus citrifolia	Moraceae		he	HE	
+Ficus nymphaeifolia		Moraceae		he	HE	
+Ficus obtusiuscula	Ficus perforata	Moraceae		he	HE	
+Ficus paraensis		Moraceae		he	HE	
+Ficus pertusa		Moraceae		he	HE	
+Ficus popenoei 		Moraceae		he	HE	
+Ficus trigonata		Moraceae		he	HE	
+Vanilla planifolia	Vanilla fragrans	Orchidaceae		v	E	
+Vanilla pompona		Orchidaceae		v	E	
+Cosmibuena grandiflora	Cosmibuena skinneri	Rubiaceae		he	HE	
+Cosmibuena macrocarpa	**	Rubiaceae		he		[Croat NL]
+Markea ulei		Solanaceae		he	HE	
+Boehmeria cylindrica		Urticaceae		acc	E	
+Coussapoa asperifolia subsp. magnifolia	Coussapoa magnifolia	Urticaceae	Moraceae	he	E	
+Coussapoa villosa	Coussapoa panamensis	Urticaceae	Moraceae	he	E	
