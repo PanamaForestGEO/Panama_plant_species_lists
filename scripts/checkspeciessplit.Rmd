@@ -1121,10 +1121,13 @@ missing_from_wright <- usewrighttaxa %>%
         (!is.na(shrub) & shrub != 0) | 
         (!is.na(liana) & liana != 0) )) %>%
   mutate(
-    is_alternate_name = 
-    current_name %in% alternate_synonym_table$SynonymTextALL | 
-    orig_name %in% alternate_synonym_table$SynonymTextALL,
-    
+    synonym_match_name = case_when(
+      current_name %in% alternate_synonym_table$SynonymTextSingle ~ current_name,
+      orig_name %in% alternate_synonym_table$SynonymTextSingle ~ orig_name,
+      TRUE ~ NA_character_
+    ),
+    is_alternate_name = !is.na(synonym_match_name),
+
 lifeform_wright = paste(
       if_else(!is.na(tree) & tree != 0, "TREE", "_"),
       if_else(!is.na(midstory) & midstory != 0, "MIDSTORY", "_"),
@@ -1150,9 +1153,18 @@ lifeform_wright = paste(
     
     # 4. If nothing is left, make it a true NA
     lifeform_wright = if_else(lifeform_wright == "", NA_character_, lifeform_wright)
-)
+) %>%
+  left_join(alternate_synonym_table %>% select(SynonymTextSingle, forestgeo_name, OriginalOrder),by=c("synonym_match_name" = "SynonymTextSingle")) %>%
+  rename(
+    forestgeo_synonym_source = forestgeo_name
+  )
 
-datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, lifeform_wright),
+
+# add synonym
+missing_from_wright <- missing_from_wright %>% 
+
+
+datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, forestgeo_synonym_source, lifeform_wright),
           caption = "Wright codes not used in PanWood")
 
 write_xlsx(missing_from_wright, WRIGHT_MISSING_PANWOODY_PATH)
