@@ -1123,13 +1123,36 @@ missing_from_wright <- usewrighttaxa %>%
   mutate(
     is_alternate_name = 
     current_name %in% alternate_synonym_table$SynonymTextALL | 
-    orig_name %in% alternate_synonym_table$SynonymTextALL
-         )
+    orig_name %in% alternate_synonym_table$SynonymTextALL,
+    
+lifeform_wright = paste(
+      if_else(!is.na(tree) & tree != 0, "TREE", "_"),
+      if_else(!is.na(midstory) & midstory != 0, "MIDSTORY", "_"),
+      if_else(!is.na(understory) & understory != 0, "UNDERSTORY", "_"),
+      if_else(!is.na(shrub) & shrub != 0, "SHRUB", "_"),
+      if_else(!is.na(liana) & liana != 0, "LIANA", "_"), # No longer breaks!
+      if_else(!is.na(climber) & climber != 0, "CLIMBER", "_"),
+      if_else(!is.na(free) & free != 0, "FREE", "_"),
+      if_else(!is.na(vine) & vine != 0, "VINE", "_"),
+      if_else(!is.na(herb) & herb != 0, "HERB", "_"),
+      if_else(!is.na(epiphyte) & epiphyte != 0, "EPIPHYTE", "_"),
+      if_else(!is.na(hemiepiphyte) & hemiepiphyte != 0, "HEMIEPIPHYTE", "_"),
+      if_else(!is.na(parasite) & parasite != 0, "PARASITE", "_"),
+      sep = ", "
+    ),
+    
+    # 2. Remove the underscores and extra commas
+    # This regex looks for "_" followed by a comma or a comma followed by "_"
+    lifeform_wright = str_remove_all(lifeform_wright, "_, | ,_|_"),
+    
+    # 3. Final polish to remove any leading/trailing commas or spaces
+    lifeform_wright = str_trim(str_remove_all(lifeform_wright, "^, |, $")),
+    
+    # 4. If nothing is left, make it a true NA
+    lifeform_wright = if_else(lifeform_wright == "", NA_character_, lifeform_wright)
+)
 
-# check if they are synonyms
-
-
-datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, tree, midstory, understory, shrub, liana ),
+datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, lifeform_wright),
           caption = "Wright codes not used in PanWood")
 
 write_xlsx(missing_from_wright, WRIGHT_MISSING_PANWOODY_PATH)
