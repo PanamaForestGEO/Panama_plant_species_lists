@@ -13,780 +13,175 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r setup2, echo=TRUE,message=FALSE, warning=FALSE, results="hide"}
 
-# installing wcvp
-#install.packages("remotes")
-#library(remotes)
-#remotes::install_github("matildabrown/rWCVP")
-#rm(list=ls())
+rm(list=ls())
 
 library("readxl")
 library("writexl")
 library("dplyr")
 library(tidyr)
-library("TNRS")
 library("stringi")
 library("stringr")
-suppressPackageStartupMessages({
-  library(rWCVP)
-  library(rWCVPdata)
-})
 library(DT)
-
-citation("rWCVPdata") # so according to this, this is using version 13.
-
-# Load the names and distributions
-wcvp_names <- rWCVPdata::wcvp_names 
-
-panamabiotaWCVP_path <- "splists_mid/PanamaBiotaBCI_WCVP_2026-02-10.xlsx"
-
-save_plantlists_dir = "splists_out/Plantnet species/"
-
-lastwoody_path <-  "splists_out/PanamaSpCombined_2026-02-11.xlsx"
-
-bci_angiosperms_path <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Plants of Barro Colorado - eudicots, magnoliids, and basal angiosperms_1770221196.csv"
-bci_ferns_path <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Plants of Barro Colorado - ferns and allies_1770221067.csv"
-bci_monocots_path <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Plants of Barro Colorado - monocots_1770221178.csv"
-
-panamabiotatrees <- "splists_raw/Panamabiota/Downloaded_2026-02-04/Complete Tree Species of Panama_1770221306.csv"
-panamabiotalianas <- "splists_raw/Panamabiota/Downloaded_2026-02-04/CTFS Liana Atlas of Panama_1770221260.csv"
-
 ```
 
-## Preparing the datasets
-
+# Preparing the datasets
 
 ```{r prep, echo=TRUE, results="hide"}
 
+save_plantlists_dir = "splists_out/Plantnet species/"
 
-bciangio <- read.csv(bci_angiosperms_path, sep = ",")
-bciferns <- read.csv(bci_ferns_path, sep = ",")
-bcimonocots <- read.csv(bci_monocots_path, sep = ",")
+pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-22.xlsx")
+woody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-02-22.xlsx")
+lianas_list <- read_excel("splists_out/Lianas_Species_complete_list_2026-02-13_WCVP_2026-02-22.xlsx")
+garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1_WCVP_2026-02-20.xlsx")
+zotz_list <- read_excel("splists_out/83_Zotz_Epiphytes_TableS1_WCVP_2026-02-22.xlsx")
 
-# This returns TRUE only if all three are exactly the same
-all(colnames(bciangio) == colnames(bcimonocots)) && all(colnames(bcimonocots) == colnames(bciferns))
+woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-22.xlsx")
+garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
-# merge all bci in just one list and keep the source.
-bciangio$source <- "angio"
-bciferns$source <- "ferns"
-bcimonocots$source <- "monocots"
 
-bcibiota <- bind_rows(bciangio, bciferns, bcimonocots)
+garwood_synonyms <- garwood_synonyms %>% mutate(
+  sp_name = trimws(paste0(Genus, " ", Species)),
+  synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)))
 
-nrow(bcibiota)
+```
+## BCI LIST
 
-bcibiota %>% count(source, name = "species_count")
+### Zotz list
+```{r zotzlist, echo=TRUE, results="hide"}
 
-# Lets check consistency:
+# 1. see match by origin name
+match_orig <- match(zotz_list$orig_name, garwood_list$orig_name)
+zotz_no_orig <- zotz_list %>% filter(is.na(match_orig))
 
-# Duplicated names 
-# check for duplicate and address if needed
+# 2. see match by wcvp names
+match_wcvp <- match(zotz_no_orig$current_name, garwood_list$current_name)
+zotz_no_wcvp <- zotz_no_orig %>% filter(is.na(match_wcvp))
 
-bindups <- bcibiota %>% group_by(ScientificName) %>% arrange(ScientificName) %>% filter(n()>1) %>% ungroup()
-nrow(bindups)
+# 3. add a filed for synonym presence
+zotz_no_wcvp <- zotz_no_wcvp %>%
+  mutate(is_garwood_synonym = orig_name %in% garwood_synonyms$synonym_sp | current_name %in% garwood_synonyms$synonym_sp)
 
 ```
 
-## Match Panama Biota with WCVP names
-
-```{r mergewcvp}
-######################### PANMA BIOTA WCVP names ##################################
-
-# Merging accepted names 
-matchaccepted_names<- function(matcheswcvp){
-  matcheswcvp %>% 
-    left_join(wcvp_names %>% select(plant_name_id, genus, species, taxon_rank, family, primary_author, infraspecific_rank, infraspecies, lifeform_description, taxon_status),
-              by=c("wcvp_accepted_id"="plant_name_id")) %>% 
-    mutate(
-      Accepted_name = case_when(
-        is.na(species) | species == "" ~ genus,
-        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
-        TRUE ~ paste(genus, species))
-    ) %>%
-    rename(
-      Accepted_family= family,
-      Accepted_name_rank = taxon_rank,
-      Accepted_name_author = primary_author,
-      Accepted_name_status = taxon_status,
-      Accepted_name_genus = genus, 
-      Accepted_name_species = species, 
-      Accepted_name_infraspecific_rank = infraspecific_rank, 
-      Accepted_name_infraspecies = infraspecies
-    )
-}
-
-
-# Check for species names changes
-if(file.exists(panamabiotaWCVP_path)){
- matchresult <- read_excel(panamabiotaWCVP_path)
-} else{
-  matchresult <-wcvp_match_names(bcibiota, wcvp_names, name_col="ScientificName")
-  write_xlsx(matchresult, paste0("splists_mid/PanamaBiotaBCI_WCVP_",Sys.Date(),".xlsx"))
-}
-
-
-# All the species are still on the table
-all(unique(matchresult$ScientificName) %in% unique(bcibiota$ScientificName))
-
-# There can be multiple matches for one species, but only one is considered accepted
-#sanity check of that
-matchresult %>%
-  group_by(ScientificName) %>%
-  summarise(
-    n_rows = n(),
-    n_accepted = sum(wcvp_status == "Accepted", na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  filter(n_accepted > 1)
-
-# If they have two accepted names its probably because they were registered twice. The two records have different ids
-manyaccepted <- matchresult %>%
-  group_by(ScientificName) %>%
-  summarise(
-    n_rows = n(),
-    n_accepted = sum(wcvp_status == "Accepted", na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  filter(n_accepted > 1)
-
-matchresult %>%
-  filter(ScientificName %in% manyaccepted$ScientificName) %>%
-  select(ScientificName, wcvp_name,wcvp_status, wcvp_accepted_id, wcvp_id)
-  
-# They  have two accepted names! I will stay with the original.
-inc = matchresult$ScientificName %in% manyaccepted$ScientificName
-if (any(inc, na.rm = TRUE)) {
-  matchresult$wcvp_accepted_id[inc] <- matchresult$wcvp_id[inc]
-}
-
-# rules to keep 1 name per species:
-# if there is only one record with the current name keep that.
-# if there are more than one keep the one with wcvp_status = "Accepted"
-matchresult_clean <- matchresult %>%
-  mutate(
-    status_priority = case_when(
-      wcvp_status == "Accepted"     ~ 1,
-      wcvp_status == "Synonym"      ~ 2,
-      wcvp_status == "Illegitimate" ~ 3,
-      wcvp_status == "Unplaced"     ~ 4,
-      TRUE                          ~ 5
-    )
-  ) %>%
-  group_by(ScientificName) %>%
-  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  select(-status_priority)
-
-
-# Now this should be TRUE.
-nrow(matchresult_clean) == nrow(bcibiota) 
-# All the species are still on the table
-all(unique(matchresult_clean$ScientificName) %in% unique(bcibiota$ScientificName))
-
-# sanity check one species per row
-matchresult_clean %>%
-  group_by(ScientificName) %>%
-  summarise(
-    n_rows = n(),
-    .groups = "drop"
-  ) %>%
-  filter(n_rows > 1)
-
-matchresult_clean <- matchaccepted_names(matchresult_clean)
-
-# Now left join 
-bcibiotawcvpplus <-   bcibiota %>%
-  left_join(matchresult_clean %>% 
-            select(ScientificName, wcvp_name, wcvp_authors,wcvp_rank, wcvp_status, 
-                   Accepted_name, Accepted_family, Accepted_name_rank, Accepted_name_author, Accepted_name_status,
-                   Accepted_name_genus,
-                   Accepted_name_species, 
-                   Accepted_name_infraspecific_rank, 
-                   Accepted_name_infraspecies,
-                   lifeform_description, match_similarity, match_edit_distance),
-            by="ScientificName") %>%
-  rename(
-    Name_matched = wcvp_name,
-    Name_matched_rank = wcvp_rank
-
-  )
-
-
-# Scientific name is current name
-bcibiotawcvpplus <- bcibiotawcvpplus %>% rename(
-  pbiota_name = ScientificName,
-  pbiota_author = ScientificNameAuthorship,
-  pbiota_family = Family
-                            )
-
-# in that case leave the Name-matched as the accepted_name 
-inc <- bcibiotawcvpplus$Accepted_name=="" | is.na(bcibiotawcvpplus$Accepted_name)
-if (any(inc, na.rm = TRUE)) {
-  table(inc)
-  
-  bcibiotawcvpplus$Accepted_name[inc] <- bcibiotawcvpplus$Name_matched[inc]
-  bcibiotawcvpplus$Accepted_name_rank[inc] <- bcibiotawcvpplus$Name_matched_rank[inc]
-  bcibiotawcvpplus$Accepted_name_author[inc] <- ifelse(is.na(bcibiotawcvpplus$Accepted_name_author[inc]) & bcibiotawcvpplus$Accepted_name[inc] == bcibiotawcvpplus$pbiota_name[inc],
-                                                       bcibiotawcvpplus$pbiota_author[inc],
-                                                       bcibiotawcvpplus$Accepted_name_author[inc]
-  )
-}
-
-# lets see the taxonomic status of the matches
-bcibiotawcvpplus %>% 
-  count(wcvp_status, name = "n")
-
-
-```
-
-## Fix synonims and errors:
-
-```{r checkerrors, echo=TRUE, results="hide"}
-
-# For now lets assume the original biotanmae is correct 
-bcibiotawcvpplus <- bcibiotawcvpplus %>% mutate(
-  currwcvp_name = pbiota_name,
-  currwcvp_family = pbiota_family,
-  currwcvp_genus = word(pbiota_name, 1),
-  currwcvp_species = word(pbiota_name, 2),
-  currwcvp_subspecies = NA,
-  currwcvp_author = pbiota_author,
-  currpbiotachanged = FALSE,
-  currnotes = "",
-  synonyms = ""
-)
-
-bcibiotawcvpplus <- bcibiotawcvpplus %>% 
-  mutate(
-    pbiota_family = str_to_sentence(pbiota_family),
-    currwcvp_family = str_to_sentence(currwcvp_family)
-    )
-
-```
-
-### Case when no accepted name was found
-```{r noaccepted}
-
-species_na_wcvp <- bcibiotawcvpplus %>% filter(is.na(wcvp_status))
-
-if(nrow(species_na_wcvp)>0){
-  knitr::kable(species_na_wcvp %>% select( pbiota_name, Name_matched, wcvp_status))
-}
-
-```
-
-## Case when the Family changed
-
-```{r familychange}
-
-familychanged <-  bcibiotawcvpplus %>% filter( pbiota_name == Accepted_name & currwcvp_family != Accepted_family &  wcvp_status == "Accepted") 
-
-paste0("Species with changes in family ",  nrow(familychanged))
-
-if( nrow(familychanged) > 0){
-
-  datatable(
-    familychanged %>%  select(pbiota_family, Accepted_family, pbiota_name, Accepted_name, wcvp_status, currnotes), caption="Species with changes in family",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-  }
-
-```
-
-
-```{r familyfix}
-# set family to the accepted family:
-inc <- with(bcibiotawcvpplus,(
-        (!is.na(pbiota_name) & !is.na(Accepted_name) &  pbiota_name == Accepted_name &   wcvp_status == "Accepted" & pbiota_name %in% familychanged$pbiota_name)))
-
-species_modified4 <- bcibiotawcvpplus[inc,]
-
-# Change the species family name
-if (any(inc, na.rm=TRUE)) {
-  
-  tmp <- bcibiotawcvpplus[inc, ]
-  
-  # Perform calculations on the subset
-  tmp$currpbiotachanged <- TRUE
-  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
-  tmp$currnotes            <-  "Family changed in wcvp"
-  
-  # Re-assign the modified subset back to the original rows
-  bcibiotawcvpplus[inc, ] <- tmp
-}
-
-#sanity check: a single genus always has the same family:
-genus_many_families <- bcibiotawcvpplus %>%
-  group_by(currwcvp_name) %>%
-  summarise(n_families = n_distinct(currwcvp_family), .groups = "drop") %>%
-  filter(n_families > 1)
-
-
-if( nrow(genus_many_families) > 0){
-  knitr::kable(genus_many_families %>%  select(currwcvp_name, n_families), caption="Sanity check: genus with more than one family")
-}
-```
-
-
-### Case when species name spelling changed
-
-```{r spellingerror}
-# Matching errors should be only on typos or spelling errors:
-# subspecies and hybrids are common errors. 
-matchingerrors <- bcibiotawcvpplus %>%
-  filter((is.na(Name_matched) | pbiota_name !=Name_matched) & wcvp_status == "Accepted") %>%
-  arrange(match_similarity)  %>%
-  mutate(row_id = row_number())
-
-# If genus, species or subspecies seem very different (not just spelling). It is probably a mistake
-# If the error is a small spelling, leave the name in WCVP (accepted name)
-# For the species that the match is weird, lets leave the current name as accepted name.
-if(nrow(matchingerrors)>0){
-    datatable(
-    matchingerrors %>% select(row_id, pbiota_name,Name_matched, Accepted_name, match_similarity),
-    caption="The name is accepted but the spelling is a bit difference.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
-
-```{r spellfix}
-# list of species name that we will change as they have a different spelling
-changes_spelling1 <- matchingerrors %>%
-  filter(row_id %in% c(10, 13:19, 21:49)) %>%
-  mutate(note = "Spelling changed") %>%
-  select(pbiota_name, Accepted_name)
-
-inc <- with(bcibiotawcvpplus, bcibiotawcvpplus$pbiota_name %in% changes_spelling1$pbiota_name)
-
-species_modified1 <- bcibiotawcvpplus[inc,] %>% mutate(note = "Spelling changed")
-
-if(nrow(species_modified1)>0){
-  datatable(
-    species_modified1 %>% select( pbiota_name,Name_matched, Accepted_name, match_similarity), caption="Spelling errors to be corrected.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
- 
-}
-
-
-if (any(inc, na.rm=TRUE)) {
-  
-  tmp <- bcibiotawcvpplus[inc, ]
-  
-  # Perform calculations on the subset
-  tmp$currpbiotachanged <- TRUE
-  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
-  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
-  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
-  tmp$currwcvp_species    <- tmp$Accepted_name_species
-  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
-  tmp$currwcvp_name       <- tmp$Accepted_name
-  tmp$currnotes            <-"Spelling changed in wcvp"
-  
-  # Re-assign the modified subset back to the original rows
-  bcibiotawcvpplus[inc, ] <- tmp
-}
-```
-
-# Case when match is not perfect and species name has changed.
-```{r noperfectchange}
-
-# Some species have changed their name, that is normal. Lets check that wcvp didint make a mistake the matching
-noacceptedwcvpname <- bcibiotawcvpplus %>% 
-  filter(
-    (is.na(wcvp_status) | wcvp_status != "Accepted") &
-      !is.na(pbiota_name) &
-      !is.na(Name_matched) &
-      pbiota_name != Name_matched
-  ) %>%
-  arrange(wcvp_status, match_similarity) %>%
-  mutate(row_id = row_number()) %>%
-  select(row_id, pbiota_name, Name_matched, Accepted_name, wcvp_status, match_similarity) 
-
-if(nrow(noacceptedwcvpname)>0){
-  datatable(
-    noacceptedwcvpname, caption="Species where the match is not exact and the name changes",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-```
-
-
-```{r noperfechchangefix}
-# If the matched name is very different needs revision
-# otherwise its probably a spelling error, the accepted name is okay
-change_name2 <- noacceptedwcvpname %>%
-  filter(row_id %in% c(11:18)) %>%
-  mutate(note = "Spelling changed. Accepted name changed") %>%
-  select(pbiota_name, Accepted_name)
-
-inc <- with(bcibiotawcvpplus, bcibiotawcvpplus$pbiota_name %in% change_name2$pbiota_name)
-
-species_modified2 <- bcibiotawcvpplus[inc,] %>% mutate(note = "Spelling changed")
-
-if(nrow(species_modified2)>0){
-    datatable(
-    species_modified2 %>% select( pbiota_name,Name_matched, Accepted_name, match_similarity), caption="Keeping accepted name",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-
-if (any(inc, na.rm=TRUE)) {
-  
-  tmp <- bcibiotawcvpplus[inc, ]
-  
-  # Perform calculations on the subset
-  tmp$currpbiotachanged <- TRUE
-  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
-  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
-  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
-  tmp$currwcvp_species    <- tmp$Accepted_name_species
-  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
-  tmp$currwcvp_name       <- tmp$Accepted_name
-  tmp$currnotes            <-"Accepted name changed"
-  
-  # Re-assign the modified subset back to the original rows
-  bcibiotawcvpplus[inc, ] <- tmp
-}
-
-```
-
-
-
-## Change species name when the match was perfect and WCVP reported a name change:
-```{r seechamngenames}
-
-# if for some reason species name change but should be left alone. 
-leave_current_names = c(
-  "Swartzia simplex var. continentalis", # no match with the subspecies
-  "Swartzia simplex var. grandiflora"  # no match with the subspecies
-)
-
-species_accepted_changed <- bcibiotawcvpplus %>% filter(
-        (!is.na(pbiota_name) & !is.na(Name_matched) & pbiota_name == Name_matched & wcvp_status != "Accepted") &
-        (!is.na(pbiota_name) & !pbiota_name  %in% leave_current_names)
-)
-  
-
-if(nrow(species_accepted_changed) > 0){
-  datatable(
-  species_accepted_changed %>% select(pbiota_name, Name_matched, Accepted_name, wcvp_status), caption="Species name changed.",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
-)
-}
-
-
-```
-
-```{r fixchangenames}
-
-# Now the species names we would like to change:
-# No missmatch between Name_matched and Current_name and The state is non accepted.
-
-inc <- with(bcibiotawcvpplus,(
-        (!is.na(pbiota_name) & !is.na(Name_matched) & pbiota_name == Name_matched & wcvp_status != "Accepted") &
-        (!is.na(pbiota_name) & !pbiota_name  %in% leave_current_names)
-        ))
-
-species_modified4 <- bcibiotawcvpplus[inc,]
-
-if (any(inc, na.rm=TRUE)) {
-  
-  tmp <- bcibiotawcvpplus[inc, ]
-  
-  # Perform calculations on the subset
-  tmp$currpbiotachanged <- TRUE
-  tmp$currwcvp_author     <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_authors)
-  tmp$synonyms        <- paste(tmp$synonyms, tmp$pbiota_name, sep="; ")
-  tmp$currwcvp_family     <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$currwcvp_family)
-  tmp$currwcvp_genus      <- tmp$Accepted_name_genus
-  tmp$currwcvp_species    <- tmp$Accepted_name_species
-  tmp$currwcvp_subspecies <- tmp$Accepted_name_infraspecies
-  tmp$currwcvp_name       <- tmp$Accepted_name
-  tmp$currnotes            <- paste0("Previous Species name was ", tmp$wcvp_status, " - Name changed in wcvp")
-  
-  # Re-assign the modified subset back to the original rows
-  bcibiotawcvpplus[inc, ] <- tmp
-}
-
-```
-
-## Cases in which panamabiota species now have the same name under wcvp:
-```{r twonames}
-
-# We now assume the currwcp names have been revised and they are now the current accepted name.
-# in some cases the forestgeo name was left because the wcvp match was not good
-
-
-# Now two species can now have the same currwcvp name. 
-# It could be because as ynonym got its name corrected and the accepted species was already in the dataset
-# Or two species are now considered the same and the accepted name was not in the dataset
-
-acceptednamesdup <- bcibiotawcvpplus %>% 
-  filter(!is.na(currwcvp_name) ) %>%
-  group_by(currwcvp_name) %>% 
-  filter(n()>1) %>% ungroup() %>%
-  arrange(currwcvp_name) %>%
-  mutate(row_id = row_number()) %>% 
-  select(row_id, pbiota_name, currwcvp_name, wcvp_status, currpbiotachanged ,currnotes )
-
-if( nrow(acceptednamesdup) > 0){
-datatable(
-  acceptednamesdup %>% select(row_id, currwcvp_name, pbiota_name, wcvp_status, currpbiotachanged ), caption="Two species have now the same name",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
-)
-}
-
-```
-
-
-```{r twonamesfix}
-
-# Create a "Lookup Table" that maps the Accepted Name to the synonym being removed
-accepted_unique <- acceptednamesdup %>%
-  group_by(currwcvp_name) %>%
-  summarize(
-    pbiota_synonyms = paste(unique(pbiota_name), collapse = ", "),     # original pbiota names need to be kept as synonyms
-    n_synonyms = n()
-  ) %>%
-  ungroup()
-
-# species to be removed
-rmeovesp <- bcibiotawcvpplus %>%
-  arrange(wcvp_status) %>%
-  group_by(currwcvp_name) %>%
-  filter(n() > 1) %>%
-  slice(2:n()) %>%  # "From 2 to the last row"
-  ungroup()
-
-rmeovesp$currnotes <- "Now duplicated wcvpname. Removed species"
-removed_species <- rmeovesp
-
-# keep one species per row
-bcibiotawcvpplus_clean <- bcibiotawcvpplus %>%
-  group_by(currwcvp_name) %>%
-  slice(1) %>%
-  ungroup()
-
-# this should be true
-length(unique(bcibiotawcvpplus$currwcvp_name)) == length(unique(bcibiotawcvpplus_clean$currwcvp_name))
-
-
-# Add the synonyms to the remaining rows
-bcibiotawcvpplus_clean <- bcibiotawcvpplus_clean %>%
-  left_join(accepted_unique %>% select(currwcvp_name ,pbiota_synonyms), by = "currwcvp_name") 
-
-
-```
-
-
-## Summary of modifications
-```{r summarymod}
-
-species_modified <- bcibiotawcvpplus_clean %>% filter( currpbiotachanged == TRUE) %>% arrange(currnotes, pbiota_name)
-
-match12 <- match( removed_species$currwcvp_name, species_modified$currwcvp_name) 
-#removed_species[is.na(match12),] 
-
-species_modified <- species_modified  %>% mutate(
-  currnotes = ifelse(currwcvp_name %in% removed_species$currwcvp_name, paste(currnotes, "Now duplicated wcvpname. Removed species"), currnotes))
-
-species_modified <- bind_rows(species_modified, removed_species[is.na(match12),])
-
-paste0("Total of species modified: ",  nrow(species_modified))
-
-# Save modifications in a separate file:
-write_xlsx(species_modified,paste0(save_plantlists_dir, "BCI_PLANTS_PANAMABIOTA_WCVP_changes_",Sys.Date(),".xlsx"))
-
-
-# Porcentaje del cambio: 
-(nrow(species_modified) / nrow(bcibiotawcvpplus_clean) ) * 100
-
-
-# summary of changes
-knitr::kable(species_modified%>% group_by(currnotes) %>% summarise(n_species = n()), caption="Symmary of changes")
-
-# all changes
-datatable(
-  species_modified %>% select(pbiota_name, currwcvp_name, pbiota_family,  currwcvp_family,  wcvp_status, currnotes),
-  caption = "Species modified after matching with WCVP",
-  options = list(scrollX = TRUE, pageLength = 20),
-  rownames = FALSE
-)
-
-```
-
-## Sanity check:  species were the name didint change and check duplicated species.
-
+Add to bci list
 ```{r}
+# using garwood as a base
+garwood_list$source_list = "Garwood2009"
+zotz_no_wcvp$source_list = "Zotz"
 
-# species that remain with a different name from wcvp
-species_no_wcvp <- bcibiotawcvpplus_clean %>% filter(is.na(currwcvp_name) | is.na(Accepted_name) | currwcvp_name!=Accepted_name)
-#species_no_wcvp %>% select(sp6, forestgeo_name, currwcvp_name, Name_matched ,Accepted_name, currforestgeochanged)
+listscol <- c("current_family", "current_name", "orig_family", "orig_name","current_author", "orig_author","Name_matched", "wcvp_status", "wcvp_lifeform_description", "current_name_notes", "source_list")
 
-paste0("Species were accepted name is still different from wcvp : ",  nrow(species_no_wcvp))
-if( nrow(species_modified) > 0){
-datatable(
-  species_no_wcvp %>%  select(currwcvp_name, Name_matched, Accepted_name,  currwcvp_family, Accepted_family, wcvp_status, currnotes), caption="Species were name is still different from wcvp accepted name",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
-)
-}
-
-
-# species with duplicated accepted name
-acceptednamesdup <- bcibiotawcvpplus_clean %>% 
-  filter(!is.na(currwcvp_name)) %>%
-  group_by(currwcvp_name) %>% 
-  arrange(currwcvp_name) %>% filter(n()>1) %>% ungroup() %>%
-  mutate(mismatch = (pbiota_name != Name_matched)) %>% 
-  arrange(currwcvp_name, mismatch, match_similarity) %>%
-  select( currwcvp_name, pbiota_name, Name_matched, wcvp_status, mismatch, match_similarity )
-
-if( nrow(acceptednamesdup) > 0){
-  knitr::kable(acceptednamesdup,caption="Duplicated species")
-}
-
-```
-
-### Species with missing information in some column
-
-```{r missinginfo}
-
-missing_info <- bcibiotawcvpplus_clean %>% filter(
-  (!is.na(currwcvp_name ) & word(currwcvp_name, 1) != currwcvp_genus) |
-  is.na(currwcvp_genus) | is.na(currwcvp_family) | is.na(currwcvp_author) | is.na(currwcvp_species))   
-
-datatable(
-  missing_info %>% select( currwcvp_name, pbiota_name, 
-         currwcvp_family,  pbiota_family, currwcvp_genus, currwcvp_species, currwcvp_author, 
-         pbiota_author, Accepted_name_author, currpbiotachanged, wcvp_status, currnotes),
-  caption = "Species with missing taxonomic information in wcvp",
-  options = list(scrollX = TRUE, pageLength = 10),
-  rownames = FALSE
+bcilist <- bind_rows(
+  garwood_list %>% 
+    select(listscol, SYNONYMS),
+  zotz_no_wcvp %>% select(listscol, is_garwood_synonym)
 )
 
 ```
 
-## Save output with WCVP names of all PanamaBiota species.
-```{r saveoutput}
-# Remove some columns
-outtaxa <- bcibiotawcvpplus_clean %>%
-  rename(
-    wcvp_lifeform_description = lifeform_description
+
+### Panama biota list
+```{r panamabiotabcilist, echo=TRUE, results="hide"}
+
+# 1. see match by origin name
+match_orig <- match(pbiota_list$orig_name, bcilist$orig_name)
+pbiota_no_orig <- pbiota_list %>% filter(is.na(match_orig))
+
+# 2. see match by wcvp names
+match_wcvp <- match(pbiota_no_orig$current_name, bcilist$current_name)
+pbiota_no_wcvp <- pbiota_no_orig %>% filter(is.na(match_wcvp))
+
+
+# 3. add field for synonym presence
+pbiota_no_wcvp <- pbiota_no_wcvp %>%
+  mutate(is_garwood_synonym = orig_name %in% garwood_synonyms$synonym_sp | current_name %in%  garwood_synonyms$synonym_sp )
+
+```
+
+Add to bci list
+```{r mergebci}
+
+pbiota_no_wcvp$source_list = "PanamaBiota"
+pbiota_no_wcvp <- pbiota_no_wcvp %>% select(listscol, is_garwood_synonym)
+
+bcilist <- bind_rows(bcilist, pbiota_no_wcvp)
+
+
+# remove NA and a error in a row
+bcilist <- bcilist %>% filter(!is.na(current_name) & current_name !="Not categorized as epiphytes any more:")
+
+bcilist <- bcilist %>% mutate(
+  zotz = current_name %in% zotz_list$current_name | orig_name %in% zotz_list$orig_name,
+  garwood =  current_name %in% garwood_list$current_name | orig_name %in% garwood_list$orig_name,
+  panamabiota = current_name %in% pbiota_list$current_name | orig_name %in% pbiota_list$orig_name,
+)
+
+bcilist<- bcilist %>%
+  left_join(
+    garwood_synonyms %>% select(sp_orig = sp_name, synonym_sp, syn_orig = SynonymTextALL) %>% distinct(),
+    by = c("orig_name" = "synonym_sp")
   ) %>%
-  select(-Name_matched, -wcvp_authors, -Name_matched_rank, -Accepted_name,-wcvp_status, -Accepted_family,
-         -Accepted_name_rank, -Accepted_name_author, -Accepted_name_status, -Accepted_name_genus,             
-          -Accepted_name_species, -Accepted_name_infraspecific_rank, -Accepted_name_infraspecies,            
-          -match_similarity, -match_edit_distance)
+  left_join(
+    garwood_synonyms %>% select(sp_curr = sp_name, synonym_sp, syn_curr = SynonymTextALL) %>% distinct(),
+    by = c("current_name" = "synonym_sp"), relationship = "many-to-many") %>%
+  mutate(
+    SynonymTextALL = coalesce(syn_orig, syn_curr),
+    orig_garwood = coalesce(sp_orig, sp_curr)
+  ) %>%
+  select(-syn_orig, -syn_curr, -sp_orig, -sp_curr) %>%
+  distinct(current_name, orig_name, .keep_all = TRUE)
+ 
 
+datatable(
+  bcilist %>% filter(is_garwood_synonym == TRUE) %>%
+    select(current_name, orig_name, source_list,orig_garwood, SynonymTextALL) %>% 
+    arrange(source_list),
+    caption="Species in zotz or panamabiota that are in garwood as synonyms only",
+  options = list(scrollX = TRUE, pageLength = 10))
 
-write_xlsx(outtaxa, paste0(save_plantlists_dir, "BCI_PLANTS_panamabiota_WCVP_",Sys.Date(),".xlsx"))
-```
-
-Saved `r nrow(outtaxa)` species in Panama Biota lists with their names verified with WCVP. 
-
-## Finally, merge woody and BCI
-
-```{r merging, echo=TRUE, results="hide"}
-
-### MERGE WOODY AND BCI ##################################
-
-bcibiotafix_clean <- outtaxa
-
-lastwoody <- read_excel(lastwoody_path)
-nrow(lastwoody)
-
-woodybci <- lastwoody %>%
-  filter(currwcvp_name %in% bcibiotafix_clean$currwcvp_name)
-
-nrow(woodybci)
-#write_xlsx(woodybci, paste0(save_plantlists_dir, "woody_in_panamabiota_bci_",Sys.Date(),".xlsx"))
-
-
-# woody species NOT in BCI
-woodynotbci <- lastwoody %>%
-  filter(!currwcvp_name %in% bcibiotafix_clean$currwcvp_name)
-
-nrow(woodynotbci)
-
-#write_xlsx(woodynotbci, paste0(save_plantlists_dir, "woody_not_in_panamabiota_bci_",Sys.Date(),".xlsx"))
-
-# BCI species NOT in woody list
-bcinotwoody <- bcibiotafix_clean %>%
-  filter(!currwcvp_name %in% lastwoody$currwcvp_name,
-         source != "ferns"
-         )
-
-#write_xlsx(bcinotwoody, paste0(save_plantlists_dir, "panama_biota_bci_not_woody_",Sys.Date(),".xlsx"))
-
-bcinotwoody %>% select(currwcvp_name, source, wcvp_lifeform_description)
-nrow(bcinotwoody)
-
-
-bcimaybewoody <- bcinotwoody %>%
-  filter(wcvp_lifeform_description %in% unique(lastwoody$wcvp_lifeform_description))
-
-#write_xlsx(bcimaybewoody, paste0(save_plantlists_dir, "panama_biota_bci_maybe_woody_",Sys.Date(),".xlsx"))
-
-```
-
-### Species in forestgeo woody list that are not in BCI but could be:
-```{r listbiota, echo=TRUE, results="hide"}
-
-# add these species to woody bci
-bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
-  woody_name = (bcibiotafix_clean$currwcvp_name %in% woodybci$currwcvp_name))
-
-
-# Some species synonyms in forestgeo refer to the name the species had for a long time but then was correctly identified and the species name changed. 
-# lets see if some woody species synonyms is in BCI
-
-#woodynotbci %>% filter(!is.na(forestgeo_synonyms)) %>% select(forestgeo_name, currwcvp_name, synonyms, forestgeo_synonyms)
-
-pattern_wcvp <- paste(bcinotwoody$currwcvp_name, collapse = "|")
-pattern_pbiota <- paste(bcinotwoody$pbiota_name, collapse = "|")
-
-speciesrevision <- woodynotbci %>% 
-     filter(grepl(pattern_wcvp, forestgeo_synonyms) | grepl(pattern_pbiota, forestgeo_synonyms)) 
-
-speciesrevision %>% select(forestgeo_name, currwcvp_name, synonyms, forestgeo_synonyms)
-                
-lista <- strsplit(speciesrevision$forestgeo_synonyms, ",")
-vector_final <- unlist(lista)
-forestgeo_synonymslist <- trimws(vector_final)
-
-# synonyms in forestgeo that are in the PanamaBiota BCI list
-bcibiotawcvpplus %>%
-  filter(currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ) %>%
-  mutate(notesyn = ifelse(currwcvp_name %in% forestgeo_synonymslist, "forestgeo synonym is another species", "")) %>%
-  select(currwcvp_name, pbiota_name, wcvp_status, currnotes, notesyn)
-
-
-bcibiotafix_clean <-  bcibiotafix_clean %>% mutate(
-  woody_synonym = (currwcvp_name %in% forestgeo_synonymslist | pbiota_name %in% forestgeo_synonymslist ),
-  woody = woody_synonym | woody_name
+datatable(
+  bcilist %>% filter(!garwood & panamabiota & zotz) %>%
+    select(current_name, orig_name, source_list,zotz, garwood, panamabiota, is_garwood_synonym,orig_garwood, SynonymTextALL ) %>% 
+    arrange(source_list),
+    caption="Species that are in zotz and panama biota but not in garwood",
+  options = list(scrollX = TRUE, pageLength = 10),
   )
 
-####### Save to file
-#write_xlsx(bcibiotafix_clean, paste0(save_plantlists_dir, "PANAMA_BIOTA_BCI_",Sys.Date(),".xlsx"))
+```
+
+```{r printresult}
+
+datatable(
+  bcilist %>%
+    select(current_name, orig_name, source_list,zotz, garwood, panamabiota) %>% 
+    arrange(source_list),
+    caption="Species list in BCI and their source",
+  options = list(scrollX = TRUE, pageLength = 10))
+
+```
+
+```{r bcilistwoody, echo=TRUE, results="hide"}
+# set woody if:
+# current name is in woody list 
+# current name is in woody synonym list
+
+bcilist <- bcilist %>% mutate(
+  woody_name = current_name %in% woody_list$current_name,
+  woody_synonym =  current_name %in% woody_synonyms$SynonymTextSingle 
+                  | orig_name %in% woody_synonyms$SynonymTextSingle, 
+  woody = woody_name | woody_synonym
+) 
+
+write_xlsx(bcilist, paste0(save_plantlists_dir, "BCI_SPECIES_LIST_",Sys.Date(),".xlsx"))
 
 
 ```
 
+# Woody species
 
 ```{r woodylist, results="hide", echo=TRUE}
+
 # Woody species
 
 forestgeo_regional_list <- read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
@@ -794,11 +189,11 @@ forestgeo_regional_list <- read_excel("splists_raw/Forestgeo/2025-12-04FromSuzan
 # Column of forestgeo regional list
 sum(is.na(forestgeo_regional_list$Mnemonic))
 
-match12 <- match(lastwoody$sp6, forestgeo_regional_list$Mnemonic)            
+match12 <- match(woody_list$sp6, forestgeo_regional_list$Mnemonic)            
 
-lastwoody[is.na(match12),] %>% select(sp6, currwcvp_name , forestgeo_name)
+woody_list[is.na(match12),] %>% select(sp6, current_name , forestgeo_name)
 
-match21 <- match(forestgeo_regional_list$Mnemonic, lastwoody$sp6)            
+match21 <- match(forestgeo_regional_list$Mnemonic, woody_list$sp6)            
 
 nomatchview <- forestgeo_regional_list[is.na(match21),] %>% select(Mnemonic, SpeciesName)
 #almost everything that didint match is unidentified
@@ -811,7 +206,7 @@ abundall <- read_excel("splists_raw/Plots/abundance_plots_HM.xlsx")
 abundall <- abundall %>% select(sp, binomial, bci, `bci 10 ha plot`,P14, P11)%>% 
                       filter( bci >0 | `bci 10 ha plot` > 0 | P14 > 0| P11 >0)
 
-match21 <- match(abundall$sp, lastwoody$sp6)            
+match21 <- match(abundall$sp, woody_list$sp6)            
 nomatchview <- abundall[is.na(match21),] %>% select(sp, binomial)
 
 plotbci_list <- abundall %>% filter(bci >0)
@@ -820,36 +215,54 @@ plotp14_list <- abundall %>% filter(P14 >0)
 plotp11_list <- abundall %>% filter(P11 >0)
 
 
-### Add columns #################
+### Add columns ####
 
-lastwoody <- lastwoody %>% mutate(
-  biota_bci_name = currwcvp_name %in%  bcibiotafix_clean$currwcvp_name,
-  biota_bci_synonym = currwcvp_name %in% speciesrevision$currwcvp_name,
+woody_synonyms_bci <-  woody_synonyms %>%
+  mutate(syn_bci_name = SynonymTextSingle %in% bcilist$current_name | SynonymTextSingle %in% bcilist$orig_name) %>%
+  filter(syn_bci_name) %>% 
+  pull(current_name)
+
+woody_list <- woody_list %>% mutate(
   forestgeo_regional = sp6 %in% forestgeo_regional_list$Mnemonic,
   plotbci = sp6 %in% plotbci_list$sp,
   plotbci10 = sp6 %in% plotbci10ha_list$sp,
   plotp14 = sp6 %in% plotp14_list$sp,
   plotp11 = sp6 %in% plotp11_list$sp,
-  biota_bci = biota_bci_name | biota_bci_synonym | plotbci | plotbci10 | plotp14 | plotp11,
+  syn_bci_name = current_name %in% woody_synonyms_bci,
+  bci_name = current_name %in% bcilist$current_name,
+  bci_list = bci_name | syn_bci_name,
+  bci =  bci_name | syn_bci_name | plotbci | plotbci10 | plotp14 | plotp11
 )
-
 
 #################### save new woody species list: 
 
-#write_xlsx(lastwoody, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
+write_xlsx(woody_list, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
 
+# sanity check
+
+woodybci <- woody_list %>% filter(bci_list)
+bciwoody <- bcilist %>% filter(woody)
+match12 <- match(bciwoody$current_name, woodybci$current_name)
+datatable(bciwoody %>% filter(is.na(match12)) %>% select(current_name, orig_name, source_list, current_name_notes),
+          caption="Species where current name appears only as a synonym of a woody species",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 ```
+
+
+
+### Woody species that are NOT in garwood, zotz or panama biota but they are in BCI plots
 
 ```{r sanitycheck_bci, fig.width=10}
 
 # How do we verify that no species is being missed?
 
 # print species NOT in panama biota but they are in the plots
-plotmatch <- lastwoody %>% filter(biota_bci & !biota_bci_name & !biota_bci_synonym) %>% select(currwcvp_name, forestgeo_name, forestgeo_synonyms, biota_bci, biota_bci_name, biota_bci_synonym, plotbci, plotbci10, plotp11, plotp11)
+plotmatch <- woody_list %>% filter(!bci_list & bci) %>% select(current_name, forestgeo_name, forestgeo_synonyms, plotbci, plotbci10, plotp11, plotp11)
 
 
-knitr::kable(plotmatch, caption="Species dont match with panama biota but have been reported in bci plots")
+knitr::kable(plotmatch, caption="Woody species dont match with the bci lists (garwood, zotz, panamabiota) but have been reported in bci plots")
 
 
 ```
+
