@@ -129,7 +129,7 @@ bcilist<- bcilist %>%
     SynonymTextALL = coalesce(syn_orig, syn_curr),
     orig_garwood = coalesce(sp_orig, sp_curr)
   ) %>%
-  select(-syn_orig, -syn_curr) %>%
+  select(-syn_orig, -syn_curr, -sp_orig, -sp_curr) %>%
   distinct(current_name, orig_name, .keep_all = TRUE)
  
 
