@@ -31,7 +31,8 @@ Output:
 #install.packages("remotes")
 #library(remotes)
 #remotes::install_github("matildabrown/rWCVP")
-#rm(list=ls())
+
+rm(list=ls())
 
 library("readxl")
 library("writexl")
@@ -43,6 +44,7 @@ suppressPackageStartupMessages({
   library(rWCVPdata)
 })
 library(DT)
+library(stringi)
 
 citation("rWCVPdata") # according to this, this is using version 13.
 
@@ -50,7 +52,7 @@ citation("rWCVPdata") # according to this, this is using version 13.
 wcvp_names <- rWCVPdata::wcvp_names 
 
 # INPUT PATHS
-original_list_path <- "splists_raw/Schnitzer/Lianas_Species_complete_list_2026-02-13.xlsx"
+original_list_path <- "splists_raw/Zotz/83_Zotz_Epiphytes_TableS1.xlsx" 
 
 # Extract file name without extension 
 original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
@@ -63,47 +65,31 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-
+redoWCVP= FALSE
 ```
 
 ## Prepare datasets
-```{r preparedata, echo=TRUE, results="hide"}
 
-#origlist <- read.csv(original_list_path)
-lianas <- read_excel(original_list_path)
-l1 <- lianas$`List 1`
-l2 <- lianas$`List 2`
-lianaslist <- data.frame(codename = c(l1,l2))
-origlist <- lianaslist %>% 
-  filter(!is.na(codename) & codename!="Desconocida") %>%
-  separate(codename, into = c("code", "name"), sep = " - ", remove = FALSE)%>%
-  mutate(sp = str_trim(code) %>% str_to_lower(),
-         liana_name = str_trim(name) %>% str_to_sentence()) %>%
-  select(-code, -name)
+Prepare the panama biota dataset
 
-# keep unique sp + liana
-origlist <- origlist %>% 
-  distinct(sp, liana_name, .keep_all = TRUE)
+```{r preparedata, echo=TRUE}
+origlist <- read_excel(original_list_path)
+```
 
+
+```{r preparedatawcvp}
 
 # modify this depending on the original dataset. 
 origlist <- origlist %>%
   mutate(
-    orig_family = NA,
-    orig_genus = word(liana_name, 1),
-    orig_species = word(liana_name, 2),
-    orig_author = NA,
-    orig_infrasp_rank = NA,
-    orig_infraspecies = NA
-  ) %>% 
- rename(
-   orig_name = liana_name
- )%>%
+    orig_family = str_trim(Family),
+    orig_name   = str_trim(Species),
+    orig_author = NA
+  ) %>%
   arrange(orig_name)
 
-
 # remove duplicates
-dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(sp, orig_name, codename)
+dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(orig_name)
 
 if(nrow(dups) > 0){
   knitr::kable(dups, caption="Duplicated names")
@@ -147,7 +133,7 @@ matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
 }
 
 # --- 1. Run or Load Match ---
-if(file.exists(matches_mid_path)){
+if(file.exists(matches_mid_path) & !redoWCVP){
   matchresult <- readRDS(matches_mid_path)
 } else {
   # Run the matching process
@@ -220,28 +206,26 @@ processlist %>% count(wcvp_status)
 
 ```
 
-## Fix synonims and errors:
+# Fix synonims and errors:
 
 ```{r checkerrors, echo=TRUE, results="hide"}
 
 # For now lets assume the original name is correct 
 processlist <- processlist %>% mutate(
-  wcvp_name = orig_name,
-  wcvp_family = str_to_sentence(orig_family),
-  wcvp_genus = orig_genus,
-  wcvp_species = orig_species,
-  wcvp_author = orig_author,
-  wcvp_infraspecies = orig_infraspecies,
-  wcvp_infrasp_rank = orig_infrasp_rank,
+  wcvp_name = Accepted_name,
+  wcvp_family = Accepted_family,
+  wcvp_author = Accepted_name_author,
+  current_name = orig_name, # leave the original as current and check wcvp
+  current_family  = str_to_sentence(orig_family),
+  current_author = orig_author,
   origchanged = FALSE,
-  wcvpnotes = "",
-  wcvpsynonyms = "",
-  sourcesynonyms = ""
+  current_name_notes = "",
+  synonyms = "",
+  orig_synonyms = ""
 )
 
-library(stringi)
 
-# Clean the SYNONYMS column and any other character columns
+# Clean columns with weird characters
 processlist <- processlist %>%
   mutate(across(where(is.character), ~ stri_encode(., from = NULL, to = "UTF-8"))) %>%
   mutate(across(where(is.character), ~ stri_trans_general(., "latin-ascii"))) # Optional: removes accents
@@ -254,7 +238,7 @@ processlist <- processlist %>%
 species_na_wcvp <- processlist %>% filter(is.na(wcvp_status))
 
 if(nrow(species_na_wcvp)>0){
-  knitr::kable(species_na_wcvp %>% select( orig_name, codename))
+  knitr::kable(species_na_wcvp %>% select( orig_name))
 }
 
 
@@ -288,13 +272,11 @@ if(nrow(matchingerrors) > 0){
 # ADJUST THE Species based on your new matchingerrors table. 
 # The idea is to leave out the species were the orig_name and the Naame matched clearly dont match
 
-leave_out <- c(
-  "Chondodendron tomentosum"
-)
+leave_orig_name1 <- c()
 
 # change name to the correct spelling of the species that are not in that list
 changes_spelling1 <- matchingerrors %>%
-  filter(!orig_name %in% leave_out) %>% 
+  filter(!orig_name %in% leave_orig_name1) %>% 
   select(orig_name, Accepted_name)
 
 # Create index for the main dataset
@@ -323,29 +305,62 @@ if (any(inc, na.rm = TRUE)) {
   new_comment <- "Spelling changed in WCVP"
   
   # Update notes without overwriting
-  tmp$wcvpnotes <- ifelse(is.na(tmp$wcvpnotes) | tmp$wcvpnotes == "", 
+  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
                           new_comment, 
-                          paste(tmp$wcvpnotes, new_comment, sep = " | "))
+                          paste(tmp$current_name_notes, new_comment, sep = " | "))
   
   # Update taxonomy using the Accepted Name data from WCVP
-  tmp$wcvp_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$wcvp_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
-  tmp$wcvp_genus   <- tmp$Accepted_name_genus
-  tmp$wcvp_species <- tmp$Accepted_name_species
-  tmp$wcvp_name    <- tmp$Accepted_name
-  tmp$wcvp_infraspecies <- tmp$Accepted_name_infraspecies
-  tmp$wcvp_infrasp_rank <- tmp$Accepted_name_infraspecific_rank
+  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
+  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
+  tmp$current_name    <- tmp$Accepted_name
   
   # Keep original name in synonyms for traceability
   # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$wcvpsynonyms <- ifelse(is.na(tmp$wcvpsynonyms) | tmp$wcvpsynonyms == "", 
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
                              tmp$orig_name, 
-                             paste(tmp$wcvpsynonyms, tmp$orig_name, sep = "; "))
+                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
   
   # Re-assign the modified subset back to the original rows
   processlist[inc, ] <- tmp
 }
 ```
+
+## Cases in which two or more original species would have the same name under wcvp:
+```{r twonames}
+
+# Two species can now have the same accepted name. 
+# It could be because as synonyms got its name corrected and the accepted species was already in the dataset
+# Or two species are now considered the same and the accepted name was not in the dataset
+
+# Identify cases where different original names now share the same wcvp_name
+acceptednamesdup <- processlist %>% 
+  filter(!is.na(Accepted_name)) %>%
+  group_by(Accepted_name) %>% 
+  filter(n() > 1) %>% 
+  ungroup() %>%
+  arrange(Accepted_name) %>%
+  mutate(row_id = row_number())
+
+if(nrow(acceptednamesdup) > 0){
+  datatable(
+    acceptednamesdup %>% select(row_id, Accepted_name, orig_name, Name_matched, wcvp_status, origchanged ), 
+    caption = "Multiple original entries share one Accepted Name.",
+    options = list(scrollX = TRUE, pageLength = 10),
+    rownames = FALSE
+  )
+}
+
+```
+
+```{r leaveoriginal}
+
+# create a list of the duplicates to leave their original names
+
+leave_orig_names_dups <- acceptednamesdup %>% filter(wcvp_status != "Accepted") %>% select(orig_name)
+
+leave_orig_names_dups <- leave_orig_names_dups$orig_name
+```
+
 
 # Case when match is not perfect and species name has changed.
 ```{r noperfectchange}
@@ -376,14 +391,15 @@ if(nrow(noacceptedwcvpname) > 0){
 ```{r noperfechchangefix}
 
 # the subspecies doenst match well since i dont want to lose information i will leave it like the original name
-leave_out_orig_name2 <- c(
-  "Bauhinia sp")
+leave_out_orig_name2 <- c()
 
+
+leave_out_names <- c(leave_orig_names_dups, leave_out_orig_name2)
 
 # Select the row IDs that you have verified are correct spelling/name updates
 # Note: Ensure these IDs match the table generated above
 change_name2 <- noacceptedwcvpname %>%
-  filter(!orig_name %in% leave_out_orig_name2) %>%
+  filter(!orig_name %in% leave_out_names) %>%
   select(orig_name, Accepted_name)
 
 # Indexing the main processlist
@@ -400,38 +416,34 @@ if (any(inc, na.rm = TRUE)) {
     rownames = FALSE
   )
   
-  # Update the main list using the subset logic
   tmp <- processlist[inc, ]
   
+  # Update logical flag and metadata
   tmp$origchanged  <- TRUE
-  tmp$wcvp_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_author)
-  tmp$wcvp_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
-  
-  # Concatenate synonyms safely
-  tmp$wcvpsynonyms <- ifelse(is.na(tmp$wcvpsynonyms) | tmp$wcvpsynonyms == "", 
-                             tmp$orig_name, 
-                             paste(tmp$wcvpsynonyms, tmp$orig_name, sep = "; "))
-  
-  tmp$wcvp_genus   <- tmp$Accepted_name_genus
-  tmp$wcvp_species <- tmp$Accepted_name_species
-  tmp$wcvp_name    <- tmp$Accepted_name
- 
-  tmp$wcvp_infraspecies <- tmp$Accepted_name_infraspecies
-  tmp$wcvp_infrasp_rank <- tmp$Accepted_name_infraspecific_rank
-  
+
   new_comment <-  paste0("Imperfect match | Previous name was ", tmp$wcvp_status, " - Name changed in WCVP")
   
   # Update notes without overwriting
-  tmp$wcvpnotes <- ifelse(is.na(tmp$wcvpnotes) | tmp$wcvpnotes == "", 
+  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
                           new_comment, 
-                          paste(tmp$wcvpnotes, new_comment, sep = " | "))
+                          paste(tmp$current_name_notes, new_comment, sep = " | "))
   
-  # Re-assign subset back to original
+  # Update taxonomy using the Accepted Name data from WCVP
+  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
+  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
+  tmp$current_name    <- tmp$Accepted_name
+  
+  # Keep original name in synonyms for traceability
+  # Logic: If synonyms is empty, just add name. If not, append with separator.
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
+                             tmp$orig_name, 
+                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
+  
+  # Re-assign the modified subset back to the original rows
   processlist[inc, ] <- tmp
 }
 
 ```
-
 
 
 ## Change species name when the match was perfect and WCVP reported a name change:
@@ -464,8 +476,8 @@ if(nrow(species_accepted_changed) > 0){
 # No missmatch between Name_matched and Current_name and The state is non accepted.
 
 # Manual list of species to protect (do not update these even if WCVP suggests a change)
-leave_orig_names = c(
-)
+leave_orig_names <- c(leave_orig_name1, leave_out_orig_name2, leave_orig_names_dups)
+
 
 # Define the logical index for the changes
 inc <- with(processlist, (
@@ -473,38 +485,72 @@ inc <- with(processlist, (
   !is.na(Name_matched) & 
   orig_name == Name_matched & 
   wcvp_status != "Accepted" &
-  !(orig_name %in% leave_orig_names)
+  !orig_name %in% leave_orig_names
 ))
+
 
 if (any(inc, na.rm = TRUE)) {
   
   tmp <- processlist[inc, ]
   
-  # Update internal flags
-  tmp$origchanged <- TRUE
-  
-  # Update synonyms: Add original name to the history
-  tmp$wcvpsynonyms <- ifelse(is.na(tmp$wcvpsynonyms) | tmp$wcvpsynonyms == "", 
-                             tmp$orig_name, 
-                             paste(tmp$wcvpsynonyms, tmp$orig_name, sep = "; "))
-  
-  # Update taxonomy to the new Accepted Name details
-  tmp$wcvp_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$wcvp_authors)
-  tmp$wcvp_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
-  tmp$wcvp_genus   <- tmp$Accepted_name_genus
-  tmp$wcvp_species <- tmp$Accepted_name_species
-  tmp$wcvp_name    <- tmp$Accepted_name
-  tmp$wcvp_infraspecies <- tmp$Accepted_name_infraspecies
-  tmp$wcvp_infrasp_rank <- tmp$Accepted_name_infraspecific_rank
-  # Update notes with specific status info
+  # Update logical flag and metadata
+  tmp$origchanged  <- TRUE
+
   new_comment <-  paste0("Previous name was ", tmp$wcvp_status, " - Name changed in WCVP")
   
+
   # Update notes without overwriting
-  tmp$wcvpnotes <- ifelse(is.na(tmp$wcvpnotes) | tmp$wcvpnotes == "", 
+  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
                           new_comment, 
-                          paste(tmp$wcvpnotes, new_comment, sep = " | "))
+                          paste(tmp$current_name_notes, new_comment, sep = " | "))
   
-  # Re-assign back to main processlist
+  # Update taxonomy using the Accepted Name data from WCVP
+  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
+  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
+  tmp$current_name    <- tmp$Accepted_name
+  
+  # Keep original name in synonyms for traceability
+  # Logic: If synonyms is empty, just add name. If not, append with separator.
+  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
+                             tmp$orig_name, 
+                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
+  
+  # Re-assign the modified subset back to the original rows
+  processlist[inc, ] <- tmp
+}
+
+
+# leave a comment for species were original name was kept as current name because of mismatches
+
+missmatch_names_list = c(leave_orig_name1, leave_out_orig_name2)
+inc <- with(processlist, (orig_name %in% missmatch_names_list))
+if (any(inc, na.rm = TRUE)) {
+  
+  tmp <- processlist[inc, ]
+
+
+  # Update notes without overwriting
+  tmp$current_name_notes <- "Original species wcvp match was a missmatch"
+  
+  tmp$wcvp_name = NA
+  tmp$wcvp_family= NA
+  tmp$wcvp_author = NA
+  
+  # Re-assign the modified subset back to the original rows
+  processlist[inc, ] <- tmp
+}
+
+# leave comment for species duplicates
+inc <- with(processlist, (orig_name %in% leave_orig_names_dups))
+if (any(inc, na.rm = TRUE)) {
+  
+  tmp <- processlist[inc, ]
+
+
+  # Update notes without overwriting
+  tmp$current_name_notes <- "WCVP name is the same as another species in list"
+  
+  # Re-assign the modified subset back to the original rows
   processlist[inc, ] <- tmp
 }
 
@@ -516,8 +562,8 @@ if (any(inc, na.rm = TRUE)) {
 
 # Identifying species where the name matches but the family is different
 familychanged <- processlist %>% 
-  filter(orig_name == Accepted_name & 
-         wcvp_family != Accepted_family &  
+  filter(orig_name == wcvp_name & 
+         current_family != Accepted_family &  
          wcvp_status == "Accepted") %>%
   arrange(match_similarity)
 
@@ -542,7 +588,8 @@ inc <- with(processlist, (
     !is.na(Accepted_name) &  
     orig_name == Accepted_name &   
     wcvp_status == "Accepted" & 
-    orig_name %in% familychanged$orig_name
+    orig_name %in% familychanged$orig_name &
+    !orig_name %in% leave_orig_names
 ))
 
 # Safety check: are there any matches?
@@ -554,14 +601,14 @@ if (any(inc, na.rm = TRUE)) {
   # Perform updates on the subset
   tmp$origchanged  <- TRUE
   # Update family only if Accepted_family is not NA
-  tmp$wcvp_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$wcvp_family)
+  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$orig_family)
 
   new_comment <- "Family changed in WCVP"
   
   # Update notes without overwriting
-  tmp$wcvpnotes <- ifelse(is.na(tmp$wcvpnotes) | tmp$wcvpnotes == "", 
+  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
                           new_comment, 
-                          paste(tmp$wcvpnotes, new_comment, sep = " | "))
+                          paste(tmp$current_name_notes, new_comment, sep = " | "))
   
   # Re-assign back to processlist
   processlist[inc, ] <- tmp
@@ -570,103 +617,40 @@ if (any(inc, na.rm = TRUE)) {
 # --- Sanity check ---
 # Check by wcvp_genus 
 genus_many_families <- processlist %>%
-  group_by(wcvp_genus) %>%
-  summarise(n_families = n_distinct(wcvp_family), .groups = "drop") %>%
-  filter(n_families > 1)
+  mutate(current_genus = word(current_name, 1)) %>%
+  group_by(current_genus) %>%
+  filter(n_distinct(current_family) > 1) %>% 
+  ungroup() %>% 
+  select(
+    current_family, 
+    current_name, 
+    orig_family, 
+    orig_name, 
+    wcvp_family, 
+    wcvp_name, 
+    current_name_notes,
+    current_genus,
+  ) %>%
+  arrange(current_genus)
 
 if(nrow(genus_many_families) > 0){
-  knitr::kable(genus_many_families, caption="Sanity check: Genus with more than one family")
+  datatable(genus_many_families, caption="Sanity check: Genus with more than one family")
 }
 
 # This is because of NA status, i will leave it as it is because they are unidentified species. 
 
 ```
 
-
-
-## Cases in which original species name now have the same name under wcvp:
-```{r twonames}
-
-# We now assume the wcvp_names have been revised and they are now the current accepted name.
-# in some cases the original name was left because the wcvp match was not good
-
-
-# Now two species can now have the same wcvp_name name. 
-# It could be because as synonyms got its name corrected and the accepted species was already in the dataset
-# Or two species are now considered the same and the accepted name was not in the dataset
-
-# Identify cases where different original names now share the same wcvp_name
-acceptednamesdup <- processlist %>% 
-  filter(!is.na(wcvp_name)) %>%
-  group_by(wcvp_name) %>% 
-  filter(n() > 1) %>% 
-  ungroup() %>%
-  arrange(wcvp_name) %>%
-  mutate(row_id = row_number())
-
-if(nrow(acceptednamesdup) > 0){
-  datatable(
-    acceptednamesdup %>% select(row_id, wcvp_name, orig_name, Name_matched, wcvp_status, origchanged ), 
-    caption = "Consolidation: Multiple original entries now share one Accepted Name.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
-
-Do nothing because they have distinct codes
-
-```{r twonamesfix}
-
-name_accepted_changed_dup <- acceptednamesdup %>% filter(
-  wcvp_status != "Accepted"
-) %>% select(orig_name)
-
-inc <- with(processlist, (
-    orig_name %in% name_accepted_changed_dup$orig_name
-))
-
-# Safety check: are there any matches?
-if (any(inc, na.rm = TRUE)) {
-  
-  # Create the temporary subset
-  tmp <- processlist[inc, ]
-  
-  # Update notes without overwriting
-  tmp$wcvpnotes <- "WCVP name is the same as another species in list"
-  tmp$wcvpsynonyms <- tmp$wcvp_name
-  # Perform updates on the subset
-  tmp$origchanged  <- TRUE
-  
-  # Go back to original name
-  tmp$wcvp_family  <- tmp$orig_family
-  tmp$wcvp_name <- tmp$orig_name
-  tmp$wcvp_author <- tmp$orig_author
-  tmp$wcvp_genus   <- tmp$orig_genus
-  tmp$wcvp_species <- tmp$orig_species
-  tmp$wcvp_infraspecies <- tmp$orig_infraspecies
-  tmp$wcvp_infrasp_rank <- tmp$orig_infrasp_rank
-  
-  # Re-assign back to processlist
-  processlist[inc, ] <- tmp
-}
-
-processlist_clean <- processlist
-
-
-```
-
-
 ## Summary of modifications
 ```{r summarymod}
 # Filter for species that were modified in the main list
-species_modified <- processlist_clean %>% 
-  filter(origchanged == TRUE) %>% 
-  arrange(wcvpnotes, orig_name)
+species_modified <- processlist %>% 
+  filter(!is.na(current_name_notes) & current_name_notes != "") %>% 
+  arrange(current_name_notes, orig_name)
+
 
 # Calculate Percentage of change
-change_perc <- (nrow(species_modified) / nrow(processlist_clean)) * 100
+change_perc <- (nrow(species_modified) / nrow(processlist)) * 100
 print(paste0("Total species modified/consolidated: ", nrow(species_modified)))
 print(paste0("Percentage of dataset modified: ", round(change_perc, 2), "%"))
 
@@ -675,15 +659,15 @@ write_xlsx(species_modified, out_wcvp_changes_list)
 
 # Summary table of change types
 knitr::kable(species_modified %>% 
-               group_by(wcvpnotes) %>% 
+               group_by(current_name_notes) %>% 
                summarise(n_species = n(), .groups = "drop"), 
              caption = "Summary of changes by category")
 
 # Detailed interactive table of all changes
 datatable(
   species_modified %>% 
-    select(orig_name, wcvp_name, orig_family, wcvp_family, wcvp_status, wcvpnotes),
-  caption = "Species modified after matching with WCVP",
+    select(orig_name, wcvp_name, orig_family, wcvp_family, wcvp_status, current_name_notes),
+  caption = "Species current name is different from original name after matching with WCVP",
   options = list(scrollX = TRUE, pageLength = 20),
   rownames = FALSE
 )
@@ -693,15 +677,15 @@ datatable(
 
 ```{r}
 # 1. Check for species where our final name still differs from the WCVP Accepted Name
-species_no_wcvp <- processlist_clean %>% 
-  filter(is.na(wcvp_name) | is.na(Accepted_name) | wcvp_name != Accepted_name)
+species_no_wcvp <- processlist %>% 
+  filter(is.na(current_name) | is.na(wcvp_name) | current_name != wcvp_name)
 
-print(paste0("Species where final name differs from WCVP Accepted Name: ", nrow(species_no_wcvp)))
+print(paste0("Species where final name differs from WCVP Name: ", nrow(species_no_wcvp)))
 
 if(nrow(species_no_wcvp) > 0){
   datatable(
     species_no_wcvp %>% 
-      select(orig_name, wcvp_name, Name_matched, Accepted_name, wcvp_family, wcvp_status, wcvpnotes), 
+      select(current_name, orig_name, wcvp_name, Name_matched, current_family, wcvp_family, wcvp_status, current_name_notes), 
     caption = "Species requiring manual review (Name mismatch)",
     options = list(scrollX = TRUE, pageLength = 10),
     rownames = FALSE
@@ -709,20 +693,29 @@ if(nrow(species_no_wcvp) > 0){
 }
 
 # 2. Final check for duplicates: This should ideally return 0 rows
-final_duplicates <- processlist_clean %>% 
-  filter(!is.na(wcvp_name)) %>%
-  group_by(wcvp_name) %>% 
+final_duplicates <- processlist %>% 
+  filter(!is.na(current_name)) %>%
+  group_by(current_name) %>% 
   filter(n() > 1) %>% 
   ungroup() %>%
   mutate(mismatch = (orig_name != Name_matched)) %>% 
-  arrange(wcvp_name, mismatch, match_similarity) %>%
-  select(wcvp_name, orig_name, Name_matched, wcvp_status, mismatch, match_similarity)
+  arrange(current_name, mismatch, match_similarity) %>%
+  select(current_name, wcvp_name, orig_name, Name_matched, wcvp_status, mismatch, match_similarity)
 
 if(nrow(final_duplicates) > 0){
-  knitr::kable(final_duplicates, caption = "WARNING: Remaining Duplicates Found")
+  datatable(final_duplicates, caption = "WARNING: Remaining Duplicates Found")
 } else {
   print("Sanity Check Passed: No duplicates remaining in the final list.")
 }
+
+
+# Duplicated names misspelled in the original dataset
+# needs removing
+
+processlist <- processlist %>% 
+  distinct(current_name, .keep_all = TRUE)
+
+
 ```
 
 ### Species with missing information in some column
@@ -731,17 +724,16 @@ if(nrow(final_duplicates) > 0){
 
 # Flags species where the genus column doesn't match the first word of the species name,
 # or where essential taxonomic fields are NA.
-missing_info <- processlist_clean %>% filter(
-  (!is.na(wcvp_name) & stringr::word(wcvp_name, 1) != wcvp_genus) |
-  is.na(wcvp_genus) | is.na(wcvp_family) | is.na(wcvp_author) | is.na(wcvp_species)
+missing_info <- processlist %>% filter(
+   is.na(current_family) | is.na(current_author) | is.na(current_name)
 )   
 
 if(nrow(missing_info) > 0) {
   datatable(
     missing_info %>% select(
-      wcvp_name, orig_name, wcvp_family, orig_family, 
-      wcvp_genus, wcvp_species, wcvp_author, orig_author, 
-      Accepted_name_author, origchanged, wcvp_status, wcvpnotes
+      current_name, wcvp_name, orig_name,current_family, wcvp_family, orig_family, 
+      current_author, wcvp_author, orig_author, 
+      current_name_notes
     ),
     caption = "Species with missing or inconsistent taxonomic information",
     options = list(scrollX = TRUE, pageLength = 10),
@@ -751,30 +743,18 @@ if(nrow(missing_info) > 0) {
 
 ```
 
-Adding family and author names:
 
-```{r}
-
-processlist_clean <- processlist_clean %>%
-  mutate(
-    wcvp_family = ifelse(!wcvp_name %in% species_no_wcvp$wcvp_name, Accepted_family, wcvp_family),
-    wcvp_author = ifelse(!wcvp_name %in% species_no_wcvp$wcvp_name, Accepted_name_author, wcvp_author),
-)
-
-```
-
-
-## Save output with WCVP names of all PanamaBiota species.
+## Save output of all species.
 ```{r saveoutput}
 # Remove some columns
 # Standardize lifeform column name and remove technical matching columns
-outtaxa <- processlist_clean %>%
+outtaxa <- processlist %>%
   rename(
     wcvp_lifeform_description = lifeform_description
   ) %>%
   select(
-    -Name_matched, -wcvp_authors, -Name_matched_rank, -Accepted_name, 
-    -wcvp_status, -Accepted_family, -Accepted_name_rank, -Accepted_name_author, 
+     -wcvp_authors, -Name_matched_rank, -Accepted_name, 
+    -Accepted_family, -Accepted_name_rank, -Accepted_name_author, 
     -Accepted_name_status, -Accepted_name_genus, -Accepted_name_species, 
     -Accepted_name_infraspecific_rank, -Accepted_name_infraspecies,
     -match_similarity, -match_edit_distance
@@ -784,4 +764,4 @@ outtaxa <- processlist_clean %>%
 write_xlsx(outtaxa, out_wcvp_list)
 ```
 
-Saved `r nrow(outtaxa)` species in Panama Biota lists with their names verified with WCVP. 
+Saved `r nrow(outtaxa)` species with their names verified with WCVP. 

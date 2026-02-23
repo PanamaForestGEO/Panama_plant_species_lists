@@ -31,7 +31,8 @@ Output:
 #install.packages("remotes")
 #library(remotes)
 #remotes::install_github("matildabrown/rWCVP")
-#rm(list=ls())
+
+rm(list=ls())
 
 library("readxl")
 library("writexl")
@@ -51,10 +52,10 @@ citation("rWCVPdata") # according to this, this is using version 13.
 wcvp_names <- rWCVPdata::wcvp_names 
 
 # INPUT PATHS
-original_list_path <- "splists_raw/Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
+original_list_path <- "splists_raw/Schnitzer/Lianas_Species_complete_list_2026-02-13.xlsx"
 
 # Extract file name without extension 
-original_list_name <- "Wright/nomenclature_R_20210224"
+original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
 
 # Path for intermediate matching results (to skip heavy processing if already done)
 matches_mid_path <- paste0("splists_mid/", original_list_name, "_mid_match.rds")
@@ -68,75 +69,45 @@ redoWCVP= TRUE
 ```
 
 ## Prepare datasets
+
+Modify this according to your dataset
+
 ```{r preparedata, echo=TRUE, results="hide"}
 
-# Joe Wright's taxonomy dataset (includes 4-letter codes and some non-woody species as well as trees and lianas)
-if (file.exists(matches_mid_path) & !redoWCVP) {
-  usewrighttaxa <- read_excel(matches_mid_path)
-} else {
-  wrighttaxa <- read_excel(original_list_path)
-  wrighttaxa <- wrighttaxa[,1:21]
-  wrighttaxa <- mutate(wrighttaxa,
-                    sp6=ifelse(sp6=="na",NA,sp6),
-                    binomialorig=gsub("_"," ",binomialorig))
-  wrighttaxa <- rename(wrighttaxa,
-                    binomial=binomialorig)
-  
-  sp6dupsj <- wrighttaxa %>% filter(!is.na(sp6)) %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
-  
-  
-  if(nrow(sp6dupsj) > 0){
-    knitr::kable(sp6dupsj %>% select(sp4, sp6, binomial), caption="Duplicated sp6 codes in wright list")
-  } else{ 
-    print("No duplicated sp6 codes")
-  }
-  
-  binomialdupsj <- wrighttaxa %>% group_by(binomial) %>% filter(n()>1) %>% 
-    ungroup() %>% arrange(binomial)
-  
-  if(nrow(binomialdupsj) > 0){
-    knitr::kable(binomialdupsj %>% select(sp4, sp6, binomial), caption="Duplicated binomial names in wright list")
-  } else{ 
-    print("No duplicated species names")
-  }
-  
-}
+lianas <- read_excel(original_list_path)
+l1 <- lianas$`List 1`
+l2 <- lianas$`List 2`
+lianaslist <- data.frame(codename = c(l1,l2))
+origlist <- lianaslist %>% 
+  filter(!is.na(codename) & codename!="Desconocida") %>%
+  separate(codename, into = c("code", "name"), sep = " - ", remove = FALSE)%>%
+  mutate(sp = str_trim(code) %>% str_to_lower(),
+         liana_name = str_trim(name) %>% str_to_sentence()) %>%
+  select(-code, -name)
 
-usewrighttaxa <- wrighttaxa %>% 
-  filter(
-    str_to_lower(genus) != "unidentified" & 
-    
-    # remove species that are "sp" (ej: sp., sp.1, sp.algo)
-    !str_detect(species, "^sp\\.?") &
-      
-    !str_detect(species, "^aff\\.?") & 
-      
-    !str_detect(species, "\\?") & 
-      
-    str_to_lower(genus) != "indet" &
-    
-    !is.na(genus) & !is.na(species) &
-    
-    Idlevel == "species"
-  )
-# remove unidentified species
+# keep unique sp + liana
+origlist <- origlist %>% 
+  distinct(sp, liana_name, .keep_all = TRUE)
+
 
 # modify this depending on the original dataset. 
-origlist <- usewrighttaxa %>%
-  rename(
-    orig_family = family) %>%
+origlist <- origlist %>%
   mutate(
+    orig_family = NA,
+    orig_genus = word(liana_name, 1),
+    orig_species = word(liana_name, 2),
     orig_author = NA,
+    orig_infrasp_rank = NA,
+    orig_infraspecies = NA
   ) %>% 
-  mutate(orig_name = case_when(
-        is.na(species) | species == "" ~ genus,
-        TRUE ~ paste(genus, species))
-        ) %>%
+ rename(
+   orig_name = liana_name
+ )%>%
   arrange(orig_name)
 
 
 # remove duplicates
-dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(orig_name)
+dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(sp, orig_name, codename)
 
 if(nrow(dups) > 0){
   knitr::kable(dups, caption="Duplicated names")
@@ -145,6 +116,7 @@ if(nrow(dups) > 0){
 origlist <- origlist %>% group_by(orig_name) %>% filter(n() == 1) %>% ungroup()
   
 print(paste0("working with ", nrow(origlist), " species"))
+
 ```
 
  
@@ -180,7 +152,7 @@ matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
 }
 
 # --- 1. Run or Load Match ---
-if(file.exists(matches_mid_path) & !redoWCVP){
+if(file.exists(matches_mid_path)){
   matchresult <- readRDS(matches_mid_path)
 } else {
   # Run the matching process
@@ -253,7 +225,7 @@ processlist %>% count(wcvp_status)
 
 ```
 
-## Fix synonims and errors:
+# Fix synonims and errors:
 
 ```{r checkerrors, echo=TRUE, results="hide"}
 
@@ -313,24 +285,14 @@ if(nrow(matchingerrors) > 0){
 
 ```
 
+
 ```{r spellfix}
 # Manual selection of rows that are definitely spelling errors
 # ADJUST THE Species based on your new matchingerrors table. 
 # The idea is to leave out the species were the orig_name and the Naame matched clearly dont match
 
 leave_orig_name1 <- c(
-  "Trema micrantha",
-  "Xylopia roubik",
-  "Mouriri aff.exilis",
-  "Matisia aff.idroboi",
-  "Inga aff.stenophylla",
-  "Nectandra fuzzy",
-  "Phyllanthus chagres",
-  "Piper aristolochiaefolium",
-  "Licania coba",
-  "Pouteria sclerocarpa.aff",
-  "Guarea polygama",
-  "Drypetes coba"
+  "Chondodendron tomentosum"
 )
 
 # change name to the correct spelling of the species that are not in that list
@@ -382,7 +344,6 @@ if (any(inc, na.rm = TRUE)) {
   # Re-assign the modified subset back to the original rows
   processlist[inc, ] <- tmp
 }
-
 ```
 
 ## Cases in which two or more original species would have the same name under wcvp:
@@ -404,7 +365,7 @@ acceptednamesdup <- processlist %>%
 if(nrow(acceptednamesdup) > 0){
   datatable(
     acceptednamesdup %>% select(row_id, Accepted_name, orig_name, Name_matched, wcvp_status, origchanged ), 
-    caption = "Consolidation: Multiple original entries now share one Accepted Name.",
+    caption = "Multiple original entries share one Accepted Name.",
     options = list(scrollX = TRUE, pageLength = 10),
     rownames = FALSE
   )
@@ -451,17 +412,8 @@ if(nrow(noacceptedwcvpname) > 0){
 ```{r noperfechchangefix}
 
 # the subspecies doenst match well since i dont want to lose information i will leave it like the original name
-leave_out_orig_name2 <- c(
-  "Erythroxylum parita",
-  "Leandra roja",
-  "Mouriri coba",
-  "Guarea arbusto",
-  "Neea roja",
-  "Clusia cretosa",
-  "Tontelea ovalifolia_subsp._richardii",
-  "Swartzia simplex_var.ochnacea",
-  "Swartzia simplex_var.grandiflora"
-  )
+leave_out_orig_name2 <- c("Bauhinia sp")
+
 
 leave_out_names <- c(leave_orig_names_dups, leave_out_orig_name2)
 
@@ -513,7 +465,6 @@ if (any(inc, na.rm = TRUE)) {
 }
 
 ```
-
 
 
 ## Change species name when the match was perfect and WCVP reported a name change:
@@ -626,7 +577,6 @@ if (any(inc, na.rm = TRUE)) {
 
 ```
 
-
 ## Case when the Family changed
 
 ```{r familychange}
@@ -688,20 +638,29 @@ if (any(inc, na.rm = TRUE)) {
 # --- Sanity check ---
 # Check by wcvp_genus 
 genus_many_families <- processlist %>%
-  mutate(current_genus = word(current_name,1)) %>%
+  mutate(current_genus = word(current_name, 1)) %>%
   group_by(current_genus) %>%
-  summarise(n_families = n_distinct(current_family), .groups = "drop") %>%
-  filter(n_families > 1)
+  filter(n_distinct(current_family) > 1) %>% 
+  ungroup() %>% 
+  select(
+    current_family, 
+    current_name, 
+    orig_family, 
+    orig_name, 
+    wcvp_family, 
+    wcvp_name, 
+    current_name_notes,
+    current_genus,
+  ) %>%
+  arrange(current_genus)
 
 if(nrow(genus_many_families) > 0){
-  knitr::kable(genus_many_families, caption="Sanity check: Genus with more than one family")
+  datatable(genus_many_families, caption="Sanity check: Genus with more than one family")
 }
 
 # This is because of NA status, i will leave it as it is because they are unidentified species. 
 
 ```
-
-
 
 ## Summary of modifications
 ```{r summarymod}
@@ -825,4 +784,4 @@ outtaxa <- processlist %>%
 write_xlsx(outtaxa, out_wcvp_list)
 ```
 
-Saved `r nrow(outtaxa)` species in Panama Biota lists with their names verified with WCVP. 
+Saved `r nrow(outtaxa)` species with their names verified with WCVP. 

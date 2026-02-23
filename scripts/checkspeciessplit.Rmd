@@ -56,7 +56,7 @@ DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
 # input files # all in directory DIRINSP
-FNWRIGHTSPLISTIN <- "splists_out/nomenclature_R_20210224_Rready_fixed_WCVP_2026-02-19.xlsx"
+FNWRIGHTSPLISTIN <- "splists_out/Wright_20210224_WCVP_2026-02-19.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx" 
 
@@ -169,8 +169,9 @@ panwoodtaxa <- read_excel(paste0(DIRINSP,FNPANAMASPLISTIN),col_types="text")  %>
          habit=ifelse(habit=="l","Climbing","Freestanding"),
          Current_name=ifelse(is.na(Current_subspecies),
                                 paste0(Current_genus," ",Current_species),
-                                paste0(Current_genus," ",Current_species," ",Current_subspecies))) %>%
-  mutate(habit=ifelse(is.na(habit),"Freestanding",habit),
+                                paste0(Current_genus," ",Current_species," ",Current_subspecies)),
+         Current_name = str_trim(Current_name),
+         habit=ifelse(is.na(habit),"Freestanding",habit),
          sp6prior=fgeotaxa$sp6[match(Current_name,fgeotaxa$species_name)])
   
 ```
@@ -369,7 +370,7 @@ matchaccepted_names<- function(matcheswcvp){
 
 ####################### Merge taxa with wcvp names 
 # this can take a while, so save the file when finished
-if(file.exists(FNPANAMASPLISTWCVP)){
+if(file.exists(FNPANAMASPLISTWCVP) & !redoWCVP){
   panwoodtaxawcvp <- read_excel(FNPANAMASPLISTWCVP)  
 } else{
   panwoodtaxawcvp <-wcvp_match_names(panwoodtaxa, wcvp_names, name_col="forestgeo_name")
@@ -1036,9 +1037,9 @@ if( nrow(species_modified) > 0){
 
 if(FIX_SPECIES){
   
-write_xlsx(species_modified, PANAMA_COMBINED_OUT_PATH)
+write_xlsx(panwoodtaxaout, PANAMA_COMBINED_OUT_PATH)
   
-write_xlsx(panwoodtaxaout, PANAMA_COMBINED_CHANGE_SUMMARY_PATH)
+write_xlsx(species_modified, PANAMA_COMBINED_CHANGE_SUMMARY_PATH)
   
  }
 
@@ -1158,10 +1159,6 @@ lifeform_wright = paste(
   rename(
     forestgeo_synonym_source = forestgeo_name
   )
-
-
-# add synonym
-missing_from_wright <- missing_from_wright %>% 
 
 
 datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, forestgeo_synonym_source, lifeform_wright),
