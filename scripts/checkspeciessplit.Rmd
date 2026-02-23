@@ -78,8 +78,11 @@ FNSYNONYMS <- paste0(DIROUTSP,"CurrentPanamaWoody_SYNONYMS_",Sys.Date(),".xlsx")
 ```
 
 We will: 
+
 1. Make sure sp6 codes in the woody list are consistent with forestgeo codes
+
 2. Match woody species names to wcvp
+
 3. Match sp4 codes from wright list
 
 
@@ -127,7 +130,7 @@ if(nrow(sp6dups) > 0){
 spnamedups <- treeplottaxa %>% group_by(species_name) %>% filter(n()>1) %>% ungroup() %>% arrange(species_name)
   
 if(nrow(spnamedups) > 0){
-    datatable(spnamedups %>% select(sp6, species_name, IDLevel), caption="Duplicated species names in forestgeo viewtaxa")
+    datatable(spnamedups %>% select(sp6, species_name, IDLevel), caption="Duplicated species names in forestgeo viewtaxa",options = list(scrollX = TRUE, pageLength = 10))
 } else{
     print("No duplicated species names")
 }
@@ -1030,7 +1033,7 @@ species_modified <- panwoodtaxaout %>% filter( forestgeochanged == TRUE) %>% arr
 
 paste0("Total of species modified: ",  nrow(species_modified))
 if( nrow(species_modified) > 0){
-  datatable(species_modified %>%  select(sp6,  current_name, forestgeo_name, wcvp_name, current_family, forestgeo_family,  wcvp_family,  wcvp_status, current_name_notes), caption="Species modified after matching with WCVP")
+  datatable(species_modified %>%  select(sp6,  current_name, forestgeo_name, wcvp_name, current_family, forestgeo_family,  wcvp_family,  wcvp_status, current_name_notes), caption="Species modified after matching with WCVP", options = list(scrollX = TRUE, pageLength = 10))
 }
 
 
@@ -1049,7 +1052,7 @@ write_xlsx(species_modified, PANAMA_COMBINED_CHANGE_SUMMARY_PATH)
 
 ```{r synonyms}
 
-alternate_name_mapping <- panwoodtaxaout %>%
+alternate_synonym_table <- panwoodtaxaout %>%
 
   mutate(OriginalOrder = row_number()) %>%
   
@@ -1079,28 +1082,12 @@ alternate_name_mapping <- panwoodtaxaout %>%
     names = c("SynonymGenusSingle", "SynonymSpeciesSingle"),
     too_many = "merge",
     cols_remove = FALSE
-  )
-
-
-wcvp_synonym_mapping <- panwoodtaxaout %>%
-
-  select(sp6, sp4, current_name, forestgeo_name, wcvp_name, synonyms) %>%
-  rename(wcvp_synonym = synonyms) %>%
-
-  filter(!is.na(wcvp_synonym) & wcvp_synonym != "") %>%
-  
-  # Splits the comma-separated strings into multiple rows
-  separate_longer_delim(wcvp_synonym, delim = ",") %>%
-  # Clean up whitespace 
-  mutate(wcvp_synonym = trimws(wcvp_synonym))   
-
-
-alternate_synonym_table <- bind_rows(alternate_name_mapping) #, wcvp_synonym_mapping)
-alternate_synonym_table <- alternate_synonym_table %>% arrange(current_name)
+  ) %>% arrange(current_name)
 
 # View the result
 datatable(alternate_synonym_table, 
-             caption = "Mapping: Original Name to Individual Synonym")
+             caption = "Mapping: Original Name to Individual Synonym",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 # make a file that gives the synonyms as 1-to-1 list
 if(FIX_SPECIES){
@@ -1162,7 +1149,8 @@ lifeform_wright = paste(
 
 
 datatable(missing_from_wright %>% select(sp4, sp6, orig_name, current_name, is_alternate_name, forestgeo_synonym_source, lifeform_wright),
-          caption = "Wright codes not used in PanWood")
+          caption = "Wright codes not used in PanWood",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 write_xlsx(missing_from_wright, WRIGHT_MISSING_PANWOODY_PATH)
 ```
@@ -1296,7 +1284,8 @@ Checking consistency in higher taxa:
 
 ```{r genuscheck1}
 if (nrow(genus_check1) > 0) { 
-  datatable(genus_check1, caption="Genus with more than 1 family")
+  datatable(genus_check1, caption="Genus with more than 1 family",
+            options = list(scrollX = TRUE, pageLength = 10))
 } 
 ```
 
@@ -1304,11 +1293,11 @@ if (nrow(genus_check1) > 0) {
 
 ```{r genuscheck2}
 if (nrow(genus_check2) > 0) { 
-  datatable(genus_check2, caption="Genus lifeform. Check wether a single genus always has the same life form")
+  datatable(genus_check2, caption="Genus lifeform. Check wether a single genus always has the same life form", options = list(scrollX = TRUE, pageLength = 10))
 } 
 
 if(genus_check2$n_genera[genus_check2$habit_class == "Both"] > 0){
-  datatable(table_2rows, caption="Genus with species with two life forms")
+  datatable(table_2rows, caption="Genus with species with two life forms",options = list(scrollX = TRUE, pageLength = 10))
 }
 ```
 
@@ -1316,7 +1305,7 @@ if(genus_check2$n_genera[genus_check2$habit_class == "Both"] > 0){
 
 ```{r genuscheck3}
 if (nrow(genus_check3) > 0) { 
-  datatable(head(genus_check3, 10), caption="Genus with codes that dont match genus name")
+  datatable(head(genus_check3, 10), caption="Genus with codes that dont match genus name",options = list(scrollX = TRUE, pageLength = 10))
 } 
 ```
 
@@ -1324,7 +1313,7 @@ if (nrow(genus_check3) > 0) {
 
 ```{r genuscheck4}
 if (nrow(genus_check4) > 0) { 
-  datatable(head(genus_check4, 10), caption="Genus with codes that match more than one genus")
+  datatable(head(genus_check4, 10), caption="Genus with codes that match more than one genus",options = list(scrollX = TRUE, pageLength = 10))
 } 
 ```
 
@@ -1333,7 +1322,7 @@ if (nrow(genus_check4) > 0) {
 
 ```{r genuscheck5}
 if (nrow(genus_check5) > 0) { 
-  datatable(head(genus_check5,10), caption="Genus with the same 3 letters of code")
+  datatable(head(genus_check5,10), caption="Genus with the same 3 letters of code",options = list(scrollX = TRUE, pageLength = 10))
 } 
 ```
 

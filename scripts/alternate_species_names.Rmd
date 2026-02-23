@@ -1,0 +1,138 @@
+---
+title: "Alternate_names"
+author: "Paula Uzcategui"
+date: "2026-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##  Create a combined alternate name file
+
+```{r cars}
+rm(list=ls())
+
+library("readxl")
+library("writexl")
+library("dplyr")
+library(tidyr)
+library("stringi")
+library("stringr")
+library(DT)
+
+
+viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
+
+viewtaxonomy_synonyms_path <- "splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
+
+woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-22.xlsx")
+garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
+
+
+garwood_synonyms <- garwood_synonyms %>% mutate(
+  sp_name = trimws(paste0(Genus, " ", Species)),
+  synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)))
+
+```
+
+## Create alternate name list for view taxonomy
+
+```{r synonyms}
+
+
+viewtaxonomy <- viewtaxonomy %>%
+mutate(across(everything(), ~ {
+  if(is.character(.)) {
+    na_if(., "NULL") # Solo aplica na_if si la columna es texto
+  } else {
+    . # Si es numérica, la deja igual
+  }
+}))
+
+ #set the code to the subspecies code if it is a subspecies
+viewtaxonomy <- viewtaxonomy %>% 
+  mutate(
+         sp6 = ifelse(is.na(Subspecies), Mnemonic, subspMnemonic), 
+         binomial=ifelse(Genus=="Unidentified",paste(Genus,sp6),paste(Genus,SpeciesName)),
+         species_name=ifelse(is.na(Subspecies),
+                                paste0(Genus," ",SpeciesName),
+                                paste0(Genus," ",SpeciesName," ",Rank, " ", Subspecies))
+       )
+  
+
+viewtaxonomy$binomial <- stri_trans_general(viewtaxonomy$binomial,"Latin-ASCII")
+
+viewtaxonomy_synonyms <- viewtaxonomy %>%
+
+  mutate(OriginalOrder = row_number()) %>%
+  
+  select(
+    OriginalOrder, 
+    sp6, species_name, 
+    SynonymTextALL = ListOfOldNames
+  ) %>%
+  
+  # Filter out empty synonym rows
+  filter(!is.na(SynonymTextALL) & SynonymTextALL != "") %>%
+
+  mutate(SynonymTextSingle = SynonymTextALL) %>%
+  separate_longer_delim(SynonymTextSingle, delim = ",") %>%
+  mutate(SynonymTextSingle = trimws(SynonymTextSingle)) %>%
+  
+  # Order of the synonym in the original text
+  group_by(OriginalOrder) %>%
+    mutate(SynonymNumber = row_number()) %>%
+    ungroup() %>%
+  
+  # Extract Genus and Species from the single synonym
+  # Using too_many="merge" in case there are infraspecific names
+  separate_wider_delim(
+    SynonymTextSingle, 
+    delim = " ", 
+    names = c("SynonymGenusSingle", "SynonymSpeciesSingle"),
+    too_many = "merge",
+    cols_remove = FALSE
+  ) %>% arrange(species_name)
+
+# View the result
+datatable(viewtaxonomy_synonyms, 
+             caption = "Mapping: Original Name to Individual Synonym")
+
+
+write_xlsx(viewtaxonomy_synonyms, viewtaxonomy_synonyms_path)
+
+```
+
+## Combined table of synonyms and alternate names
+
+```{r combinedsyn}
+
+v_tax <- viewtaxonomy_synonyms %>%
+  select(prefname = species_name, altname = SynonymTextSingle) %>%
+  mutate(in_viewtax = TRUE)
+
+w_syn <- woody_synonyms %>%
+  select(prefname = forestgeo_name, altname = SynonymTextSingle) %>%
+  mutate(in_woody = TRUE)
+
+g_syn <- garwood_synonyms %>%
+  select(prefname = sp_name, altname = synonym_sp, GarwoodNotes = SynonymTextSingle) %>%
+  mutate(in_garwood = TRUE)
+
+# 2. Join them all together
+altnames <- w_syn %>%
+  full_join(v_tax, by = c("prefname", "altname")) %>%
+  full_join(g_syn, by = c("prefname", "altname")) %>%
+  # 3. Handle NAs and finalize column order
+  mutate(across(starts_with("in_"), ~ coalesce(.x, FALSE))) %>%
+  select(prefname, altname, in_woody, in_viewtax, in_garwood, GarwoodNotes)
+
+datatable(altnames)
+
+
+write_xlsx(altnames, paste0("splists_out/AltNames_",Sys.Date(), ".xlsx"))
+
+```
+

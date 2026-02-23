@@ -54,7 +54,7 @@ wcvp_names <- rWCVPdata::wcvp_names
 original_list_path <- "splists_raw/Wright/nomenclature_R_20210224_Rready_fixed.xlsx"
 
 # Extract file name without extension 
-original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
+original_list_name <- "Wright/nomenclature_R_20210224"
 
 # Path for intermediate matching results (to skip heavy processing if already done)
 matches_mid_path <- paste0("splists_mid/", original_list_name, "_mid_match.rds")
