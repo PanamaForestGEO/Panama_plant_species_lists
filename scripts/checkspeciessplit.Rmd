@@ -432,7 +432,7 @@ panwoodtaxawcvp_clean <- matchaccepted_names(panwoodtaxawcvp_clean)
 # Now left join to make sure the number of species is consistent.
 panwoodtaxawcvpplus <-   panwoodtaxa %>%
   left_join(panwoodtaxawcvp_clean %>% 
-              select(forestgeo_name, wcvp_name, wcvp_authors,wcvp_rank, wcvp_status, 
+              select(wcvp_accepted_id, forestgeo_name, wcvp_name, wcvp_authors,wcvp_rank, wcvp_status, 
                      Accepted_name, Accepted_family, Accepted_name_rank, Accepted_name_author, Accepted_name_status,
                      Accepted_name_genus,
                      Accepted_name_species, 
@@ -1048,9 +1048,9 @@ write_xlsx(species_modified, PANAMA_COMBINED_CHANGE_SUMMARY_PATH)
 
 ```
 
-# Synonyms and alternate names file
+# Alternate names file
 
-```{r synonyms}
+```{r alternates}
 
 alternate_synonym_table <- panwoodtaxaout %>%
 
@@ -1096,6 +1096,28 @@ if(FIX_SPECIES){
 
 ```
 
+# Synonyms names file
+
+```{r synonyms}
+
+panwoodtaxaout <- read_excel("../splists_out/CurrentPanamaWoody_2026-02-22.xlsx")
+
+wcvp_names %>% mutate(
+  sp_name = case_when(
+        is.na(species) | species == "" ~ genus,
+        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
+        TRUE ~ paste(genus, species))
+    ) 
+
+panwoodtaxaout <- panwoodtaxaout %>% left_join(
+  wcvp_names %>% select(plant_name_id, sp_name),
+  by = c(current_name == sp_name)
+)
+  filter(
+    sp_name %in% panwoodtaxaout$current_name
+  )
+
+```
 
 ```{r sp4missing}
 # 4. Find codes in Wright list NOT present in the woody list AND 

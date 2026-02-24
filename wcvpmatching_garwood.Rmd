@@ -74,7 +74,7 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= TRUE
+redoWCVP= FALSE
 ```
 
 
