@@ -1,0 +1,556 @@
+---
+title: "Matching Liana Species names to WCVP"
+author: "Paula Uzcategui and Helene Muller-Landau"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Match WCVP names with species name
+
+Next we do:
+
+Input: list of species
+
+- Match wcvp names
+- Tabulate types of changes: spelling differences, Synonyms. 
+- After the update two species can have the same wcvp name. 
+
+Output: 
+- _WCVP file with the original species list columns and the columns from wcvp
+- _WCVP_CHANGES a file containing only the species where the original name differs fromthe wcvp name. 
+
+```{r setup2, echo=TRUE,message=FALSE, warning=FALSE, results="hide"}
+
+# installing wcvp
+#install.packages("remotes")
+#library(remotes)
+#remotes::install_github("matildabrown/rWCVP")
+#rm(list=ls())
+
+library(readxl)
+library(writexl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(knitr)
+suppressPackageStartupMessages({
+  library(rWCVP)
+  library(rWCVPdata)
+})
+library(DT)
+
+citation("rWCVPdata") # according to this, this is using version 13.
+
+# Load WCVP backbone
+wcvp_names <- rWCVPdata::wcvp_names 
+
+# INPUT PATHS
+original_list_path <- "splists_raw/Schnitzer/Schnitzer_2026-02-13/Lianas_Species_complete_list.xlsx"
+
+pub_list_path <- "splists_raw/Schnitzer/Schnitzer_2024-10-04/BCI_2007_2017__species_names_SEPT27_2024.csv"
+
+# Extract file name without extension 
+original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
+
+# Path for intermediate matching results (to skip heavy processing if already done)
+matches_mid_path <- paste0("splists_mid/", original_list_name, "_mid_match.rds")
+
+
+# OUTPUT PATHS 
+out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date(), ".xlsx")
+out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
+
+
+
+```
+
+# Load species lists, and put them in a consistent format
+
+```{r cleandata,echo=TRUE}
+lianas <- read_excel(original_list_path)
+lianasbci50 <- data.frame(codename=lianas$`List 1`)
+lianasplots <- data.frame(codename=lianas$`List 2`)
+
+lianasbci50 <- lianasbci50 %>% 
+  filter(!is.na(codename) & codename!="Desconocida") %>%
+  separate(codename, into = c("sp6", "binomial"), sep = " - ", remove = FALSE)%>%
+  mutate(sp6 = str_trim(sp6) %>% str_to_upper(),
+         binomial = str_squish(binomial) %>% str_to_sentence()) %>%
+  arrange(sp6) %>%
+  select(-codename)
+
+lianasplots <- lianasplots %>% 
+  filter(!is.na(codename) & codename!="Desconocida") %>%
+  separate(codename, into = c("sp6", "binomial"), sep = " - ", remove = FALSE)%>%
+  mutate(sp6 = str_trim(sp6) %>% str_to_upper(),
+         binomial = str_squish(binomial) %>% str_to_sentence())  %>%
+  arrange(sp6) %>%
+  select(-codename)
+
+lianasbci50pub <- read.csv(pub_list_path)
+
+lianasbci50pub <- lianasbci50pub %>%
+  mutate(across(where(is.character), str_squish))  %>% # remove any trailing or leading white space and reduce internal white space to always 1 space
+  rename(sp6=Species.Code..Mnemonic.,
+         SpeciesFull=Species,
+         FamilyFormer=Family..former.,
+         GenusFormer=Genus..former.,
+         SpeciesFormerFull=Species..former.,
+         AuthorityFormer=Authority..former.) %>%
+  mutate(SpeciesOnly = word(SpeciesFull, 1),
+         Subspecies = str_squish(str_remove(SpeciesFull, "^[^\\s]+\\s*")),
+         Subspecies = na_if(Subspecies, ""),
+         SpeciesOnlyFormer = word(SpeciesFormerFull,1),
+         SubspeciesFormer = str_squish(str_remove(SpeciesFormerFull, "^[^\\s]+\\s*")),
+         SubspeciesFormer = na_if(SubspeciesFormer, ""),
+         binomial=paste0(Genus," ",SpeciesOnly),
+         binomialFormer=paste0(GenusFormer," ",SpeciesOnlyFormer),
+         binomialplus=paste0(Genus, " ",SpeciesFull),
+         binomialplusFormer=paste0(GenusFormer," ",SpeciesFormerFull)) %>%
+  select(sp6,binomial,binomialFormer,binomialplus,binomialplusFormer,
+         Family,Genus,SpeciesOnly,Subspecies,Authority,
+         FamilyFormer,GenusFormer,SpeciesOnlyFormer,SubspeciesFormer,AuthorityFormer) %>%
+  arrange(binomial)
+```
+
+
+## Check for consistency between published list and newer lists for BCI
+```{r comparebci50lists}
+onlypubbci50 <- lianasbci50pub %>%
+  select(sp6, binomial) %>%
+  anti_join(lianasbci50 %>% select(sp6), by = "sp6")
+
+onlynewbci50 <- lianasbci50 %>%
+  select(sp6, binomial) %>%
+  anti_join(lianasbci50pub %>% select(sp6), by = "sp6")
+
+kable(onlypubbci50, caption = "Species in published list but not newer list for BCI 50 ha lianas")
+kable(onlynewbci50, caption = "Species in newer list but not published list for BCI 50 ha lianas")
+
+#Find cases where sp6 is the same but binomial differs (potential naming mismatch)
+sp6_conflicts2bcilists <- bind_rows(
+  lianasbci50 %>% mutate(source = "bci50new") %>% select(source, sp6, binomial),
+  lianasbci50pub %>% mutate(source = "bci50pub") %>% select(source, sp6, binomial)
+) %>%
+  distinct() %>%
+  group_by(binomial) %>%
+  filter(n_distinct(sp6) > 1) %>%
+  arrange(binomial, sp6) %>%
+  ungroup()
+
+kable(sp6_conflicts2bcilists, caption = "Conflicts: same sp6, different binomial")
+
+# Find cases where binomial is the same but sp6 differs (potential code mismatch)
+binomial_conflicts2bcilists <- bind_rows(
+  lianasbci50 %>% mutate(source = "bci50new") %>% select(source, sp6, binomial),
+  lianasbci50pub %>% mutate(source = "bci50pub") %>% select(source, sp6, binomial)
+) %>%
+  distinct() %>%
+  group_by(binomial) %>%
+  filter(n_distinct(sp6) > 1) %>%
+  arrange(binomial, sp6) %>%
+  ungroup()
+
+kable(binomial_conflicts2bcilists, caption = "Conflicts: same binomial, different sp6")
+
+```
+The checks show that these two lists are the same (including having the same duplicates), so proceed using just the published list.  
+
+## Check for duplicates within lists
+
+### Check for duplicates within BCI 50-ha published list
+```{r checkdupbci50}
+binomial_conflicts_bci50pub <- lianasbci50pub %>%
+  distinct(sp6, binomial) %>%
+  group_by(binomial) %>%
+  filter(n_distinct(sp6) > 1) %>%
+  arrange(binomial, sp6) %>%
+  ungroup()
+
+if (nrow(binomial_conflicts_bci50pub)>0) 
+  kable(binomial_conflicts_bci50pub,
+      caption = "Cases in published BCI 50-ha plot liana species list where the same binomial corresponds to multiple sp6 codes.")
+
+sp6_conflicts_bci50pub <- lianasbci50pub %>%
+  distinct(sp6, binomial) %>%
+  group_by(sp6) %>%
+  filter(n_distinct(binomial) > 1) %>%
+  arrange(sp6,binomial) %>%
+  ungroup()
+
+if (nrow(sp6_conflicts_bci50pub)>0) 
+  kable(sp6_conflicts_bci50pub,
+      caption = "Cases in published BCI 50-ha plot liana species list where the same sp6 code corresponds to multiple binomials.")
+
+```
+There are 5 cases where the published BCI 50-ha plot liana species lists where two different codes correspond to the same binomial.
+
+There are no cases where a single code corresponds with multiple binomials.  
+
+
+### Check for duplicates within newer plots list
+```{r checkdupplots}
+binomial_conflicts_plots <- lianasplots %>%
+  distinct(sp6, binomial) %>%
+  group_by(binomial) %>%
+  filter(n_distinct(sp6) > 1) %>%
+  arrange(binomial, sp6) %>%
+  ungroup()
+
+if (nrow(binomial_conflicts_plots)>0) 
+  kable(binomial_conflicts_plots,
+      caption = "Cases in newer non-BCI plots liana species list where the same binomial corresponds to multiple sp6 codes.")
+
+sp6_conflicts_plots <- lianasplots %>%
+  distinct(sp6, binomial) %>%
+  group_by(sp6) %>%
+  filter(n_distinct(binomial) > 1) %>%
+  arrange(sp6,binomial) %>%
+  ungroup()
+
+if (nrow(sp6_conflicts_plots)>0) 
+  kable(sp6_conflicts_plots,
+      caption = "Cases in newer non-BCI plots liana species list where the same sp6 code corresponds to multiple binomials.")
+
+```
+
+
+
+## Check for overlap and inconsistencies between the published BCI list and the plots list
+
+The following `r length(setdiff(lianasbci50pub$sp6, lianasplots$sp6))` sp6 codes are in the published BCI 50-ha plot liana species list but not in the newer list for non-BCI plots: 
+
+`r paste(setdiff(lianasbci50pub$sp6, lianasplots$sp6), collapse = ", ")`
+
+The following `r length(setdiff(lianasplots$sp6, lianasbci50pub$sp6))` sp6 codes are in the newer lists for non-BCI plots but not in the published BCI 50-ha plot liana species list:  
+
+`r paste(setdiff(lianasplots$sp6, lianasbci50pub$sp6), collapse = ", ")`
+
+
+```{r comparebci50vplots}
+
+onlybci50 <- lianasbci50pub %>%
+  select(sp6, binomial) %>%
+  anti_join(lianasplots %>% select(sp6), by = "sp6")
+
+onlyplots <- lianasplots %>%
+  select(sp6, binomial) %>%
+  anti_join(lianasbci50pub %>% select(sp6), by = "sp6")
+
+kable(onlybci50, caption = "Species in lianasbci50 but not in lianasplots")
+kable(onlyplots, caption = "Species in lianasplots but not in lianasbci50")
+
+lianasall <- bind_rows(
+  lianasbci50pub %>% mutate(sourcelist = "bci50") %>% select(sourcelist, sp6, binomial),
+  lianasplots %>% mutate(sourcelist = "plots") %>% select(sourcelist, sp6, binomial)
+) %>%
+  distinct(sp6,binomial,.keep_all=TRUE) %>%
+  arrange(sp6,binomial)
+
+# Find cases where binomial is the same but sp6 differs (potential code mismatch)
+binomial_conflicts2lists <- lianasall %>%
+  group_by(binomial) %>%
+  filter(n() > 1) %>%               
+  arrange(binomial, sp6, sourcelist) %>%
+  ungroup()
+
+kable(binomial_conflicts2lists,
+      caption = "Cases where the same binomial appears with different codes")
+
+#Find cases where sp6 is the same but binomial differs (potential naming mismatch)
+sp6_conflicts2lists <- lianasall %>%
+  group_by(sp6) %>%
+  filter(n() > 1) %>%                  
+  arrange(sp6, binomial, sourcelist) %>%
+  ungroup()
+
+kable(sp6_conflicts2lists,
+      caption = "Cases where the same sp6 code appears with different binomials")
+
+```
+It appears that many of these are spelling differences.  
+
+## Combine the lists
+
+Keep all distinct sp6 codes.  When the sp6 code appears in the published BCI 50 list, use the binomial that appears there, regardless of what appears in the plots list.  
+
+Keeping `nrow(lianasbci50pub)` codes from the published BCI 50-ha species list (even though in some cases more than one code corresponds to the same binomial), and adding `length(lianasplots$sp6[!lianasplots$sp6 %in% lianasbci50pub$sp6])` codes with their binomials from the other plots list.  
+
+Remove the record for BAUH1 = Bauhinia sp., because this lacks a full species identification. 
+
+ 
+Manually edit one name, changing genus Chondodendron to Chondrodendron, to avoid matching with the wrong taxon in WCVP.  
+
+
+```{r combinelists}
+lianascombined <- bind_rows(lianasbci50pub,lianasplots[!lianasplots$sp6 %in% lianasbci50pub$sp6,]) %>% 
+  filter(sp6!="BAUH1")
+
+origlist <- lianascombined %>%
+  rename(orig_name=binomial,
+         orig_family=Family,
+         orig_genus=Genus,
+         orig_species=SpeciesOnly,
+         orig_author=Authority) %>%
+  mutate(orig_infrasp_rank=word(Subspecies,1),
+         orig_infraspecies=word(Subspecies,2),
+         orig_genus=ifelse(!is.na(orig_genus),orig_genus,word(orig_name,1)),
+         orig_species=ifelse(!is.na(orig_species),orig_species,word(orig_name,2))) %>%
+  arrange(orig_name) %>%
+  select(sp6,orig_name,orig_family,orig_genus,orig_species,orig_author,
+         orig_infrasp_rank,orig_infraspecies)
+
+origlist$orig_genus[origlist$sp6=="CHONTO"] <- "Chondrodendron"
+origlist$orig_name[origlist$sp6=="CHONTO"] <- "Chondrodendron tomentosum"
+```
+
+ 
+ 
+## Match WCVP names
+
+```{r mergewcvp}
+
+# Helper function to merge and format accepted names from WCVP backbone
+matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
+  matcheswcvp %>% 
+    left_join(wcvp_backbone %>% 
+                select(plant_name_id, genus, species, taxon_rank, family, 
+                       primary_author, infraspecific_rank, infraspecies, 
+                       lifeform_description, taxon_status),
+              by = c("wcvp_accepted_id" = "plant_name_id")) %>% 
+    mutate(
+      Accepted_name = case_when(
+        is.na(species) | species == "" ~ genus,
+        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
+        TRUE ~ paste(genus, species))
+    ) %>%
+    rename(
+      Accepted_family = family,
+      Accepted_name_rank = taxon_rank,
+      Accepted_name_author = primary_author,
+      Accepted_name_status = taxon_status,
+      Accepted_name_genus = genus, 
+      Accepted_name_species = species, 
+      Accepted_name_infraspecific_rank = infraspecific_rank, 
+      Accepted_name_infraspecies = infraspecies
+    )
+}
+
+# --- 1. Run Match ---
+  matchresult <- wcvp_match_names(origlist, wcvp_names, name_col = "orig_name")
+
+# --- 2. Sanity Checks & Duplicate Resolution ---
+# Ensure all species are accounted for
+stopifnot(all(origlist$orig_name %in% matchresult$orig_name))
+
+# Identify names that mapped to multiple 'Accepted' records
+manyaccepted <- matchresult %>%
+  group_by(orig_name) %>%
+  filter(sum(wcvp_status == "Accepted", na.rm = TRUE) > 1) %>%
+  ungroup()
+ 
+
+# If duplicates exist, force use of the original ID to avoid grouping explosion
+# (This will be merged back with original list later, so no codes will be lost.)
+if (nrow(manyaccepted) > 0) {
+  matchresult <- matchresult %>%
+    mutate(wcvp_accepted_id = ifelse(orig_name %in% manyaccepted$orig_name, wcvp_id, wcvp_accepted_id))
+}
+
+# Check cases in which a single name mapped to multiple records, accepted or not, but excluding cases in which this is simply because the same name appeared multiple times in the list.
+multmatches <- matchresult %>%
+  group_by(orig_name,sp6) %>%
+  filter(n() > 1) %>%
+  ungroup()
+
+#Spot checking, it appears these are all or nearly all cases where the same binomial appears with different authorities.  Separate out cases where the matched name itself differs
+multnames <- matchresult %>%
+  group_by(orig_name,sp6) %>%
+  filter(n_distinct(wcvp_name) > 1) %>%
+  ungroup()
+
+# Indeed, there is only one case left now, and it is an orthographic variation.  
+
+
+# --- 3. Clean Match Results (1 row per species) ---
+matchresult_clean <- matchresult %>%
+  mutate(
+    status_priority = case_when(
+      wcvp_status == "Accepted"     ~ 1,
+      wcvp_status == "Synonym"      ~ 2,
+      wcvp_status == "Illegitimate" ~ 3,
+      wcvp_status == "Unplaced"     ~ 4,
+      TRUE                          ~ 5
+    )
+  ) %>%
+  group_by(orig_name) %>%
+  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  matchaccepted_names(wcvp_names)
+
+# --- 4. Final Join and Rename ---
+# This merges the WCVP data back into your processed original list
+processlist <- origlist %>%
+  left_join(matchresult_clean %>% 
+              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
+                     Accepted_name, Accepted_family, Accepted_name_rank, 
+                     Accepted_name_author, Accepted_name_status, Accepted_name_genus,
+                     Accepted_name_species, Accepted_name_infraspecific_rank, 
+                     Accepted_name_infraspecies, lifeform_description, 
+                     match_similarity, match_edit_distance),
+            by = "orig_name") %>%
+  rename(
+    Name_matched = wcvp_name,
+    Name_matched_rank = wcvp_rank
+  )
+
+# --- 5. Handle missing matches ---
+# If WCVP didn't find a match, we keep the original name as the 'Accepted' placeholder
+inc <- is.na(processlist$Accepted_name) | processlist$Accepted_name == ""
+
+if (any(inc, na.rm = TRUE)) {
+  processlist$Accepted_name[inc] <- processlist$orig_name[inc]
+}
+
+# Review Results
+processlist %>% count(wcvp_status)
+
+saveRDS(processlist, matches_mid_path)
+
+```
+
+
+### Cases in which no name matches 
+
+```{r nomatch}
+nomatch <- processlist %>%
+  filter(is.na(Name_matched)) 
+
+if(nrow(nomatch)>0){
+  knitr::kable(nomatch %>% select( orig_name, sp6),
+               caption="Cases in which no name matched in WCVP")
+}
+```
+
+
+#### Cases in which there is a match, and it is an accepted name, but spelling differs
+
+```{r spellingdif1}
+spellingdifs1 <- processlist %>%
+  filter((orig_name != Name_matched) & wcvp_status == "Accepted") %>%
+  arrange(match_similarity) 
+
+
+kable( spellingdifs1 %>% select(sp6, orig_name, Name_matched, match_similarity),
+      caption = "Potential spelling errors: Matched name is accepted but differs from original.")
+```
+#### Cases in which the matched name is a synonym, and spelling differs
+
+```{r spellingdif2}
+spellingdifs2 <- processlist %>%
+  filter((orig_name != Name_matched) & wcvp_status != "Accepted") %>%
+  arrange(match_similarity) 
+
+
+kable( spellingdifs2 %>% select(sp6, orig_name, Name_matched, match_similarity, Accepted_name),
+      caption = "Potential spelling errors: Matched name is synonym and differs from original.")
+```
+## Cases where the name matches and WCVP lists a different accepted name: 
+
+```{r synonyms}
+synonyms <- processlist %>%
+  filter((orig_name != Accepted_name & orig_name==Name_matched)) %>%
+  arrange(orig_name) 
+
+
+kable(synonyms %>% select(sp6, orig_name, wcvp_status, Accepted_name),
+      caption = "Synonyms (correctly spelled) according to WCVP.")
+
+```
+
+## Prepare list to output
+
+```{r prepoutput}
+processlist <- processlist %>%
+  add_count(Accepted_name, name = "Accepted_name_count") %>%
+  mutate(wcvpnotes=paste0(ifelse(orig_name!=Name_matched,
+                                 "Spelling difference in WCVP | ",""),
+                          ifelse(Accepted_name != Name_matched,
+                                 "Synonym in WCVP | ",""),
+                          ifelse(Accepted_name_count>1,
+                                 "WCVP name is the same as another species in list | ","")),
+         wcvpsynonyms=ifelse(wcvp_status=="Synonym",Name_matched,""),
+         sourcesynonyms=lianasbci50pub$binomialFormer[match(sp6,lianasbci50pub$sp6)],
+         origchanged=(orig_name!=Accepted_name)) 
+
+
+```
+
+
+## Summary of modifications
+
+```{r summarymod}
+# Filter for species that were modified in the main list
+species_modified <- processlist %>% 
+  filter(origchanged == TRUE) %>% 
+  arrange(wcvpnotes, orig_name)
+
+# Save modifications in a separate file (using the path variables from setup)
+write_xlsx(species_modified, out_wcvp_changes_list)
+
+
+# Calculate Percentage of change
+change_perc <- (nrow(species_modified) / nrow(processlist)) * 100
+
+```
+
+
+Total species modified: `r nrow(species_modified)`
+Percentage of species modified: `r round(change_perc, 2)` %
+```{r statsmod}
+# Summary table of change types
+knitr::kable(species_modified %>% 
+               group_by(wcvpnotes) %>% 
+               summarise(n_species = n(), .groups = "drop"), 
+             caption = "Summary of changes by category")
+
+```
+
+
+
+
+```{r showmod}
+
+kable(species_modified %>% 
+    select(orig_name, Name_matched, Accepted_name, wcvpnotes),
+  caption = "Species modified after matching with WCVP")
+
+```
+
+## Save output with WCVP names.
+```{r saveoutput}
+outtaxa <- processlist %>% 
+  rename(wcvp_name=Accepted_name,
+         wcvp_family=Accepted_family,
+         wcvp_genus=Accepted_name_genus,
+         wcvp_species=Accepted_name_species,
+         wcvp_infrasp_rank=Accepted_name_infraspecific_rank,
+         wcvp_infraspecies=Accepted_name_infraspecies,
+         wcvp_lifeform_description=lifeform_description) %>%
+  select(sp6,orig_name,orig_family,orig_genus,orig_species,orig_infrasp_rank,orig_infraspecies,
+         wcvp_lifeform_description,wcvp_name,wcvp_family,
+         wcvp_genus,wcvp_species,wcvp_infrasp_rank,wcvp_infraspecies,
+         origchanged,wcvpnotes,wcvpsynonyms,sourcesynonyms)
+
+# Save using the path defined in your setup chunk
+write_xlsx(outtaxa, out_wcvp_list)
+```
+
+Saved `r nrow(outtaxa)` species in liana species lists with their linked names with WCVP. 
+
+
+
