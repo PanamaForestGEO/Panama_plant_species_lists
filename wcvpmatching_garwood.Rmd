@@ -24,6 +24,8 @@ Output:
 
 - _WCVP file with the original species list columns and the columns from wcvp
 - _WCVP_CHANGES a file containing only the species where the WCVP name differed from the original. 
+
+
 Notes on things to do:
 - Change to using "Garwood_2009_Appendix1HM2.xlsx" instead of .csv file.  
 
@@ -121,12 +123,19 @@ if(nrow(dups) > 0){
 
 
 ```
-```{r fixficus}
+
+Do some manual fixes to records that will otherwise not run through the rest of the workflow properly.  Specifically for Ficus aff. trigonata, and Trema micranthum 
+
+```{r manualfixes}
 # make a manual fix to this single case of duplicates, so that they are no longer duplicates
 # and to better reflect what the text says about them
 inc <- origlist$orig_name=="Ficus trigonata" & origlist$Prefix=="sp. aff."
 origlist$orig_name[inc] <- "Ficus aff. trigonata"
 origlist$orig_binomial[inc] <- "Ficus"
+
+inc2 <- origlist$orig_name=="Trema micrantha" 
+origlist$orig_binomial[inc2] <- "Trema micranthum"
+
 
 ```
 
@@ -318,8 +327,8 @@ temp2b <- subset(temp, orig_name!=Matched_name_matchfull & match_similarity.x!=1
 
 # Simple alternative is that in all cases where there is not a perfect match on the full name, use the binomial match instead.  This will miss a few cases where the full match is better, but avoid a lot of problems. 
 
-# for fixes the original full name is prefered unless said otherwise
-mismatches$prefered = "full"
+# for fixes the original full name is preferred unless said otherwise
+mismatches$preferred = "full"
 ```
 
 ```{r printmisses}
@@ -340,7 +349,7 @@ In that case leave the original name.
 inc <- with(mismatches, orig_name =="Trema micrantha")
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
-  tmp$prefered = "original"
+  tmp$preferred = "original"
   mismatches[inc, ] <- tmp
 }
 
@@ -356,7 +365,7 @@ datatable( misscase3 %>% select(all_of(colsprint)),
 
 ```
 
-The mismatch is a small typo. Leave the accepted name as it is. 
+The mismatch is a difference only in infraspecific rank. Use the WCVP accepted name for the full match. 
 
 
 ```{r findingcase2}
@@ -367,19 +376,19 @@ misscase2 <- mismatches %>% filter( orig_name != wcvp_name &
                       (genus_mismatch | species_mismatch)
                          ) 
 datatable( misscase2 %>% select(all_of(colsprint)),
-           caption="full name mismatched, binomial didin't. And genus and species did not mismatch",
+           caption="Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.",
            options = list(scrollX = TRUE, pageLength = 10)
            )
 
 
 ```
-In this cases the match to binomial is better, also the infraspecies is the same as the species...
+In this cases the match to binomial is better, so use that.  (Note also the infraspecies is the same as the species in all these cases except the one without a species name at all.) 
 ```{r fixingcase3}
 
 inc <- with(mismatches, orig_name %in% misscase2$orig_name)
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
-  tmp$prefered = "binomial"
+  tmp$preferred = "binomial"
   mismatches[inc, ] <- tmp
 }
 
@@ -390,21 +399,19 @@ if (any(inc, na.rm = TRUE)) {
 # genus, species and rank matched but infraspecies didint 
 misscase4 <- mismatches %>% filter( !genus_mismatch & !species_mismatch & infraspecies_mismatch & !infraspecies_rank_mismatch)
 
-datatable( misscase4 %>% select(all_of(colsprint)), caption="genus, species and rank matched but infraspecies didint ",options = list(scrollX = TRUE, pageLength = 10))
+datatable( misscase4 %>% select(all_of(colsprint)), caption="genus, species and infraspecific rank matched but infraspecies name did not ",options = list(scrollX = TRUE, pageLength = 10))
 
 # no 5 case, i dont think string comparing is reliable
 
 ```
 
-In all of this cases the subspecies did not match with wcvp. Leaving the binomial name...
-Woudlnt it be better to leave the original name (?), saying that wcvp didint match...
+In all of this cases the subspecies did not match in wcvp. Thus using the simple binomial match instead (dropping the infraspecies).
 
-By keeping binomial we forget the subspecies
 ```{r fixingcase4}
 inc <- with(mismatches, orig_name %in% misscase4$orig_name)
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
-  tmp$prefered = "binomial"
+  tmp$preferred = "binomial"
   mismatches[inc, ] <- tmp
 }
 ```
@@ -418,29 +425,15 @@ missrest <- mismatches %>%
 datatable( missrest %>% select(all_of(colsprint)), caption="Species not considered in previous cases",options = list(scrollX = TRUE, pageLength = 10))
 
 ```
-For all of these we can leave the binomial name match
+For all of these, there is no WCVP match to the full name, but in most cases there is a match to the binomial name.  Thus use the binomial name.  And in the cases where there is no match, it is because of a lack of taxonomic resolution in the original ID (just to family).  
 
-But what do we do with sensu lato, aff. and sour groups (?)
-
-I will leave their original names for now (?)
 
 ```{r fixingcase5}
 
 inc <- with(mismatches, orig_name %in% missrest$orig_name)
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
-  tmp$prefered = "binomial"
-  mismatches[inc, ] <- tmp
-}
-
-inc <- with(mismatches, orig_name %in% c("Citrus aurantium (Sour Orange Group)",
-                                         "Citrus aurantium (Sweet Orange Group)",
-                                         "Erythroxylum macrophyllum sensu lato",
-                                         "Ormosia coccinea sensu lato",
-                                         "Ficus aff. trigonata"))
-if (any(inc, na.rm = TRUE)) {
-  tmp <- mismatches[inc, ]
-  tmp$prefered = "original"
+  tmp$preferred = "binomial"
   mismatches[inc, ] <- tmp
 }
 
@@ -451,7 +444,7 @@ if (any(inc, na.rm = TRUE)) {
 ```{r fixingmismatches}
 
 # summary of mismatches
-mismatches %>% group_by(prefered) %>% summarise(n())
+mismatches %>% group_by(preferred) %>% summarise(n())
 
 mismatches <- mismatches %>% mutate(
   across(
@@ -461,8 +454,8 @@ mismatches <- mismatches %>% mutate(
       Accepted_name_author, Accepted_name_infraspecific_rank, 
       Accepted_name_infraspecies, match_similarity),
     ~case_when(
-      prefered == "binomial" ~ get(paste0(cur_column(), "_binomial")),
-      prefered == "original" ~ NA,
+      preferred == "binomial" ~ get(paste0(cur_column(), "_binomial")),
+      preferred == "original" ~ NA,
       TRUE ~ .x
     )
   )
@@ -475,10 +468,7 @@ Now all the mismatches should make more sense
 
 printmismatches <- mismatches %>% 
   select(
-    orig_name, wcvp_name, Accepted_name, match_similarity, prefered,
-    orig_binomial, wcvp_name_binomial, Accepted_name_binomial, match_similarity_binomial,
-    genus_mismatch, species_mismatch, infraspecies_rank_mismatch, infraspecies_mismatch
-  ) %>% 
+    orig_name, wcvp_name, Accepted_name) %>% 
   arrange(match_similarity, match_similarity_binomial)
 
 datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))
@@ -519,8 +509,14 @@ processlist <- origlist %>%
                      match_similarity, match_edit_distance),
             by = "orig_name") %>%
   rename(
-    Name_matched = wcvp_name,
-    Name_matched_rank = wcvp_rank
+    wcvp_matched_name = wcvp_name,
+    wcvp_matched_authors = wcvp_authors,
+    wcvp_matched_rank = wcvp_rank,
+    wcvp_matched_status=wcvp_status,
+    wcvp_accepted_name = Accepted_name,
+  wcvp_accepted_family = Accepted_family,
+  wcvp_accepted_author = Accepted_name_author,
+  wcvp_lifeform_description = lifeform_description
   )
 
 # Review Results
@@ -532,23 +528,15 @@ knitr::kable(subset(processlist,
       caption = "Species not listed as Accepted or Synonym in WCVP")
 ```
 
-# Fix synonyms and errors:
+# Ready the output:
 
-```{r checkerrors, echo=TRUE, results="hide"}
 
-# For now lets assume the original name is the correct current name
+```{r readyoutput}
 processlist <- processlist %>% mutate(
-  wcvp_name = Accepted_name,
-  wcvp_family = Accepted_family,
-  wcvp_author = Accepted_name_author,
-  current_name = orig_name, # leave the original as current and check wcvp
-  current_family  = str_to_sentence(orig_family),
-  current_author = orig_author,
-  origchanged = FALSE,
-  current_name_notes = "",
-  synonyms = "",
-  orig_synonyms = ""
+  origmatches = orig_name==wcvp_matched_name,
+  current_name_notes = ""
 )
+
 
 
 # Clean columns with weird characters
@@ -558,531 +546,14 @@ processlist <- processlist %>%
 # Optional: removes accents
 #processlist <- processlist %>%
 #    mutate(across(where(is.character), ~ stri_trans_general(., "latin-ascii"))) 
-
 ```
 
-### Case when no accepted name was found
-```{r noaccepted}
-
-species_na_wcvp <- processlist %>% filter(is.na(Accepted_name))
-
-if(nrow(species_na_wcvp)>0){
-  knitr::kable(species_na_wcvp %>% select( orig_name,  SYNONYMS))
-}
-
-leave_orig_name1 <- species_na_wcvp$orig_name
-```
-
-### Case when name spelling differs
-
-```{r spellingdfis}
-# Identifying spelling differences
-# We filter for cases where the name matched is different from original but is considered 'Accepted'
-matchingerrors <- processlist %>%
-  filter((orig_name != Name_matched) & 
-           (orig_binomial != Name_matched) & 
-           wcvp_status == "Accepted") %>%
-  arrange(match_similarity)  %>%
-  mutate(row_id = row_number())
-
-# Display the potential spelling errors
-if(nrow(matchingerrors) > 0){
-    datatable(
-    matchingerrors %>% select(row_id, orig_name, Name_matched, Accepted_name, match_similarity, SYNONYMS),
-    caption = "Name is accepted but differs in spelling from original.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
-
-
-```{r spellfix}
-# Manual selection of rows that are definitely spelling errors
-# ADJUST THE Species based on your new matchingerrors table. 
-# The idea is to leave out the species were the orig_name and the Naame matched clearly dont match
-
-# change name to the correct spelling of the species that are not in that list
-changes_spelling1 <- matchingerrors %>%
-  filter(!orig_name %in% leave_orig_name1) %>% 
-  select(orig_name, Accepted_name)
-
-# Create index for the main dataset
-inc <- with(processlist, orig_name %in% changes_spelling1$orig_name)
-
-# Review the subset to be modified
-species_modified1 <- processlist[inc, ]
-
-if(nrow(species_modified1) > 0){
-  datatable(
-    species_modified1 %>% select(orig_name, Name_matched, Accepted_name, match_similarity), 
-    caption = "Spelling errors confirmed for correction.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-# Apply the updates to the main processlist
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp <- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  <- TRUE
-
-  new_comment <- "Spelling changed in WCVP"
-  
-  # Update notes without overwriting
-  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = " | "))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    <- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] <- tmp
-}
-```
-
-## Cases in which two or more original species would have the same name under wcvp:
-```{r twonames}
-
-# Two species can now have the same accepted name. 
-# It could be because as synonyms got its name corrected and the accepted species was already in the dataset
-# Or two species are now considered the same and the accepted name was not in the dataset
-
-# Identify cases where different original names now share the same wcvp_name
-acceptednamesdup <- processlist %>% 
-  filter(!is.na(Accepted_name)) %>%
-  group_by(Accepted_name) %>% 
-  filter(n() > 1) %>% 
-  ungroup() %>%
-  arrange(Accepted_name) %>%
-  mutate(row_id = row_number())
-
-if(nrow(acceptednamesdup) > 0){
-  datatable(
-    acceptednamesdup %>% select(row_id, Accepted_name, orig_name, Name_matched, wcvp_status, origchanged ), 
-    caption = "Multiple original entries share one Accepted Name.",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
-
-```{r leaveoriginal}
-
-# create a list of the duplicates to leave their original names
-
-leave_orig_names_dups <- acceptednamesdup %>% filter(wcvp_status != "Accepted") %>% select(orig_name)
-
-leave_orig_names_dups <- leave_orig_names_dups$orig_name
-```
-
-
-# Case when match is not perfect and species name has changed.
-```{r noperfectchange}
-
-# Filter for species where match isn't exact and status isn't Accepted
-noacceptedwcvpname <- processlist %>% 
-  filter(
-    (is.na(wcvp_status) | wcvp_status != "Accepted") &
-      !is.na(orig_name) &
-      !is.na(Name_matched) &
-      orig_name != Name_matched
-  ) %>%
-  arrange(wcvp_status, match_similarity) %>%
-  mutate(row_id = row_number()) %>%
-  select(row_id, orig_name, Name_matched, Accepted_name, wcvp_status, match_similarity) 
-
-
-if(nrow(noacceptedwcvpname) > 0){
-  datatable(
-    noacceptedwcvpname, caption = "Species where the match is not exact and the name changes",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-```
-
-
-```{r noperfechchangefix}
-
-# the subspecies doenst match well since i dont want to lose information i will leave it like the original name
-leave_out_orig_name2 <- c()
-
-
-leave_out_names <- c(leave_orig_names_dups, leave_out_orig_name2)
-
-# Select the row IDs that you have verified are correct spelling/name updates
-# Note: Ensure these IDs match the table generated above
-change_name2 <- noacceptedwcvpname %>%
-  filter(!orig_name %in% leave_out_names) %>%
-  select(orig_name, Accepted_name)
-
-# Indexing the main processlist
-inc <- with(processlist, orig_name %in% change_name2$orig_name)
-
-# Display what will be modified
-if (any(inc, na.rm = TRUE)) {
-  species_modified2 <- processlist[inc,]
-  
-  datatable(
-    species_modified2 %>% select(orig_name, Name_matched, Accepted_name, match_similarity), 
-    caption = "Confirmed name changes (Keeping Accepted Name)",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-  
-  tmp <- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  <- TRUE
-
-  new_comment <-  paste0("Imperfect match | Previous name was ", tmp$wcvp_status, " - Name changed in WCVP")
-  
-  # Update notes without overwriting
-  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = " | "))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    <- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] <- tmp
-}
-
-```
-
-
-## Change species name when the match was perfect and WCVP reported a name change:
-```{r seechamngenames}
-
-
-# Identify species where the match was perfect but status is NOT 'Accepted'
-species_accepted_changed <- processlist %>% 
-  filter(
-    !is.na(orig_name) & 
-    !is.na(Name_matched) & 
-    orig_name == Name_matched & 
-    wcvp_status != "Accepted"
-  )
-
-if(nrow(species_accepted_changed) > 0){
-  datatable(
-    species_accepted_changed %>% select(orig_name, Name_matched, Accepted_name, wcvp_status), 
-    caption = "Species matched perfectly but status is not 'Accepted' (Synonyms/Illegitimate).",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-
-```
-
-```{r fixchangenames}
-# Now the species names we would like to change:
-# No missmatch between Name_matched and Current_name and The state is non accepted.
-
-# Manual list of species to protect (do not update these even if WCVP suggests a change)
-leave_orig_names <- c(
-  "Swartzia simplex var. continentalis", 
-  "Swartzia simplex var. grandiflora",
-  leave_orig_name1, leave_out_orig_name2, leave_orig_names_dups)
-
-
-# Define the logical index for the changes
-inc <- with(processlist, (
-  !is.na(orig_name) & 
-  !is.na(Name_matched) & 
-  orig_name == Name_matched & 
-  wcvp_status != "Accepted" &
-  !orig_name %in% leave_orig_names
-))
-
-
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp <- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  <- TRUE
-
-  new_comment <-  paste0("Previous name was ", tmp$wcvp_status, " - Name changed in WCVP")
-  
-
-  # Update notes without overwriting
-  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = " | "))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  <- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    <- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms <- ifelse(is.na(tmp$synonyms) | tmp$synonyms == "", 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = "; "))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] <- tmp
-}
-
-
-# leave a comment for species were original name was kept as current name because of mismatches
-
-missmatch_names_list = c(leave_orig_name1, leave_out_orig_name2)
-inc <- with(processlist, (orig_name %in% missmatch_names_list))
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp <- processlist[inc, ]
-
-
-  # Update notes without overwriting
-  tmp$current_name_notes <- "Original species wcvp match was a missmatch"
-  
-  tmp$wcvp_name = NA
-  tmp$wcvp_family= NA
-  tmp$wcvp_author = NA
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] <- tmp
-}
-
-# leave comment for species duplicates
-inc <- with(processlist, (orig_name %in% leave_orig_names_dups))
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp <- processlist[inc, ]
-
-
-  # Update notes without overwriting
-  tmp$current_name_notes <- "WCVP name is the same as another species in list"
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] <- tmp
-}
-
-```
-
-## Case when the Family changed
-
-```{r familychange}
-
-# Identifying species where the name matches but the family is different
-familychanged <- processlist %>% 
-  filter(orig_name == wcvp_name & 
-         current_family != Accepted_family &  
-         wcvp_status == "Accepted") %>%
-  arrange(match_similarity)
-
-print(paste0("Species with changes in family: ", nrow(familychanged)))
-
-if(nrow(familychanged) > 0){
-  datatable(
-    familychanged %>% select(orig_family, Accepted_family, orig_name, Accepted_name, wcvp_status, match_similarity), 
-    caption = "Species with changes in family",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
-
-
-```{r familyfix}
-# Define the logical index (inc) using your NEW column names
-inc <- with(processlist, (
-    !is.na(orig_name) & 
-    !is.na(Accepted_name) &  
-    orig_name == Accepted_name &   
-    wcvp_status == "Accepted" & 
-    orig_name %in% familychanged$orig_name &
-    !orig_name %in% leave_orig_names
-))
-
-# Safety check: are there any matches?
-if (any(inc, na.rm = TRUE)) {
-  
-  # Create the temporary subset
-  tmp <- processlist[inc, ]
-  
-  # Perform updates on the subset
-  tmp$origchanged  <- TRUE
-  # Update family only if Accepted_family is not NA
-  tmp$current_family  <- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$orig_family)
-
-  new_comment <- "Family changed in WCVP"
-  
-  # Update notes without overwriting
-  tmp$current_name_notes <- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == "", 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = " | "))
-  
-  # Re-assign back to processlist
-  processlist[inc, ] <- tmp
-}
-
-# --- Sanity check ---
-# Check by wcvp_genus 
-genus_many_families <- processlist %>%
-  mutate(current_genus = word(current_name, 1)) %>%
-  group_by(current_genus) %>%
-  filter(n_distinct(current_family) > 1) %>% 
-  ungroup() %>% 
-  select(
-    current_family, 
-    current_name, 
-    orig_family, 
-    orig_name, 
-    wcvp_family, 
-    wcvp_name, 
-    current_name_notes,
-    current_genus,
-  ) %>%
-  arrange(current_genus)
-
-if(nrow(genus_many_families) > 0){
-  datatable(genus_many_families, caption="Sanity check: Genus with more than one family", options = list(scrollX = TRUE, pageLength = 10))
-}
-
-# This is because of NA status, i will leave it as it is because they are unidentified species. 
-
-```
-
-## Summary of modifications
-```{r summarymod}
-# Filter for species that were modified in the main list
-species_modified <- processlist %>% 
-  filter(!is.na(current_name_notes) & current_name_notes != "") %>% 
-  arrange(current_name_notes, orig_name)
-
-
-# Calculate Percentage of change
-change_perc <- (nrow(species_modified) / nrow(processlist)) * 100
-print(paste0("Total species modified/consolidated: ", nrow(species_modified)))
-print(paste0("Percentage of dataset modified: ", round(change_perc, 2), "%"))
-
-# Save modifications in a separate file (using the path variables from setup)
-write_xlsx(species_modified, out_wcvp_changes_list)
-
-# Summary table of change types
-knitr::kable(species_modified %>% 
-               group_by(current_name_notes) %>% 
-               summarise(n_species = n(), .groups = "drop"), 
-             caption = "Summary of changes by category")
-
-# Detailed interactive table of all changes
-datatable(
-  species_modified %>% 
-    select(orig_name, wcvp_name, orig_family, wcvp_family, wcvp_status, current_name_notes),
-  caption = "Species current name is different from original name after matching with WCVP",
-  options = list(scrollX = TRUE, pageLength = 20),
-  rownames = FALSE
-)
-```
-
-## Sanity check:  species were the name didint change and check duplicated species.
-
-```{r}
-# 1. Check for species where our final name still differs from the WCVP Accepted Name
-species_no_wcvp <- processlist %>% 
-  filter(is.na(current_name) | is.na(wcvp_name) | current_name != wcvp_name)
-
-print(paste0("Species where final name differs from WCVP Name: ", nrow(species_no_wcvp)))
-
-if(nrow(species_no_wcvp) > 0){
-  datatable(
-    species_no_wcvp %>% 
-      select(current_name, orig_name, wcvp_name, Name_matched, current_family, wcvp_family, wcvp_status, current_name_notes), 
-    caption = "Species requiring manual review (Name mismatch)",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-# 2. Final check for duplicates: This should ideally return 0 rows
-final_duplicates <- processlist %>% 
-  filter(!is.na(current_name)) %>%
-  group_by(current_name) %>% 
-  filter(n() > 1) %>% 
-  ungroup() %>%
-  mutate(mismatch = (orig_name != Name_matched)) %>% 
-  arrange(current_name, mismatch, match_similarity) %>%
-  select(current_name, wcvp_name, orig_name, Name_matched, wcvp_status, mismatch, match_similarity)
-
-if(nrow(final_duplicates) > 0){
-  knitr::kable(final_duplicates, caption = "WARNING: Remaining Duplicates Found")
-} else {
-  print("Sanity Check Passed: No duplicates remaining in the final list.")
-}
-
-
-# Duplicated names misspelled in the original dataset
-# needs removing
-
-processlist <- processlist %>% 
-  distinct(current_name, .keep_all = TRUE)
-
-
-```
-
-### Species with missing information in some column
-
-```{r missinginfo}
-
-# Flags species where the genus column doesn't match the first word of the species name,
-# or where essential taxonomic fields are NA.
-missing_info <- processlist %>% filter(
-   is.na(current_family) | is.na(current_author) | is.na(current_name)
-)   
-
-if(nrow(missing_info) > 0) {
-  datatable(
-    missing_info %>% select(
-      current_name, wcvp_name, orig_name,current_family, wcvp_family, orig_family, 
-      current_author, wcvp_author, orig_author, 
-      current_name_notes
-    ),
-    caption = "Species with missing or inconsistent taxonomic information",
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}
-
-```
 
 ## Save output of all species.
 ```{r saveoutput}
 # Remove some columns
 # Standardize lifeform column name and remove technical matching columns
-outtaxa <- processlist %>%
-  rename(
-    wcvp_lifeform_description = lifeform_description
-  ) %>%
+outtaxa <- processlist 
   select(
      -wcvp_authors, -Name_matched_rank, -Accepted_name, 
     -Accepted_family, -Accepted_name_rank, -Accepted_name_author, 
@@ -1096,3 +567,6 @@ write_xlsx(outtaxa, out_wcvp_list)
 ```
 
 Saved `r nrow(outtaxa)` species with their names verified with WCVP. 
+
+ADD HERE - output the taxa that have any differences between accepted name and orig_name as a separate file of changes.  
+
