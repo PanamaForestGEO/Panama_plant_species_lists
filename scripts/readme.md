@@ -1,4 +1,6 @@
 # Scripts
+- **alternate_species_names.Rmd**
+Compiles a file of alternate species names from ViewTaxonomy and Woody species list. This names are not synonyms in the botanical sense, but names the species used to have but now are identified as different taxon. 
 
 - **checkandmergesplists.r**  
   Older version of how to check consistency of woody species lists.
