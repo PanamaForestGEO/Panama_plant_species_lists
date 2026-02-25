@@ -70,6 +70,8 @@ garwood_synonyms <- garwood_synonyms %>% mutate(
 
 # 1. see match wcvp names
 match_wcvp <- match(zotz_list$wcvp_accepted_name, garwood_list$wcvp_accepted_name)
+# Remove matches where BOTH are NA
+match_wcvp <- ifelse(is.na(zotz_list$wcvp_accepted_name), NA, match_wcvp)
 zotz_no_wcvp <- zotz_list %>% filter(is.na(match_wcvp))
 
 # 2. add a column for synonym presence
@@ -82,23 +84,23 @@ datatable(zotz_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_na
           caption="Zotz species that are not in garwood"
           )
 
-write_xlsx(zotz_no_wcvp, "zotz_no_match_garwood.xlsx")
 ```
 
 ### Zotz species that are not in garwood
 ```{r zotznogarwood}
 
 zotz_no_garwood_at_all <- zotz_no_wcvp %>% filter(
-  !orig_name %in% garwood_list$orig_name & 
-  !wcvp_matched_name %in% garwood_list$wcvp_matched_name & 
-  !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name &
-  !`Sp (Croat 1978)` %in% garwood_synonyms$synonym_sp & 
-  !`Sp (Croat 1978)` %in% garwood_list$orig_name & 
-  !`Sp (Croat 1978)` %in% garwood_list$wcvp_matched_name & 
-  !`Sp (Croat 1978)` %in% garwood_list$wcvp_accepted_name &
+  (!is.na(orig_name) & !orig_name %in% garwood_list$orig_name) & 
+  (!is.na(wcvp_matched_name) | !wcvp_matched_name %in% garwood_list$wcvp_matched_name) & 
+  (!is.na(wcvp_accepted_name) | !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) &
+  (!`Sp (Croat 1978)` %in% garwood_synonyms$synonym_sp) & 
+  (!`Sp (Croat 1978)` %in% garwood_list$orig_name) & 
+  (!`Sp (Croat 1978)` %in% garwood_list$wcvp_matched_name) & 
+  (!is.na(`Sp (Croat 1978)`) & !`Sp (Croat 1978)` %in% garwood_list$wcvp_accepted_name) &
   !is_garwood_synonym
   ) %>%
   select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`, is_garwood_synonym)
+
 
 datatable(zotz_no_garwood_at_all, options = list(scrollX = TRUE, pageLength = 10))
 
@@ -129,6 +131,8 @@ bcilist <- bind_rows(
 
 # 1. see match by  wcvp names
 match_wcvp <- match(pbiota_list$wcvp_accepted_name, bcilist$wcvp_accepted_name)
+# Remove matches where BOTH are NA
+match_wcvp <- ifelse(is.na(pbiota_list$wcvp_accepted_name), NA, match_wcvp)
 pbiota_no_wcvp <- pbiota_list %>% filter(is.na(match_wcvp))
 
 
@@ -147,9 +151,9 @@ datatable(pbiota_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_
 ```{r pbiotanogarwood}
 
 pbiota_no_garwood_at_all <- pbiota_no_wcvp %>% filter(
-  !orig_name %in% garwood_list$orig_name & 
-  !wcvp_matched_name %in% garwood_list$wcvp_matched_name & 
-  !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name &
+  (!is.na(orig_name) & !orig_name %in% garwood_list$orig_name) & 
+  (is.na(wcvp_matched_name) | !wcvp_matched_name %in% garwood_list$wcvp_matched_name) & 
+  (is.na(wcvp_accepted_name) | !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) &
   !is_garwood_synonym
   ) %>%
   select(orig_name, wcvp_matched_name, wcvp_accepted_name, is_garwood_synonym)
