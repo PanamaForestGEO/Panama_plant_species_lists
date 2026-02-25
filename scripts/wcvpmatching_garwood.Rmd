@@ -13,21 +13,26 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Next we do:
 
-Input: list of species from Garwood 2009
+Input: species list from Garwood (2009)
+ 
+Workflow:
+1. Match species names against WCVP (World Checklist of Vascular Plants)
 
-- Match wcvp names
-- Trying to be careful with species mismatches. Changing a species name when the match is not perfect needs manual verification.
-- After the update two species can have the same WCVP name. Duplicates are removed but their original name is kept in a synonyms column.
+2. Identify and review potential mismatches:
 
+- A mismatch occurs when WCVP returns a name different from the original lookup name
+
+- This can lead to incorrect accepted names, requiring manual verification
+
+- Most mismatches arise from minor spelling differences between the original names and WCVP entries. Others occur because some infraspecies are not in WCVP. And very weird mismatches occur when WCVP fuzzy matching points to the wrong name.
+      
+3. Correct identified mismatches and save list with wcvp columns
 
 Output: 
 
 - _WCVP file with the original species list columns and the columns from wcvp
+
 - _WCVP_CHANGES a file containing only the species where the WCVP name differed from the original. 
-
-
-Notes on things to do:
-- Change to using "Garwood_2009_Appendix1HM2.xlsx" instead of .csv file.  
 
 ```{r setup2, echo=TRUE,message=FALSE, warning=FALSE, results="hide"}
 
@@ -63,7 +68,7 @@ citation("rWCVPdata") # according to this, this is using version 13.
 wcvp_names <- rWCVPdata::wcvp_names 
 
 # INPUT PATHS
-original_list_path <- "splists_raw/Garwood/Garwood_2009_Appendix1.csv" 
+original_list_path <- "splists_raw/Garwood/Garwood_2009_Appendix1HM2.xlsx" 
 
 # Extract file name without extension 
 original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
@@ -87,16 +92,16 @@ Modify this according to your dataset
 
 ```{r preparedata}
 
-origlist <- read.csv(original_list_path)
+origlist <- read_excel(original_list_path)
 
 # modify this depending on the original dataset. 
 origlist <- origlist %>%
   rename(
-    orig_family = Family.APG2,
+    orig_family = "Family APG2",
     orig_genus = Genus,
     orig_species = Species,
     orig_author = Author,
-    orig_infraspecies_rank = v.s,
+    orig_infraspecies_rank = "v/s",
     orig_infraspecies = Varsub
   ) %>% 
   mutate(orig_infraspecies_rank=ifelse(orig_infraspecies_rank=="ssp.","subsp.",orig_infraspecies_rank)) %>%
@@ -105,17 +110,18 @@ origlist <- origlist %>%
         !is.na(orig_infraspecies) & orig_infraspecies != "" ~ paste(orig_genus, orig_species, orig_infraspecies_rank, orig_infraspecies),
         TRUE ~ paste(orig_genus, orig_species))
         ) %>%
-  mutate(orig_name = str_squish(orig_name)) %>% # remove extra spaces inside name
+  mutate(
+    # remove extra spaces inside name
+    orig_name = str_squish(orig_name), 
+    # add columns for the simple species name (not including "sp." or such), and simple binomial
+    orig_binomial = str_squish(paste0(orig_genus, " ", 
+                               ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species)))
+         ) %>% 
   arrange(orig_name)
 
-# add columns for the simple species name (not including "sp." or such), and simple binomial
-origlist <- origlist %>%
-  mutate(orig_justspecies = ifelse(substr(orig_species,1,3)=="sp.","",orig_species),
-         orig_binomial=str_squish(paste0(orig_genus," ", 
-                              ifelse(!is.na(orig_justspecies),orig_justspecies,""))))
 
 # find duplicates
-dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(orig_name, Prefix, SYNONYMS, chg2, chg)
+dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(orig_name, Prefix, SYNONYMS, chg)
 
 if(nrow(dups) > 0){
   knitr::kable(dups, caption="Duplicated names in original")
@@ -133,6 +139,7 @@ inc <- origlist$orig_name=="Ficus trigonata" & origlist$Prefix=="sp. aff."
 origlist$orig_name[inc] <- "Ficus aff. trigonata"
 origlist$orig_binomial[inc] <- "Ficus"
 
+# change the name so the species will match with wcvp
 inc2 <- origlist$orig_name=="Trema micrantha" 
 origlist$orig_binomial[inc2] <- "Trema micranthum"
 
@@ -257,12 +264,6 @@ mismatches <- matchresult_clean %>%
     wcvp_infraspecies_rank = word(wcvp_name, 3),
     wcvp_infraspecies = word(wcvp_name, 4),
     
-    # Extract binomial genus, species, infraspecies rank and infraspecies
-    wcvp_genus_binomial = word(wcvp_name_binomial, 1),
-    wcvp_species_binomial = word(wcvp_name_binomial, 2),
-    wcvp_infraspecies_rank_binomial = word(wcvp_name_binomial, 3),
-    wcvp_infraspecies_binomial = word(wcvp_name_binomial, 4),
-    
    # Add booleans for mismatches
     genus_mismatch = !is.na(orig_genus) & 
                       (orig_genus != wcvp_genus | is.na(wcvp_genus)),
@@ -290,92 +291,44 @@ datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))
 
 colsprint = c("orig_name", "wcvp_name","Accepted_name" ,"orig_binomial", "wcvp_name_binomial", "Accepted_name_binomial")
 
-# 3.5  Compare matches in cases where orig_name and orig_binomial differ
 
-matchresult12_clean <- merge(matchresult2_clean,matchresult_clean,by="orig_name",all.x=T)
-
-matchresult12_clean <- matchresult12_clean %>%
-  mutate(orig_name = str_replace_all(orig_name, "ssp\\.", "subsp."))
-temp <- matchresult12_clean %>% 
-  rename(Accepted_name_matchbinomial=Accepted_name.x,
-         Accepted_name_matchfull = Accepted_name.y,
-         Matched_name_matchbinomial=wcvp_name.x,
-         Matched_name_matchfull=wcvp_name.y) %>%
-  mutate(match_2words = (word(Matched_name_matchfull,1,2)==word(orig_name,1,2))) %>%
-  select(orig_name,Matched_name_matchfull,
-         match_2words,match_similarity.y,Accepted_name_matchfull,
-                                       orig_binomial.x,Matched_name_matchbinomial,
-                                       match_similarity.x,Accepted_name_matchbinomial) %>%
-  arrange(match_2words)
-
-temp2a <- subset(temp, orig_name!=Matched_name_matchfull & match_similarity.x==1)
-temp2b <- subset(temp, orig_name!=Matched_name_matchfull & match_similarity.x!=1)
-# applying the rules: 
-
-# based on spot-checking, there are several cases:
-# (5) There is an imperfect match (spelling change) for the binomial match, and a similarly imperfect match (spelling change) in the full match.  The full match is preferred. (3 cases)  
-# (1) There is a perfect match for the binomial, and the matched full WCVP name has a different genus or species.  In all these cases, the match on the full name is bad, and the match on the binomial should be preferred. (9 cases)
-# (remaining are 16 cases in all)
-# (2) There is a perfect match for the binomial, and The full matched WCVP name has the same binomial, and the same infraspecific name, but a different infraspecific rank.  In these cases the full match is preferred.
-# (3) There is a perfect match for the binomial, and The full matched WCVP name has the same binomial and infraspecific rank, and there is a small spelling change in the infraspecific name.  In these cases the full match is preferred.
-# (4) There is a perfect match for the binomial, and The full matched WCVP name has the same binomial and infraspecific rank, and a completely differe infraspecific name.  In these cases the binomial match is preferred. 
-
-# potential workflow - evaluate match separately for genus, species, infrasp rank, infraspecies in the full match, and for genus and species in the binomial match.  
-# quantify match with stringdist function stringsim(name1, name2,method="jw")
-# and then apply the rules above using that
-
-
-# Simple alternative is that in all cases where there is not a perfect match on the full name, use the binomial match instead.  This will miss a few cases where the full match is better, but avoid a lot of problems. 
-
-# for fixes the original full name is preferred unless said otherwise
 mismatches$preferred = "full"
 ```
-
+#### Case 1:
 ```{r printmisses}
 # both binomial and full mismatched
-misscase1 <- mismatches %>% filter( orig_name != wcvp_name   &
+mismatchcase1 <- mismatches %>% filter( orig_name != wcvp_name   &
                         (orig_binomial != wcvp_name_binomial | is.na(wcvp_name_binomial)) )
 
-datatable( misscase1 %>% select(all_of(colsprint)),
+datatable( mismatchcase1 %>% select(all_of(colsprint)),
            caption="both binomial and full name mismatched",
 options = list(scrollX = TRUE, pageLength = 10))
 
 ```
-The mismatch is a small typo. Leave the accepted name as it is.  EXCEPT for Trema micrantha.
 
-In that case leave the original name.
-```{r fixingcase2}
-
-inc <- with(mismatches, orig_name =="Trema micrantha")
-if (any(inc, na.rm = TRUE)) {
-  tmp <- mismatches[inc, ]
-  tmp$preferred = "original"
-  mismatches[inc, ] <- tmp
-}
-
-```
-
+In this cases the original spelling differs slightly from the name matched in WCVP. 
 
 ```{r case3}
 # full name matched except infraspecies rank
-misscase3 <- mismatches %>% filter( infraspecies_rank_mismatch & !genus_mismatch & !species_mismatch & !infraspecies_mismatch) 
+mismatchcase3 <- mismatches %>% filter( infraspecies_rank_mismatch & !genus_mismatch & !species_mismatch & !infraspecies_mismatch) 
   
-datatable( misscase3 %>% select(all_of(colsprint)),
+datatable( mismatchcase3 %>% select(all_of(colsprint)),
            caption="full name matched except infraspecies rank",options = list(scrollX = TRUE, pageLength = 10))
 
 ```
 
 The mismatch is a difference only in infraspecific rank. Use the WCVP accepted name for the full match. 
 
-
+#### Case 2:
 ```{r findingcase2}
 # full name mismatched, binomial didin't. And genus and species did not mismatch
 # this is because the infraspecies is messing the fuzzy matching
-misscase2 <- mismatches %>% filter( orig_name != wcvp_name &
+mismatchcase2 <- mismatches %>% filter( orig_name != wcvp_name &
                        orig_binomial == wcvp_name_binomial &
-                      (genus_mismatch | species_mismatch)
+                      (genus_mismatch | species_mismatch) &
+                       !is.na(orig_infraspecies) & orig_infraspecies!= ""
                          ) 
-datatable( misscase2 %>% select(all_of(colsprint)),
+datatable( mismatchcase2 %>% select(all_of(colsprint)),
            caption="Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.",
            options = list(scrollX = TRUE, pageLength = 10)
            )
@@ -383,9 +336,10 @@ datatable( misscase2 %>% select(all_of(colsprint)),
 
 ```
 In this cases the match to binomial is better, so use that.  (Note also the infraspecies is the same as the species in all these cases except the one without a species name at all.) 
+
 ```{r fixingcase3}
 
-inc <- with(mismatches, orig_name %in% misscase2$orig_name)
+inc <- with(mismatches, orig_name %in% mismatchcase2$orig_name)
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
   tmp$preferred = "binomial"
@@ -394,21 +348,20 @@ if (any(inc, na.rm = TRUE)) {
 
 ```
 
-
+#### Case 3:
 ```{r case4}
 # genus, species and rank matched but infraspecies didint 
-misscase4 <- mismatches %>% filter( !genus_mismatch & !species_mismatch & infraspecies_mismatch & !infraspecies_rank_mismatch)
+mismatchcase4 <- mismatches %>% filter( !genus_mismatch & !species_mismatch & infraspecies_mismatch & !infraspecies_rank_mismatch)
 
-datatable( misscase4 %>% select(all_of(colsprint)), caption="genus, species and infraspecific rank matched but infraspecies name did not ",options = list(scrollX = TRUE, pageLength = 10))
+datatable( mismatchcase4 %>% select(all_of(colsprint)), caption="genus, species and infraspecific rank matched but infraspecies name did not ",options = list(scrollX = TRUE, pageLength = 10))
 
-# no 5 case, i dont think string comparing is reliable
 
 ```
 
 In all of this cases the subspecies did not match in wcvp. Thus using the simple binomial match instead (dropping the infraspecies).
 
 ```{r fixingcase4}
-inc <- with(mismatches, orig_name %in% misscase4$orig_name)
+inc <- with(mismatches, orig_name %in% mismatchcase4$orig_name)
 if (any(inc, na.rm = TRUE)) {
   tmp <- mismatches[inc, ]
   tmp$preferred = "binomial"
@@ -416,18 +369,18 @@ if (any(inc, na.rm = TRUE)) {
 }
 ```
 
-
+#### Case 4:
 ```{r case5}
 # species not considered in the previous cases:
 missrest <- mismatches %>% 
-  filter(!orig_name %in% c(misscase1$orig_name, misscase2$orig_name, misscase3$orig_name, misscase4$orig_name))
+  filter(!orig_name %in% c(mismatchcase1$orig_name, mismatchcase2$orig_name, mismatchcase3$orig_name, mismatchcase4$orig_name))
 
 datatable( missrest %>% select(all_of(colsprint)), caption="Species not considered in previous cases",options = list(scrollX = TRUE, pageLength = 10))
 
 ```
-For all of these, there is no WCVP match to the full name, but in most cases there is a match to the binomial name.  Thus use the binomial name.  And in the cases where there is no match, it is because of a lack of taxonomic resolution in the original ID (just to family).  
+For all of these, there is no WCVP match to the full name (Except for Phyllanthus sp. and Trema micrantha), but in most cases there is a match to the binomial name.  Thus use the binomial name.  And in the cases where there is no match, it is because of a lack of taxonomic resolution in the original ID (just to family).  
 
-
+#### Other cases:
 ```{r fixingcase5}
 
 inc <- with(mismatches, orig_name %in% missrest$orig_name)
@@ -440,11 +393,13 @@ if (any(inc, na.rm = TRUE)) {
 
 ```
 
+#### Summary of mismatches after fixing:
 
+Now all the mismatches should make more sense
 ```{r fixingmismatches}
 
 # summary of mismatches
-mismatches %>% group_by(preferred) %>% summarise(n())
+knitr::kable(mismatches %>% group_by(preferred) %>% summarise(species = n()))
 
 mismatches <- mismatches %>% mutate(
   across(
@@ -455,27 +410,19 @@ mismatches <- mismatches %>% mutate(
       Accepted_name_infraspecies, match_similarity),
     ~case_when(
       preferred == "binomial" ~ get(paste0(cur_column(), "_binomial")),
-      preferred == "original" ~ NA,
       TRUE ~ .x
     )
   )
 )
-```
 
-
-Now all the mismatches should make more sense
-```{r printnowmatches}
-
-printmismatches <- mismatches %>% 
-  select(
-    orig_name, wcvp_name, Accepted_name) %>% 
-  arrange(match_similarity, match_similarity_binomial)
-
-datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))
+datatable(printmismatches %>% select(orig_name, wcvp_name, Accepted_name),
+          options = list(scrollX = TRUE, pageLength = 10),
+          caption="Species after setting the wcvp matched name to a closer match")
 
 ```
 
 
+##Joining mismatch fixes to the main list
 
 ```{r matcheshandling}
 
@@ -501,12 +448,8 @@ if (any(inc, na.rm = TRUE)) {
 # This merges the WCVP data back into your processed original list
 processlist <- origlist %>%
   left_join(matchresult_clean %>% 
-              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
-                     Accepted_name, Accepted_family, Accepted_name_rank, 
-                     Accepted_name_author, Accepted_name_status, Accepted_name_genus,
-                     Accepted_name_species, Accepted_name_infraspecific_rank, 
-                     Accepted_name_infraspecies, lifeform_description, 
-                     match_similarity, match_edit_distance),
+              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_accepted_id,
+                     Accepted_name, Accepted_family, Accepted_name_author, lifeform_description),
             by = "orig_name") %>%
   rename(
     wcvp_matched_name = wcvp_name,
@@ -514,59 +457,48 @@ processlist <- origlist %>%
     wcvp_matched_rank = wcvp_rank,
     wcvp_matched_status=wcvp_status,
     wcvp_accepted_name = Accepted_name,
-  wcvp_accepted_family = Accepted_family,
-  wcvp_accepted_author = Accepted_name_author,
-  wcvp_lifeform_description = lifeform_description
+    wcvp_accepted_family = Accepted_family,
+    wcvp_accepted_author = Accepted_name_author,
+    wcvp_lifeform_description = lifeform_description
+  ) %>%
+  mutate(
+  origmatches = orig_name == wcvp_matched_name
   )
 
 # Review Results
-processlist %>% count(wcvp_status)
+knitr::kable(processlist %>% count(wcvp_matched_status))
 
 knitr::kable(subset(processlist,
-             !wcvp_status %in% c("Accepted", "Synonym")) %>% 
-        select(orig_family,orig_name,wcvp_status,Accepted_name),
+             !wcvp_matched_status %in% c("Accepted", "Synonym")) %>% 
+        select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
       caption = "Species not listed as Accepted or Synonym in WCVP")
 ```
 
-# Ready the output:
-
-
-```{r readyoutput}
-processlist <- processlist %>% mutate(
-  origmatches = orig_name==wcvp_matched_name,
-  current_name_notes = ""
-)
-
-
-
-# Clean columns with weird characters
-processlist <- processlist %>%
-  mutate(across(where(is.character), ~ stri_encode(., from = NULL, to = "UTF-8"))) 
-
-# Optional: removes accents
-#processlist <- processlist %>%
-#    mutate(across(where(is.character), ~ stri_trans_general(., "latin-ascii"))) 
-```
-
-
 ## Save output of all species.
 ```{r saveoutput}
-# Remove some columns
-# Standardize lifeform column name and remove technical matching columns
-outtaxa <- processlist 
-  select(
-     -wcvp_authors, -Name_matched_rank, -Accepted_name, 
-    -Accepted_family, -Accepted_name_rank, -Accepted_name_author, 
-    -Accepted_name_status, -Accepted_name_genus, -Accepted_name_species, 
-    -Accepted_name_infraspecific_rank, -Accepted_name_infraspecies,
-    -match_similarity, -match_edit_distance
-  )
 
-# Save using the path defined in your setup chunk
-write_xlsx(outtaxa, out_wcvp_list)
+# Save species list with wcvp columns
+write_xlsx(processlist, out_wcvp_list)
+
+
 ```
 
-Saved `r nrow(outtaxa)` species with their names verified with WCVP. 
+Saved `r nrow(processlist)` species with their names verified with WCVP. 
 
-ADD HERE - output the taxa that have any differences between accepted name and orig_name as a separate file of changes.  
+
+## Save output of all changes
+output the taxa that have any differences between accepted name and orig_name as a separate file of changes.  
+```{r saveoutput_changes}
+
+list_wcvp_changes <- processlist %>% filter(orig_name != wcvp_accepted_name)
+  
+# Save species list with wcvp columns
+write_xlsx(list_wcvp_changes, out_wcvp_changes_list)
+
+
+```
+
+Saved `r nrow(list_wcvp_changes)` species where the original name is different from the wcvp accepted name. 
+
+
 
