@@ -1,6 +1,6 @@
 ---
 title: "wcvp_name_matching"
-author: "Paula Uzcategui"
+author: "Helene Muller-Landau, Paula Uzcategui"
 date: "2026-02-12"
 output: html_document
 ---

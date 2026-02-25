@@ -1,6 +1,6 @@
 ---
 title: "Matching Garwood 2009 species names to WCVP"
-author: "Paula Uzcategui"
+author: "Helene Muller-Landau, Paula Uzcategui"
 date: "`r Sys.Date()`"
 output: html_document
 ---

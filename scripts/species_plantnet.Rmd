@@ -1,6 +1,6 @@
 ---
 title: "species_plantnet"
-author: "Paula Uzcategui"
+author: "Helene Muller-Landau, Paula Uzcategui"
 date: "2026-02-10"
 output: html_document
 ---
@@ -23,7 +23,7 @@ OUTPUTS:
 
 - list of PanamaBiota species that are not in any way in Garwood (synonym, original name, matched name)
 
-- list of BCI species that might be woody according to the wcvp lifeform
+- list of BCI species that might be woody according to the wcvp lifeform (needs revision)
 
 ```{r setup2, echo=TRUE,message=FALSE, warning=FALSE, results="hide"}
 
@@ -66,7 +66,7 @@ garwood_synonyms <- garwood_synonyms %>% mutate(
 ## BCI LIST
 
 ### Zotz list
-```{r zotzlist, echo=TRUE, results="hide"}
+```{r zotzlist, echo=TRUE}
 
 # 1. see match wcvp names
 match_wcvp <- match(zotz_list$wcvp_accepted_name, garwood_list$wcvp_accepted_name)
@@ -74,14 +74,9 @@ match_wcvp <- match(zotz_list$wcvp_accepted_name, garwood_list$wcvp_accepted_nam
 match_wcvp <- ifelse(is.na(zotz_list$wcvp_accepted_name), NA, match_wcvp)
 zotz_no_wcvp <- zotz_list %>% filter(is.na(match_wcvp))
 
-# 2. add a column for synonym presence
-zotz_no_wcvp <- zotz_no_wcvp %>%
-  mutate(is_garwood_synonym = orig_name %in% garwood_synonyms$synonym_sp | wcvp_accepted_name %in% garwood_synonyms$synonym_sp | wcvp_matched_name %in% garwood_synonyms$synonym_sp |
-             `Sp (Croat 1978)` %in% garwood_synonyms$synonym_sp 
-         )
 
-datatable(zotz_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name, is_garwood_synonym, `Sp (Croat 1978)`),
-          caption="Zotz species that are not in garwood"
+datatable(zotz_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`),
+          caption="Zotz wcvp accepted names that are not in garwood wcvp accepted names"
           )
 
 ```
@@ -89,18 +84,30 @@ datatable(zotz_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_na
 ### Zotz species that are not in garwood
 ```{r zotznogarwood}
 
-zotz_no_garwood_at_all <- zotz_no_wcvp %>% filter(
-  (!is.na(orig_name) & !orig_name %in% garwood_list$orig_name) & 
-  (!is.na(wcvp_matched_name) | !wcvp_matched_name %in% garwood_list$wcvp_matched_name) & 
-  (!is.na(wcvp_accepted_name) | !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) &
-  (!`Sp (Croat 1978)` %in% garwood_synonyms$synonym_sp) & 
-  (!`Sp (Croat 1978)` %in% garwood_list$orig_name) & 
-  (!`Sp (Croat 1978)` %in% garwood_list$wcvp_matched_name) & 
-  (!is.na(`Sp (Croat 1978)`) & !`Sp (Croat 1978)` %in% garwood_list$wcvp_accepted_name) &
-  !is_garwood_synonym
-  ) %>%
-  select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`, is_garwood_synonym)
+# species that are somewhere in garwood
+zotz_garwood_match <-  zotz_list %>% filter(
+  
+  orig_name %in% garwood_list$orig_name | 
+  (!is.na(wcvp_matched_name) & wcvp_matched_name %in% garwood_list$wcvp_matched_name) | 
+  (!is.na(wcvp_accepted_name) & wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) |
+  
+  # Croat names are the original names used to build garwood
+  `Sp (Croat 1978)` %in% garwood_list$orig_name | 
+  `Sp (Croat 1978)` %in% garwood_list$wcvp_matched_name | 
+  `Sp (Croat 1978)` %in% garwood_list$wcvp_accepted_name |
+  
+  # match to garwood synonyms
+  orig_name %in% garwood_synonyms$synonym_sp |
+  (!is.na(wcvp_matched_name) & wcvp_matched_name %in% garwood_synonyms$synonym_sp) |
+  (!is.na(wcvp_accepted_name) & wcvp_accepted_name %in% garwood_synonyms$synonym_sp) |
+  `Sp (Croat 1978)` %in% garwood_synonyms$synonym_sp  
+  ) 
 
+zotz_no_garwood_at_all <- subset(zotz_list, !orig_name %in% zotz_garwood_match$orig_name) %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`)
+
+zotz_no_wcvp <- zotz_no_wcvp %>% mutate(
+  any_garwood_match = orig_name %in% zotz_garwood_match$orig_name
+)
 
 datatable(zotz_no_garwood_at_all, options = list(scrollX = TRUE, pageLength = 10))
 
@@ -120,14 +127,14 @@ listscol <- c("orig_name","wcvp_matched_name", "wcvp_accepted_name","wcvp_accept
 bcilist <- bind_rows(
   garwood_list %>% 
     select(all_of(c(listscol, "SYNONYMS"))),
-  zotz_no_wcvp %>% select(listscol, is_garwood_synonym)
+  zotz_no_wcvp %>% select(all_of(c(listscol, "any_garwood_match")))
 )
 
 ```
 
 
 ### Panama biota list
-```{r panamabiotabcilist, echo=TRUE, results="hide"}
+```{r panamabiotabcilist, echo=TRUE}
 
 # 1. see match by  wcvp names
 match_wcvp <- match(pbiota_list$wcvp_accepted_name, bcilist$wcvp_accepted_name)
@@ -136,13 +143,9 @@ match_wcvp <- ifelse(is.na(pbiota_list$wcvp_accepted_name), NA, match_wcvp)
 pbiota_no_wcvp <- pbiota_list %>% filter(is.na(match_wcvp))
 
 
-# 2. add field for synonym presence
-pbiota_no_wcvp <- pbiota_no_wcvp %>%
-  mutate(is_garwood_synonym = orig_name %in% garwood_synonyms$synonym_sp | wcvp_accepted_name %in%  garwood_synonyms$synonym_sp | wcvp_matched_name %in% garwood_synonyms$synonym_sp
-           )
 
-datatable(pbiota_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name, is_garwood_synonym),
-          caption="Pbiota species that are not in garwood or zotz",
+datatable(pbiota_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name),
+          caption="Pbiota species wcvp accepted name is not in garwood or zotz wcvp accepted names",
           options = list(scrollX = TRUE, pageLength = 10)
           )
 ```
@@ -150,13 +153,26 @@ datatable(pbiota_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_
 ### Panamabiota species that are not in garwood
 ```{r pbiotanogarwood}
 
-pbiota_no_garwood_at_all <- pbiota_no_wcvp %>% filter(
-  (!is.na(orig_name) & !orig_name %in% garwood_list$orig_name) & 
-  (is.na(wcvp_matched_name) | !wcvp_matched_name %in% garwood_list$wcvp_matched_name) & 
-  (is.na(wcvp_accepted_name) | !wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) &
-  !is_garwood_synonym
-  ) %>%
-  select(orig_name, wcvp_matched_name, wcvp_accepted_name, is_garwood_synonym)
+pbiota_garwood_match <- pbiota_list %>% filter(
+  orig_name %in% garwood_list$orig_name | 
+  (!is.na(wcvp_matched_name) & wcvp_matched_name %in% garwood_list$wcvp_matched_name) | 
+  (!is.na(wcvp_accepted_name) & wcvp_accepted_name %in% garwood_list$wcvp_accepted_name) |
+ 
+  # match to garwood synonyms
+  orig_name %in% garwood_synonyms$synonym_sp |
+  (!is.na(wcvp_matched_name) & wcvp_matched_name %in% garwood_synonyms$synonym_sp) |
+  (!is.na(wcvp_accepted_name) & wcvp_accepted_name %in%  garwood_synonyms$synonym_sp)
+)
+
+
+pbiota_no_garwood_at_all <- subset(pbiota_list,!orig_name %in% pbiota_garwood_match$orig_name) %>%
+  select(orig_name, wcvp_matched_name, wcvp_accepted_name)
+
+
+pbiota_no_wcvp <- pbiota_no_wcvp %>% mutate(
+  any_garwood_match = orig_name %in% pbiota_garwood_match$orig_name
+)
+
 
 datatable(pbiota_no_garwood_at_all, options = list(scrollX = TRUE, pageLength = 10))
 
@@ -168,15 +184,9 @@ Add to bci list
 ```{r mergebci}
 
 pbiota_no_wcvp$source_list = "PanamaBiota"
-pbiota_no_wcvp <- pbiota_no_wcvp %>% select(listscol, is_garwood_synonym)
+pbiota_no_wcvp <- pbiota_no_wcvp %>% select(all_of(c(listscol, "any_garwood_match")))
 
 bcilist <- bind_rows(bcilist, pbiota_no_wcvp)
-
-bcilist <- bcilist %>% mutate(
-  zotz = wcvp_accepted_name %in% zotz_list$wcvp_accepted_name | orig_name %in% zotz_list$orig_name,
-  garwood =  wcvp_accepted_name %in% garwood_list$wcvp_accepted_name | orig_name %in% garwood_list$orig_name,
-  panamabiota = wcvp_accepted_name %in% pbiota_list$wcvp_accepted_name | orig_name %in% pbiota_list$orig_name,
-)
 
 bcilist<- bcilist %>%
   left_join(
@@ -193,22 +203,13 @@ bcilist<- bcilist %>%
   select(-syn_orig, -syn_curr, -sp_orig, -sp_curr) %>%
   distinct(wcvp_accepted_name, orig_name, .keep_all = TRUE)
  
-
-datatable(
-  bcilist %>% filter(!garwood & panamabiota & zotz) %>%
-    select(wcvp_accepted_name, orig_name, source_list,zotz, garwood, panamabiota, is_garwood_synonym,orig_garwood, SynonymTextALL ) %>% 
-    arrange(source_list),
-    caption="Species wcvp accepted names are in zotz and panama biota but not in garwood",
-  options = list(scrollX = TRUE, pageLength = 10),
-  )
-
 ```
 
 ```{r printresult}
 
 datatable(
   bcilist %>%
-    select(wcvp_accepted_name, orig_name, source_list,zotz, garwood, panamabiota) %>% 
+    select(wcvp_accepted_name, orig_name, source_list, any_garwood_match) %>% 
     arrange(source_list),
     caption="Species list in BCI and their source",
   options = list(scrollX = TRUE, pageLength = 10))
@@ -221,7 +222,7 @@ If the species is in the woody list
 
 ```{r bcilistwoody, echo=TRUE, results="hide"}
 # set woody if:
-# original, matched or accepted nam is anywhere in woody list
+# original, matched or accepted name is anywhere in woody list
 
 bcilist <- bcilist %>% mutate(
   woody_name =  wcvp_accepted_name %in% woody_list$current_name | 
@@ -230,8 +231,9 @@ bcilist <- bcilist %>% mutate(
                 wcvp_matched_name %in% woody_list$forestgeo_name |
                 orig_name %in% woody_list$forestgeo_name |
                 orig_name %in% woody_list$current_name,
-  woody_synonym =  wcvp_accepted_name %in% woody_synonyms$SynonymTextSingle 
-                  | orig_name %in% woody_synonyms$SynonymTextSingle, 
+  woody_synonym =  wcvp_accepted_name %in% woody_synonyms$SynonymTextSingle |
+                   orig_name %in% woody_synonyms$SynonymTextSingle |
+                   wcvp_matched_name %in% woody_synonyms$SynonymTextSingle,
   woody = woody_name | woody_synonym
 ) 
 
@@ -288,4 +290,83 @@ write_xlsx(bcilist_possibly_woody, paste0(save_plantlists_dir, "BCI_SPECIES_LIST
 
 # Woody species
 
-TODO
+```{r woodylist, results="hide", echo=TRUE}
+
+
+forestgeo_regional_list <- read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
+
+# Column of forestgeo regional list
+sum(is.na(forestgeo_regional_list$Mnemonic))
+
+match12 <- match(woody_list$sp6, forestgeo_regional_list$Mnemonic)            
+
+woody_list[is.na(match12),] %>% select(sp6, current_name , forestgeo_name)
+
+match21 <- match(forestgeo_regional_list$Mnemonic, woody_list$sp6)            
+
+nomatchview <- forestgeo_regional_list[is.na(match21),] %>% select(Mnemonic, SpeciesName)
+#almost everything that didint match is unidentified
+#nomatchview$SpeciesName
+
+
+### add column if its in the plots
+abundall <- read_excel("splists_raw/Plots/abundance_plots_HM.xlsx")
+
+abundall <- abundall %>% select(sp, binomial, bci, `bci 10 ha plot`,P14, P11)%>% 
+  filter( bci >0 | `bci 10 ha plot` > 0 | P14 > 0| P11 >0)
+
+match21 <- match(abundall$sp, woody_list$sp6)            
+nomatchview <- abundall[is.na(match21),] %>% select(sp, binomial)
+
+plotbci_list <- abundall %>% filter(bci >0)
+plotbci10ha_list <- abundall %>% filter(`bci 10 ha plot`  >0)
+plotp14_list <- abundall %>% filter(P14 >0)
+plotp11_list <- abundall %>% filter(P11 >0)
+
+
+woody_list <- woody_list %>% rename(
+  wcvp_accepted_name = current_name,
+  wcvp_matched_name = wcvp_Name_matched,
+  orig_name = forestgeo_name
+)
+### Add columns ####
+
+woody_list <- woody_list %>% mutate(
+  forestgeo_regional = sp6 %in% forestgeo_regional_list$Mnemonic,
+  plotbci = sp6 %in% plotbci_list$sp,
+  plotbci10 = sp6 %in% plotbci10ha_list$sp,
+  plotp14 = sp6 %in% plotp14_list$sp,
+  plotp11 = sp6 %in% plotp11_list$sp,
+  bci_accepted = wcvp_accepted_name %in% bcilist$wcvp_accepted_name |
+                 wcvp_accepted_name %in% bcilist$wcvp_matched_name |
+                 wcvp_accepted_name %in% bcilist$orig_name,
+  bci_matched = wcvp_matched_name %in% bcilist$wcvp_accepted_name |
+                wcvp_matched_name %in% bcilist$wcvp_matched_name |
+                wcvp_matched_name %in% bcilist$orig_name,
+  bci_orig = orig_name %in% bcilist$wcvp_accepted_name |
+             orig_name %in% bcilist$wcvp_matched_name |
+             orig_name %in% bcilist$orig_name,
+  bci_list  = bci_accepted | bci_matched | bci_orig,
+  bci = bci_list | plotbci | plotbci10 | plotp14 | plotp11
+)
+#################### save new woody species list: 
+
+write_xlsx(woody_list, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),".xlsx"))
+
+```
+
+
+
+### Woody species that are NOT in garwood, zotz or panama biota but they are in BCI plots
+
+```{r sanitycheck_bci, fig.width=10}
+
+# How do we verify that no species is being missed?
+
+# print species NOT in panama biota but they are in the plots
+plotmatch <- woody_list %>% filter(!bci_list & bci) %>% select(wcvp_accepted_name, orig_name, forestgeo_synonyms, plotbci, plotbci10, plotp11, plotp11)
+
+
+datatable(plotmatch, 
+          caption="Woody species that dont match with any name in  BCI List (garwood, zotz, panamabiota) but have been reported in bci plots")
+```
