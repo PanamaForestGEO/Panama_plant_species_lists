@@ -44,12 +44,12 @@ library(DT)
 
 save_plantlists_dir = "splists_out/Plantnet species/"
 
-pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-25.xlsx", col_types = c("text", "text", "text", "text",  rep("guess", 20)))
+pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-25.xlsx", col_types = "text")
 
 
-garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-02-25.xlsx")
+garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-02-25.xlsx", col_types = "text")
 
-zotz_list <- read_excel("splists_out/83_Zotz_Epiphytes_TableS1_WCVP_2026-02-25.xlsx")
+zotz_list <- read_excel("splists_out/83_Zotz_Epiphytes_TableS1_WCVP_2026-02-25.xlsx", col_types = "text")
 
 woody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-02-22.xlsx",
                          col_types = "text")
@@ -75,9 +75,10 @@ match_wcvp <- ifelse(is.na(zotz_list$wcvp_accepted_name), NA, match_wcvp)
 zotz_no_wcvp <- zotz_list %>% filter(is.na(match_wcvp))
 
 
-datatable(zotz_no_wcvp %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`),
+datatable(zotz_no_wcvp %>% 
+            select(orig_name, wcvp_matched_name, wcvp_accepted_name, `Sp (Croat 1978)`),
           caption="Zotz wcvp accepted names that are not in garwood wcvp accepted names"
-          )
+  )
 
 ```
 
@@ -122,7 +123,19 @@ Add to bci list
 garwood_list$source_list = "Garwood2009"
 zotz_no_wcvp$source_list = "Zotz"
 
-listscol <- c("orig_name","wcvp_matched_name", "wcvp_accepted_name","wcvp_accepted_family", "wcvp_accepted_author", "wcvp_lifeform_description", "wcvp_accepted_id",  "wcvp_matched_status", "wcvp_lifeform_description", "source_list")
+listscol <- c("orig_name",
+              "wcvp_matched_name",
+              "wcvp_matched_plant_name_id",
+              "wcvp_matched_ipni_id",
+              "wcvp_matched_status",
+              "wcvp_accepted_name",
+              "wcvp_accepted_family", 
+              "wcvp_accepted_author",
+              "wcvp_accepted_plant_name_id", 
+              "wcvp_accepted_powo_id",
+              "wcvp_accepted_ipni_id",
+              "wcvp_lifeform_description",
+              "source_list")
 
 bcilist <- bind_rows(
   garwood_list %>% 

@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Paula Uzcategui" />
+<meta name="author" content="Helene Muller-Landau, Paula Uzcategui" />
 
 <meta name="date" content="2026-02-12" />
 
@@ -2851,7 +2851,7 @@ display: none;
 
 
 <h1 class="title toc-ignore">wcvp_name_matching</h1>
-<h4 class="author">Paula Uzcategui</h4>
+<h4 class="author">Helene Muller-Landau, Paula Uzcategui</h4>
 <h4 class="date">2026-02-12</h4>
 
 </div>
@@ -2965,7 +2965,8 @@ print(paste0(&quot;working with &quot;, nrow(origlist), &quot; species&quot;))</
 matchaccepted_names &lt;- function(matcheswcvp, wcvp_backbone){
   matcheswcvp %&gt;% 
     left_join(wcvp_backbone %&gt;% 
-                select(plant_name_id, genus, species, taxon_rank, family, 
+                select(plant_name_id, ipni_id, powo_id, genus, species,
+                       taxon_rank, family, 
                        primary_author, infraspecific_rank, infraspecies, 
                        lifeform_description, taxon_status),
               by = c(&quot;wcvp_accepted_id&quot; = &quot;plant_name_id&quot;)) %&gt;% 
@@ -2976,6 +2977,8 @@ matchaccepted_names &lt;- function(matcheswcvp, wcvp_backbone){
         TRUE ~ paste(genus, species))
     ) %&gt;%
     rename(
+      wcvp_accepted_ipni_id = ipni_id,
+      wcvp_accepted_powo_id = powo_id,
       Accepted_family = family,
       Accepted_name_rank = taxon_rank,
       Accepted_name_author = primary_author,
@@ -2986,6 +2989,7 @@ matchaccepted_names &lt;- function(matcheswcvp, wcvp_backbone){
       Accepted_name_infraspecies = infraspecies
     )
 }
+
 
 # --- 1. Run or Load Match ---
 if(file.exists(matches_mid_path) &amp; !redoWCVP){
@@ -3092,8 +3096,8 @@ printmismatches &lt;- mismatches %&gt;%
   arrange(match_similarity, match_similarity_binomial)
 
 datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-74669f340482c5e3c498" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-74669f340482c5e3c498">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10"],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis sp."],["Mormodes powellii","Sobralia fragrans","Peperomia killipii","Maxillaria powellii","Didymoglossum krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],["Mormodes powellii","Sobralia fragrans","Peperomia tenuifolia","Maxillaria powellii","Trichomanes krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],[0.9409999999999999,0.9409999999999999,0.944,0.947,0.955,0.955,0.957,0.96,0.963,null],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,1],[false,false,false,false,false,false,false,false,true,true],[true,true,true,true,true,true,true,true,false,true],[false,false,false,false,false,false,false,false,false,false],[false,false,false,false,false,false,false,false,false,false]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>match_similarity<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n      <th>match_similarity_binomial<\/th>\n      <th>genus_mismatch<\/th>\n      <th>species_mismatch<\/th>\n      <th>infraspecies_rank_mismatch<\/th>\n      <th>infraspecies_mismatch<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":[4,8]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"match_similarity","targets":4},{"name":"orig_binomial","targets":5},{"name":"wcvp_name_binomial","targets":6},{"name":"Accepted_name_binomial","targets":7},{"name":"match_similarity_binomial","targets":8},{"name":"genus_mismatch","targets":9},{"name":"species_mismatch","targets":10},{"name":"infraspecies_rank_mismatch","targets":11},{"name":"infraspecies_mismatch","targets":12}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-3f00e3b890a3a664ae73" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3f00e3b890a3a664ae73">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10"],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis sp."],["Mormodes powellii","Sobralia fragrans","Peperomia killipii","Maxillaria powellii","Didymoglossum krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],["Mormodes powellii","Sobralia fragrans","Peperomia tenuifolia","Maxillaria powellii","Trichomanes krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],[0.9409999999999999,0.9409999999999999,0.944,0.947,0.955,0.955,0.957,0.96,0.963,null],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,1],[false,false,false,false,false,false,false,false,true,true],[true,true,true,true,true,true,true,true,false,true],[false,false,false,false,false,false,false,false,false,false],[false,false,false,false,false,false,false,false,false,false]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>match_similarity<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n      <th>match_similarity_binomial<\/th>\n      <th>genus_mismatch<\/th>\n      <th>species_mismatch<\/th>\n      <th>infraspecies_rank_mismatch<\/th>\n      <th>infraspecies_mismatch<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":[4,8]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"match_similarity","targets":4},{"name":"orig_binomial","targets":5},{"name":"wcvp_name_binomial","targets":6},{"name":"Accepted_name_binomial","targets":7},{"name":"match_similarity_binomial","targets":8},{"name":"genus_mismatch","targets":9},{"name":"species_mismatch","targets":10},{"name":"infraspecies_rank_mismatch","targets":11},{"name":"infraspecies_mismatch","targets":12}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>colsprint = c(&quot;orig_name&quot;, &quot;wcvp_name&quot;,&quot;Accepted_name&quot; ,&quot;orig_binomial&quot;, &quot;wcvp_name_binomial&quot;, &quot;Accepted_name_binomial&quot;)
 
 
@@ -3107,8 +3111,8 @@ mismatchcase1 &lt;- mismatches %&gt;% filter( orig_name != wcvp_name   &amp;
 datatable( mismatchcase1 %&gt;% select(all_of(colsprint)),
            caption=&quot;both binomial and full name mismatched&quot;,
 options = list(scrollX = TRUE, pageLength = 10))</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-b29494a8431575ea55fb" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-b29494a8431575ea55fb">{"x":{"filter":"none","vertical":false,"caption":"<caption>both binomial and full name mismatched<\/caption>","data":[["1","2","3","4","5","6","7","8","9"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-f22f2c410549d1953ef1" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f22f2c410549d1953ef1">{"x":{"filter":"none","vertical":false,"caption":"<caption>both binomial and full name mismatched<\/caption>","data":[["1","2","3","4","5","6","7","8","9"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>In this cases the original spelling differs slightly from the name
 matched in WCVP.</p>
 </div>
@@ -3119,8 +3123,8 @@ mismatchcase3 &lt;- mismatches %&gt;% filter( infraspecies_rank_mismatch &amp; !
   
 datatable( mismatchcase3 %&gt;% select(all_of(colsprint)),
            caption=&quot;full name matched except infraspecies rank&quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-86129a184c76d089cc73" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-86129a184c76d089cc73">{"x":{"filter":"none","vertical":false,"caption":"<caption>full name matched except infraspecies rank<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-d37ba27f73bfdce42bf8" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d37ba27f73bfdce42bf8">{"x":{"filter":"none","vertical":false,"caption":"<caption>full name matched except infraspecies rank<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>The mismatch is a difference only in infraspecific rank. Use the WCVP
 accepted name for the full match.</p>
 </div>
@@ -3137,8 +3141,8 @@ datatable( mismatchcase2 %&gt;% select(all_of(colsprint)),
            caption=&quot;Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.&quot;,
            options = list(scrollX = TRUE, pageLength = 10)
            )</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-95231938996e8ab5e99e" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-95231938996e8ab5e99e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-d13bbe02de5b120f947d" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-d13bbe02de5b120f947d">{"x":{"filter":"none","vertical":false,"caption":"<caption>Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>In this cases the match to binomial is better, so use that. (Note
 also the infraspecies is the same as the species in all these cases
 except the one without a species name at all.)</p>
@@ -3155,8 +3159,8 @@ if (any(inc, na.rm = TRUE)) {
 mismatchcase4 &lt;- mismatches %&gt;% filter( !genus_mismatch &amp; !species_mismatch &amp; infraspecies_mismatch &amp; !infraspecies_rank_mismatch)
 
 datatable( mismatchcase4 %&gt;% select(all_of(colsprint)), caption=&quot;genus, species and infraspecific rank matched but infraspecies name did not &quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-92af665bd7af306b745c" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-92af665bd7af306b745c">{"x":{"filter":"none","vertical":false,"caption":"<caption>genus, species and infraspecific rank matched but infraspecies name did not <\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-f6813a72d0ebd38cecb7" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-f6813a72d0ebd38cecb7">{"x":{"filter":"none","vertical":false,"caption":"<caption>genus, species and infraspecific rank matched but infraspecies name did not <\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>In all of this cases the subspecies did not match in wcvp. Thus using
 the simple binomial match instead (dropping the infraspecies).</p>
 <pre class="r"><code>inc &lt;- with(mismatches, orig_name %in% mismatchcase4$orig_name)
@@ -3173,8 +3177,8 @@ missrest &lt;- mismatches %&gt;%
   filter(!orig_name %in% c(mismatchcase1$orig_name, mismatchcase2$orig_name, mismatchcase3$orig_name, mismatchcase4$orig_name))
 
 datatable( missrest %&gt;% select(all_of(colsprint)), caption=&quot;Species not considered in previous cases&quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-3c05f8b35219ba46a43d" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-3c05f8b35219ba46a43d">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species not considered in previous cases<\/caption>","data":[["1"],["Chysis sp."],[null],[null],["Chysis"],["Chysis"],["Chysis"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-2e38b4e1dbf8fc90a14f" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-2e38b4e1dbf8fc90a14f">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species not considered in previous cases<\/caption>","data":[["1"],["Chysis sp."],[null],[null],["Chysis"],["Chysis"],["Chysis"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>In this case there are two invalid names and Chrysis sp. where there
 is a match to the binomial name. Thus use the binomial name. And in the
 cases where there is no match, it is because it is not a species.</p>
@@ -3212,7 +3216,9 @@ knitr::kable(mismatches %&gt;% group_by(preferred) %&gt;% summarise(species = n(
   mutate(
     across(
       c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
-        wcvp_ipni_id, wcvp_accepted_id, Accepted_name, Accepted_name_genus, 
+        wcvp_id, wcvp_ipni_id,
+        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
+        Accepted_name, Accepted_name_genus, 
         Accepted_name_species, Accepted_name_rank, Accepted_family, 
         Accepted_name_author, Accepted_name_infraspecific_rank, 
         Accepted_name_infraspecies, match_similarity),
@@ -3227,8 +3233,8 @@ knitr::kable(mismatches %&gt;% group_by(preferred) %&gt;% summarise(species = n(
 datatable(mismatches %&gt;% select(orig_name, wcvp_name, Accepted_name),
           options = list(scrollX = TRUE, pageLength = 10),
           caption=&quot;Species after setting the wcvp matched name to a closer match&quot;)</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-792b6e8f283d507142b0" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-792b6e8f283d507142b0">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species after setting the wcvp matched name to a closer match<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10"],["Chysis sp.","Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Chysis","Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Chysis","Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-52b833c2495552bb2e55" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-52b833c2495552bb2e55">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species after setting the wcvp matched name to a closer match<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10"],["Chysis sp.","Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Chysis","Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Chysis","Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 </div>
@@ -3241,11 +3247,13 @@ datatable(mismatches %&gt;% select(orig_name, wcvp_name, Accepted_name),
 inc &lt;- with(matchresult_clean, orig_name %in% mismatches$orig_name)
 if (any(inc, na.rm = TRUE)) {
   corrections &lt;- mismatches %&gt;%
-    select(orig_name,wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
-           wcvp_homotypic, wcvp_ipni_id, wcvp_accepted_id, Accepted_name, 
-           Accepted_name_genus, Accepted_name_species, Accepted_name_rank, 
-           Accepted_family, Accepted_name_author, Accepted_name_infraspecific_rank, 
-           Accepted_name_infraspecies, match_similarity)
+    select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
+        wcvp_id, wcvp_ipni_id,
+        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
+        Accepted_name, Accepted_name_genus, 
+        Accepted_name_species, Accepted_name_rank, Accepted_family, 
+        Accepted_name_author, Accepted_name_infraspecific_rank, 
+        Accepted_name_infraspecies, match_similarity)
   
   matchresult_clean &lt;- rows_update(matchresult_clean, corrections, 
                                    by = &quot;orig_name&quot;)
@@ -3255,7 +3263,9 @@ if (any(inc, na.rm = TRUE)) {
 # This merges the WCVP data back into your processed original list
 processlist &lt;- origlist %&gt;%
   left_join(matchresult_clean %&gt;% 
-              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_accepted_id,
+              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status,
+                     wcvp_id, wcvp_ipni_id,
+                     wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
                      Accepted_name, Accepted_family, Accepted_name_author, lifeform_description),
             by = &quot;orig_name&quot;) %&gt;%
   rename(
@@ -3263,9 +3273,12 @@ processlist &lt;- origlist %&gt;%
     wcvp_matched_authors = wcvp_authors,
     wcvp_matched_rank = wcvp_rank,
     wcvp_matched_status=wcvp_status,
+    wcvp_matched_plant_name_id = wcvp_id,
+    wcvp_matched_ipni_id = wcvp_ipni_id,
     wcvp_accepted_name = Accepted_name,
     wcvp_accepted_family = Accepted_family,
     wcvp_accepted_author = Accepted_name_author,
+    wcvp_accepted_plant_name_id =  wcvp_accepted_id,
     wcvp_lifeform_description = lifeform_description
   ) %&gt;%
   mutate(

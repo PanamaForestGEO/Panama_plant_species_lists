@@ -156,7 +156,8 @@ Working with `r nrow(origlist)` species.
 matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
   matcheswcvp %>% 
     left_join(wcvp_backbone %>% 
-                select(plant_name_id, genus, species, taxon_rank, family, 
+                select(plant_name_id, ipni_id, powo_id, genus, species,
+                       taxon_rank, family, 
                        primary_author, infraspecific_rank, infraspecies, 
                        lifeform_description, taxon_status),
               by = c("wcvp_accepted_id" = "plant_name_id")) %>% 
@@ -167,6 +168,8 @@ matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
         TRUE ~ paste(genus, species))
     ) %>%
     rename(
+      wcvp_accepted_ipni_id = ipni_id,
+      wcvp_accepted_powo_id = powo_id,
       Accepted_family = family,
       Accepted_name_rank = taxon_rank,
       Accepted_name_author = primary_author,
@@ -406,7 +409,9 @@ mismatches <- mismatches %>%
   mutate(
     across(
       c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
-        wcvp_ipni_id, wcvp_accepted_id, Accepted_name, Accepted_name_genus, 
+        wcvp_id, wcvp_ipni_id,
+        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
+        Accepted_name, Accepted_name_genus, 
         Accepted_name_species, Accepted_name_rank, Accepted_family, 
         Accepted_name_author, Accepted_name_infraspecific_rank, 
         Accepted_name_infraspecies, match_similarity),
@@ -436,11 +441,13 @@ datatable(mismatches %>% select(orig_name, wcvp_name, Accepted_name),
 inc <- with(matchresult_clean, orig_name %in% mismatches$orig_name)
 if (any(inc, na.rm = TRUE)) {
   corrections <- mismatches %>%
-    select(orig_name,wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
-           wcvp_homotypic, wcvp_ipni_id, wcvp_accepted_id, Accepted_name, 
-           Accepted_name_genus, Accepted_name_species, Accepted_name_rank, 
-           Accepted_family, Accepted_name_author, Accepted_name_infraspecific_rank, 
-           Accepted_name_infraspecies, match_similarity)
+    select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
+        wcvp_id, wcvp_ipni_id,
+        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
+        Accepted_name, Accepted_name_genus, 
+        Accepted_name_species, Accepted_name_rank, Accepted_family, 
+        Accepted_name_author, Accepted_name_infraspecific_rank, 
+        Accepted_name_infraspecies, match_similarity)
   
   matchresult_clean <- rows_update(matchresult_clean, corrections, 
                                    by = "orig_name")
@@ -450,7 +457,9 @@ if (any(inc, na.rm = TRUE)) {
 # This merges the WCVP data back into your processed original list
 processlist <- origlist %>%
   left_join(matchresult_clean %>% 
-              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_accepted_id,
+              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status,
+                     wcvp_id, wcvp_ipni_id,
+                     wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
                      Accepted_name, Accepted_family, Accepted_name_author, lifeform_description),
             by = "orig_name") %>%
   rename(
@@ -458,9 +467,12 @@ processlist <- origlist %>%
     wcvp_matched_authors = wcvp_authors,
     wcvp_matched_rank = wcvp_rank,
     wcvp_matched_status=wcvp_status,
+    wcvp_matched_plant_name_id = wcvp_id,
+    wcvp_matched_ipni_id = wcvp_ipni_id,
     wcvp_accepted_name = Accepted_name,
     wcvp_accepted_family = Accepted_family,
     wcvp_accepted_author = Accepted_name_author,
+    wcvp_accepted_plant_name_id =  wcvp_accepted_id,
     wcvp_lifeform_description = lifeform_description
   ) %>%
   mutate(
