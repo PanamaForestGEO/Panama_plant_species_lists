@@ -55,7 +55,7 @@ suppressPackageStartupMessages({
 library(TNRS)
 library(DT)
 library(stringi)
-library(stringdist)
+
 
 citation("rWCVPdata") # according to this, this is using version 13.
 
@@ -308,6 +308,8 @@ options = list(scrollX = TRUE, pageLength = 10))
 
 In this cases the original spelling differs slightly from the name matched in WCVP. 
 
+
+#### Case 2:
 ```{r case3}
 # full name matched except infraspecies rank
 mismatchcase3 <- mismatches %>% filter( infraspecies_rank_mismatch & !genus_mismatch & !species_mismatch & !infraspecies_mismatch) 
@@ -319,7 +321,7 @@ datatable( mismatchcase3 %>% select(all_of(colsprint)),
 
 The mismatch is a difference only in infraspecific rank. Use the WCVP accepted name for the full match. 
 
-#### Case 2:
+#### Case 3:
 ```{r findingcase2}
 # full name mismatched, binomial didin't. And genus and species did not mismatch
 # this is because the infraspecies is messing the fuzzy matching
@@ -348,7 +350,7 @@ if (any(inc, na.rm = TRUE)) {
 
 ```
 
-#### Case 3:
+#### Case 4:
 ```{r case4}
 # genus, species and rank matched but infraspecies didint 
 mismatchcase4 <- mismatches %>% filter( !genus_mismatch & !species_mismatch & infraspecies_mismatch & !infraspecies_rank_mismatch)
@@ -369,7 +371,7 @@ if (any(inc, na.rm = TRUE)) {
 }
 ```
 
-#### Case 4:
+#### Other cases:
 ```{r case5}
 # species not considered in the previous cases:
 missrest <- mismatches %>% 
@@ -380,7 +382,7 @@ datatable( missrest %>% select(all_of(colsprint)), caption="Species not consider
 ```
 For all of these, there is no WCVP match to the full name (Except for Phyllanthus sp. and Trema micrantha), but in most cases there is a match to the binomial name.  Thus use the binomial name.  And in the cases where there is no match, it is because of a lack of taxonomic resolution in the original ID (just to family).  
 
-#### Other cases:
+
 ```{r fixingcase5}
 
 inc <- with(mismatches, orig_name %in% missrest$orig_name)
@@ -392,7 +394,6 @@ if (any(inc, na.rm = TRUE)) {
 
 
 ```
-
 #### Summary of mismatches after fixing:
 
 Now all the mismatches should make more sense
@@ -401,28 +402,30 @@ Now all the mismatches should make more sense
 # summary of mismatches
 knitr::kable(mismatches %>% group_by(preferred) %>% summarise(species = n()))
 
-mismatches <- mismatches %>% mutate(
-  across(
-    c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
-      wcvp_ipni_id, wcvp_accepted_id, Accepted_name, Accepted_name_genus, 
-      Accepted_name_species, Accepted_name_rank, Accepted_family, 
-      Accepted_name_author, Accepted_name_infraspecific_rank, 
-      Accepted_name_infraspecies, match_similarity),
-    ~case_when(
-      preferred == "binomial" ~ get(paste0(cur_column(), "_binomial")),
-      TRUE ~ .x
+mismatches <- mismatches %>% 
+  mutate(
+    across(
+      c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
+        wcvp_ipni_id, wcvp_accepted_id, Accepted_name, Accepted_name_genus, 
+        Accepted_name_species, Accepted_name_rank, Accepted_family, 
+        Accepted_name_author, Accepted_name_infraspecific_rank, 
+        Accepted_name_infraspecies, match_similarity),
+      ~ifelse(
+        preferred == "binomial",
+        get(paste0(cur_column(), "_binomial")),
+        .x
+      )
     )
   )
-)
 
-datatable(printmismatches %>% select(orig_name, wcvp_name, Accepted_name),
+datatable(mismatches %>% select(orig_name, wcvp_name, Accepted_name),
           options = list(scrollX = TRUE, pageLength = 10),
           caption="Species after setting the wcvp matched name to a closer match")
 
 ```
 
 
-##Joining mismatch fixes to the main list
+## Joining mismatch fixes to the main list
 
 ```{r matcheshandling}
 
@@ -442,7 +445,6 @@ if (any(inc, na.rm = TRUE)) {
   matchresult_clean <- rows_update(matchresult_clean, corrections, 
                                    by = "orig_name")
 }
-
 
 # --- 5. Final Join and Rename ---
 # This merges the WCVP data back into your processed original list

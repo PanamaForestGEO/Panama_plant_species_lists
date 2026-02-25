@@ -2860,20 +2860,31 @@ display: none;
 <div id="match-wcvp-names-with-species-name" class="section level2">
 <h2>Match WCVP names with species name</h2>
 <p>Next we do:</p>
-<p>Input: list of species</p>
+<p>Input: list of Zotz species</p>
+<p>Workflow: 1. Match species names against WCVP (World Checklist of
+Vascular Plants)</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Identify and review potential mismatches:</li>
+</ol>
 <ul>
-<li>Match wcvp names</li>
-<li>Trying to be careful with species missmatches. Changing a species
-name when the match is not perfect needs manual verification.</li>
-<li>After the update two species can have the same wcvp name. Duplicates
-are removed but their original name is kept in a synonyms column.</li>
+<li><p>A mismatch occurs when WCVP returns a name different from the
+original lookup name</p></li>
+<li><p>This can lead to incorrect accepted names, requiring manual
+verification</p></li>
+<li><p>Most mismatches arise from minor spelling differences between the
+original names and WCVP entries. Others occur because some infraspecies
+are not in WCVP. And very weird mismatches occur when WCVP fuzzy
+matching points to the wrong name.</p></li>
 </ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Correct identified mismatches and save list with wcvp columns</li>
+</ol>
 <p>Output:</p>
 <ul>
-<li>_WCVP file with the original species list columns and the columns
-from wcvp</li>
-<li>_WCVP_CHANGES a file containing only the species were the original
-name changed in respect to the wcvp name.</li>
+<li><p>_WCVP file with the original species list columns and the columns
+from wcvp</p></li>
+<li><p>_WCVP_CHANGES a file containing only the species where the WCVP
+name differed from the original.</p></li>
 </ul>
 <pre class="r"><code># installing wcvp
 #install.packages(&quot;remotes&quot;)
@@ -2907,13 +2918,15 @@ original_list_name &lt;- tools::file_path_sans_ext(basename(original_list_path))
 
 # Path for intermediate matching results (to skip heavy processing if already done)
 matches_mid_path &lt;- paste0(&quot;splists_mid/&quot;, original_list_name, &quot;_mid_match.rds&quot;)
+matches_mid_path2 &lt;- paste0(&quot;splists_mid/&quot;, original_list_name, &quot;_mid_match2.rds&quot;)
+
 
 # OUTPUT PATHS 
 out_wcvp_list &lt;- paste0(&quot;splists_out/&quot;, original_list_name, &quot;_WCVP_&quot;, Sys.Date(), &quot;.xlsx&quot;)
 out_wcvp_changes_list &lt;- paste0(&quot;splists_out/&quot;, original_list_name, &quot;_WCVP_CHANGES_&quot;, Sys.Date(), &quot;.xlsx&quot;)
 
 
-redoWCVP= TRUE</code></pre>
+redoWCVP= FALSE</code></pre>
 </div>
 <div id="prepare-datasets" class="section level2">
 <h2>Prepare datasets</h2>
@@ -2922,28 +2935,33 @@ redoWCVP= TRUE</code></pre>
 <pre class="r"><code># modify this depending on the original dataset. 
 origlist &lt;- origlist %&gt;%
   mutate(
-    orig_family = str_trim(Family),
-    orig_name   = str_trim(Species),
-    orig_author = NA
-  ) %&gt;%
-  arrange(orig_name)
+    orig_family = str_squish(Family),
+    orig_name   = str_squish(Species),
+    orig_author = NA,
+    orig_genus = word(orig_name,1),
+    orig_species = word(orig_name,2),
+    orig_infraspecies_rank = word(orig_name, 3),
+    orig_infraspecies = word(orig_name, 4),
+    # add columns for the simple species name (not including &quot;sp.&quot; or such), and simple binomial
+    orig_binomial = str_squish(paste0(coalesce(orig_genus, &quot;&quot;), &quot; &quot;, 
+                                      ifelse(substr(orig_species, 1, 3) == &quot;sp.&quot;, &quot;&quot;, coalesce(orig_species, &quot;&quot;)))))%&gt;% 
+    arrange(orig_name)
 
 # remove duplicates
 dups &lt;- origlist %&gt;% group_by(orig_name) %&gt;% filter(n() &gt; 1) %&gt;% select(orig_name)
 
 if(nrow(dups) &gt; 0){
   knitr::kable(dups, caption=&quot;Duplicated names&quot;)
-}
+}</code></pre>
+<pre class="r"><code># remove NA species and text
 
-origlist &lt;- origlist %&gt;% group_by(orig_name) %&gt;% filter(n() == 1) %&gt;% ungroup()
-  
+origlist &lt;- origlist %&gt;% filter(!is.na(orig_name) &amp; orig_name != &quot;Not categorized as epiphytes any more:&quot;)
+
 print(paste0(&quot;working with &quot;, nrow(origlist), &quot; species&quot;))</code></pre>
-<pre><code>## [1] &quot;working with 244 species&quot;</code></pre>
+<pre><code>## [1] &quot;working with 242 species&quot;</code></pre>
 <div id="match-wcvp-names" class="section level3">
 <h3>Match WCVP names</h3>
-<pre class="r"><code>######################### PANMA BIOTA WCVP names ##################################
-
-# Helper function to merge and format accepted names from WCVP backbone
+<pre class="r"><code># Helper function to merge and format accepted names from WCVP backbone
 matchaccepted_names &lt;- function(matcheswcvp, wcvp_backbone){
   matcheswcvp %&gt;% 
     left_join(wcvp_backbone %&gt;% 
@@ -2970,7 +2988,7 @@ matchaccepted_names &lt;- function(matcheswcvp, wcvp_backbone){
 }
 
 # --- 1. Run or Load Match ---
-if(file.exists(matches_mid_path) &amp; redoWCVP){
+if(file.exists(matches_mid_path) &amp; !redoWCVP){
   matchresult &lt;- readRDS(matches_mid_path)
 } else {
   # Run the matching process
@@ -2978,6 +2996,17 @@ if(file.exists(matches_mid_path) &amp; redoWCVP){
 
   # Save as RDS for speed
   saveRDS(matchresult, matches_mid_path)
+}
+
+# do the same for the orig_binomial in cases where this is not equal to orig_name
+if(file.exists(matches_mid_path2) &amp; !redoWCVP){
+  matchresult2 &lt;- readRDS(matches_mid_path2)
+} else {
+  matchresult2 &lt;- wcvp_match_names(subset(origlist,orig_name!=orig_binomial), wcvp_names, 
+                                   name_col = &quot;orig_binomial&quot;)
+
+  # Save as RDS for speed
+  saveRDS(matchresult2, matches_mid_path2)
 }
 
 # --- 2. Sanity Checks &amp; Duplicate Resolution ---
@@ -3012,610 +3041,291 @@ matchresult_clean &lt;- matchresult %&gt;%
   ungroup() %&gt;%
   matchaccepted_names(wcvp_names)
 
-# --- 4. Final Join and Rename ---
+matchresult2_clean &lt;- matchresult2 %&gt;%
+  mutate(
+    status_priority = case_when(
+      wcvp_status == &quot;Accepted&quot;     ~ 1,
+      wcvp_status == &quot;Synonym&quot;      ~ 2,
+      wcvp_status == &quot;Illegitimate&quot; ~ 3,
+      wcvp_status == &quot;Unplaced&quot;     ~ 4,
+      TRUE                          ~ 5
+    )
+  ) %&gt;%
+  group_by(orig_name) %&gt;%
+  slice_min(status_priority, n = 1, with_ties = FALSE) %&gt;%
+  ungroup() %&gt;%
+  matchaccepted_names(wcvp_names)</code></pre>
+</div>
+<div id="fix-mismatches" class="section level3">
+<h3>Fix mismatches</h3>
+<pre class="r"><code>mismatches &lt;- matchresult_clean %&gt;% 
+  filter(orig_name != wcvp_name | is.na(wcvp_name) | is.na(Accepted_name)) %&gt;%
+  left_join(matchresult2_clean %&gt;% select(-orig_binomial) %&gt;% rename_with(~paste0(., &quot;_binomial&quot;), -orig_name),
+            by = &quot;orig_name&quot;) %&gt;%
+  mutate(
+    # Extract wcvp genus, species, infraspecies rank and infraspecies
+    wcvp_genus = word(wcvp_name, 1),
+    wcvp_species = word(wcvp_name, 2),
+    wcvp_infraspecies_rank = word(wcvp_name, 3),
+    wcvp_infraspecies = word(wcvp_name, 4),
+    
+   # Add booleans for mismatches
+    genus_mismatch = !is.na(orig_genus) &amp; 
+                      (orig_genus != wcvp_genus | is.na(wcvp_genus)),
+    species_mismatch = !is.na(orig_species) &amp; 
+                        (orig_species != wcvp_species | is.na(wcvp_species)),
+    infraspecies_rank_mismatch = !is.na(orig_infraspecies_rank) &amp; 
+                                  (orig_infraspecies_rank != wcvp_infraspecies_rank | 
+                                   is.na(wcvp_infraspecies_rank)),
+    infraspecies_mismatch = !is.na(orig_infraspecies) &amp; 
+                             (orig_infraspecies != wcvp_infraspecies | 
+                              is.na(wcvp_infraspecies))
+  )
+
+
+printmismatches &lt;- mismatches %&gt;% 
+  select(
+    orig_name, wcvp_name, Accepted_name, match_similarity, 
+    orig_binomial, wcvp_name_binomial, Accepted_name_binomial, match_similarity_binomial,
+    genus_mismatch, species_mismatch, infraspecies_rank_mismatch, infraspecies_mismatch
+  ) %&gt;% 
+  arrange(match_similarity, match_similarity_binomial)
+
+datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-74669f340482c5e3c498" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-74669f340482c5e3c498">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10"],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis sp."],["Mormodes powellii","Sobralia fragrans","Peperomia killipii","Maxillaria powellii","Didymoglossum krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],["Mormodes powellii","Sobralia fragrans","Peperomia tenuifolia","Maxillaria powellii","Trichomanes krausii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana",null],[0.9409999999999999,0.9409999999999999,0.944,0.947,0.955,0.955,0.957,0.96,0.963,null],["Mormodes powelli","Sobralia fragans","Peperomia killipi","Maxillaria powelli","Didymoglossum kraussii","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana","Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,"Chysis"],[null,null,null,null,null,null,null,null,null,1],[false,false,false,false,false,false,false,false,true,true],[true,true,true,true,true,true,true,true,false,true],[false,false,false,false,false,false,false,false,false,false],[false,false,false,false,false,false,false,false,false,false]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>match_similarity<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n      <th>match_similarity_binomial<\/th>\n      <th>genus_mismatch<\/th>\n      <th>species_mismatch<\/th>\n      <th>infraspecies_rank_mismatch<\/th>\n      <th>infraspecies_mismatch<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":[4,8]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"match_similarity","targets":4},{"name":"orig_binomial","targets":5},{"name":"wcvp_name_binomial","targets":6},{"name":"Accepted_name_binomial","targets":7},{"name":"match_similarity_binomial","targets":8},{"name":"genus_mismatch","targets":9},{"name":"species_mismatch","targets":10},{"name":"infraspecies_rank_mismatch","targets":11},{"name":"infraspecies_mismatch","targets":12}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>colsprint = c(&quot;orig_name&quot;, &quot;wcvp_name&quot;,&quot;Accepted_name&quot; ,&quot;orig_binomial&quot;, &quot;wcvp_name_binomial&quot;, &quot;Accepted_name_binomial&quot;)
+
+
+mismatches$preferred = &quot;full&quot;</code></pre>
+<div id="case-1" class="section level4">
+<h4>Case 1:</h4>
+<pre class="r"><code># both binomial and full mismatched
+mismatchcase1 &lt;- mismatches %&gt;% filter( orig_name != wcvp_name   &amp;
+                        (orig_binomial != wcvp_name_binomial | is.na(wcvp_name_binomial)) )
+
+datatable( mismatchcase1 %&gt;% select(all_of(colsprint)),
+           caption=&quot;both binomial and full name mismatched&quot;,
+options = list(scrollX = TRUE, pageLength = 10))</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-b29494a8431575ea55fb" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-b29494a8431575ea55fb">{"x":{"filter":"none","vertical":false,"caption":"<caption>both binomial and full name mismatched<\/caption>","data":[["1","2","3","4","5","6","7","8","9"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"],["Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In this cases the original spelling differs slightly from the name
+matched in WCVP.</p>
+</div>
+<div id="case-2" class="section level4">
+<h4>Case 2:</h4>
+<pre class="r"><code># full name matched except infraspecies rank
+mismatchcase3 &lt;- mismatches %&gt;% filter( infraspecies_rank_mismatch &amp; !genus_mismatch &amp; !species_mismatch &amp; !infraspecies_mismatch) 
+  
+datatable( mismatchcase3 %&gt;% select(all_of(colsprint)),
+           caption=&quot;full name matched except infraspecies rank&quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-86129a184c76d089cc73" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-86129a184c76d089cc73">{"x":{"filter":"none","vertical":false,"caption":"<caption>full name matched except infraspecies rank<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>The mismatch is a difference only in infraspecific rank. Use the WCVP
+accepted name for the full match.</p>
+</div>
+<div id="case-3" class="section level4">
+<h4>Case 3:</h4>
+<pre class="r"><code># full name mismatched, binomial didin&#39;t. And genus and species did not mismatch
+# this is because the infraspecies is messing the fuzzy matching
+mismatchcase2 &lt;- mismatches %&gt;% filter( orig_name != wcvp_name &amp;
+                       orig_binomial == wcvp_name_binomial &amp;
+                      (genus_mismatch | species_mismatch) &amp;
+                       !is.na(orig_infraspecies) &amp; orig_infraspecies!= &quot;&quot;
+                         ) 
+datatable( mismatchcase2 %&gt;% select(all_of(colsprint)),
+           caption=&quot;Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.&quot;,
+           options = list(scrollX = TRUE, pageLength = 10)
+           )</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-95231938996e8ab5e99e" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-95231938996e8ab5e99e">{"x":{"filter":"none","vertical":false,"caption":"<caption>Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.<\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In this cases the match to binomial is better, so use that. (Note
+also the infraspecies is the same as the species in all these cases
+except the one without a species name at all.)</p>
+<pre class="r"><code>inc &lt;- with(mismatches, orig_name %in% mismatchcase2$orig_name)
+if (any(inc, na.rm = TRUE)) {
+  tmp &lt;- mismatches[inc, ]
+  tmp$preferred = &quot;binomial&quot;
+  mismatches[inc, ] &lt;- tmp
+}</code></pre>
+</div>
+<div id="case-4" class="section level4">
+<h4>Case 4:</h4>
+<pre class="r"><code># genus, species and rank matched but infraspecies didint 
+mismatchcase4 &lt;- mismatches %&gt;% filter( !genus_mismatch &amp; !species_mismatch &amp; infraspecies_mismatch &amp; !infraspecies_rank_mismatch)
+
+datatable( mismatchcase4 %&gt;% select(all_of(colsprint)), caption=&quot;genus, species and infraspecific rank matched but infraspecies name did not &quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-92af665bd7af306b745c" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-92af665bd7af306b745c">{"x":{"filter":"none","vertical":false,"caption":"<caption>genus, species and infraspecific rank matched but infraspecies name did not <\/caption>","data":[[],[],[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In all of this cases the subspecies did not match in wcvp. Thus using
+the simple binomial match instead (dropping the infraspecies).</p>
+<pre class="r"><code>inc &lt;- with(mismatches, orig_name %in% mismatchcase4$orig_name)
+if (any(inc, na.rm = TRUE)) {
+  tmp &lt;- mismatches[inc, ]
+  tmp$preferred = &quot;binomial&quot;
+  mismatches[inc, ] &lt;- tmp
+}</code></pre>
+</div>
+<div id="other-cases" class="section level4">
+<h4>Other cases:</h4>
+<pre class="r"><code># species not considered in the previous cases:
+missrest &lt;- mismatches %&gt;% 
+  filter(!orig_name %in% c(mismatchcase1$orig_name, mismatchcase2$orig_name, mismatchcase3$orig_name, mismatchcase4$orig_name))
+
+datatable( missrest %&gt;% select(all_of(colsprint)), caption=&quot;Species not considered in previous cases&quot;,options = list(scrollX = TRUE, pageLength = 10))</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-3c05f8b35219ba46a43d" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-3c05f8b35219ba46a43d">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species not considered in previous cases<\/caption>","data":[["1"],["Chysis sp."],[null],[null],["Chysis"],["Chysis"],["Chysis"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_binomial<\/th>\n      <th>wcvp_name_binomial<\/th>\n      <th>Accepted_name_binomial<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"orig_binomial","targets":4},{"name":"wcvp_name_binomial","targets":5},{"name":"Accepted_name_binomial","targets":6}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>In this case there are two invalid names and Chrysis sp. where there
+is a match to the binomial name. Thus use the binomial name. And in the
+cases where there is no match, it is because it is not a species.</p>
+<pre class="r"><code>inc &lt;- with(mismatches, orig_name %in% missrest$orig_name)
+if (any(inc, na.rm = TRUE)) {
+  tmp &lt;- mismatches[inc, ]
+  tmp$preferred = &quot;binomial&quot;
+  mismatches[inc, ] &lt;- tmp
+}</code></pre>
+</div>
+<div id="summary-of-mismatches-after-fixing" class="section level4">
+<h4>Summary of mismatches after fixing:</h4>
+<p>Now all the mismatches should make more sense</p>
+<pre class="r"><code># summary of mismatches
+knitr::kable(mismatches %&gt;% group_by(preferred) %&gt;% summarise(species = n()))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">preferred</th>
+<th align="right">species</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">binomial</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">full</td>
+<td align="right">9</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>mismatches &lt;- mismatches %&gt;% 
+  mutate(
+    across(
+      c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
+        wcvp_ipni_id, wcvp_accepted_id, Accepted_name, Accepted_name_genus, 
+        Accepted_name_species, Accepted_name_rank, Accepted_family, 
+        Accepted_name_author, Accepted_name_infraspecific_rank, 
+        Accepted_name_infraspecies, match_similarity),
+      ~ifelse(
+        preferred == &quot;binomial&quot;,
+        get(paste0(cur_column(), &quot;_binomial&quot;)),
+        .x
+      )
+    )
+  )
+
+datatable(mismatches %&gt;% select(orig_name, wcvp_name, Accepted_name),
+          options = list(scrollX = TRUE, pageLength = 10),
+          caption=&quot;Species after setting the wcvp matched name to a closer match&quot;)</code></pre>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-792b6e8f283d507142b0" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-792b6e8f283d507142b0">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species after setting the wcvp matched name to a closer match<\/caption>","data":[["1","2","3","4","5","6","7","8","9","10"],["Chysis sp.","Didymoglossum kraussii","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia killipi","Peperomia macrostachya","Sobralia fragans"],["Chysis","Didymoglossum krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia killipii","Peperomia microstachya","Sobralia fragrans"],["Chysis","Trichomanes krausii","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia tenuifolia","Peperomia microstachya","Sobralia fragrans"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Accepted_name<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Accepted_name","targets":3}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+<div id="joining-mismatch-fixes-to-the-main-list" class="section level2">
+<h2>Joining mismatch fixes to the main list</h2>
+<pre class="r"><code># --- 4. Handle  matches ---
+
+# correct the mismatches
+
+inc &lt;- with(matchresult_clean, orig_name %in% mismatches$orig_name)
+if (any(inc, na.rm = TRUE)) {
+  corrections &lt;- mismatches %&gt;%
+    select(orig_name,wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
+           wcvp_homotypic, wcvp_ipni_id, wcvp_accepted_id, Accepted_name, 
+           Accepted_name_genus, Accepted_name_species, Accepted_name_rank, 
+           Accepted_family, Accepted_name_author, Accepted_name_infraspecific_rank, 
+           Accepted_name_infraspecies, match_similarity)
+  
+  matchresult_clean &lt;- rows_update(matchresult_clean, corrections, 
+                                   by = &quot;orig_name&quot;)
+}
+
+# --- 5. Final Join and Rename ---
 # This merges the WCVP data back into your processed original list
 processlist &lt;- origlist %&gt;%
   left_join(matchresult_clean %&gt;% 
-              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, 
-                     Accepted_name, Accepted_family, Accepted_name_rank, 
-                     Accepted_name_author, Accepted_name_status, Accepted_name_genus,
-                     Accepted_name_species, Accepted_name_infraspecific_rank, 
-                     Accepted_name_infraspecies, lifeform_description, 
-                     match_similarity, match_edit_distance),
+              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_accepted_id,
+                     Accepted_name, Accepted_family, Accepted_name_author, lifeform_description),
             by = &quot;orig_name&quot;) %&gt;%
   rename(
-    Name_matched = wcvp_name,
-    Name_matched_rank = wcvp_rank
+    wcvp_matched_name = wcvp_name,
+    wcvp_matched_authors = wcvp_authors,
+    wcvp_matched_rank = wcvp_rank,
+    wcvp_matched_status=wcvp_status,
+    wcvp_accepted_name = Accepted_name,
+    wcvp_accepted_family = Accepted_family,
+    wcvp_accepted_author = Accepted_name_author,
+    wcvp_lifeform_description = lifeform_description
+  ) %&gt;%
+  mutate(
+  origmatches = orig_name == wcvp_matched_name
   )
-
-# --- 5. Handle missing matches ---
-# If WCVP didn&#39;t find a match, we keep the original name as the &#39;Accepted&#39; placeholder
-inc &lt;- is.na(processlist$Accepted_name) | processlist$Accepted_name == &quot;&quot;
-
-if (any(inc, na.rm = TRUE)) {
-  processlist$Accepted_name[inc] &lt;- processlist$orig_name[inc]
-  processlist$Accepted_name_author[inc] &lt;- processlist$orig_author[inc]
-}
 
 # Review Results
-processlist %&gt;% count(wcvp_status)</code></pre>
-<pre><code>## # A tibble: 3 × 2
-##   wcvp_status     n
-##   &lt;chr&gt;       &lt;int&gt;
-## 1 Accepted      207
-## 2 Synonym        34
-## 3 &lt;NA&gt;            3</code></pre>
-</div>
-</div>
-<div id="fix-synonims-and-errors" class="section level1">
-<h1>Fix synonims and errors:</h1>
-<pre class="r"><code># For now lets assume the original name is correct 
-processlist &lt;- processlist %&gt;% mutate(
-  wcvp_name = Accepted_name,
-  wcvp_family = Accepted_family,
-  wcvp_author = Accepted_name_author,
-  current_name = orig_name, # leave the original as current and check wcvp
-  current_family  = str_to_sentence(orig_family),
-  current_author = orig_author,
-  origchanged = FALSE,
-  current_name_notes = &quot;&quot;,
-  synonyms = &quot;&quot;,
-  orig_synonyms = &quot;&quot;
-)
-
-
-# Clean columns with weird characters
-processlist &lt;- processlist %&gt;%
-  mutate(across(where(is.character), ~ stri_encode(., from = NULL, to = &quot;UTF-8&quot;))) %&gt;%
-  mutate(across(where(is.character), ~ stri_trans_general(., &quot;latin-ascii&quot;))) # Optional: removes accents</code></pre>
-<div id="case-when-no-accepted-name-was-found" class="section level3">
-<h3>Case when no accepted name was found</h3>
-<pre class="r"><code>species_na_wcvp &lt;- processlist %&gt;% filter(is.na(wcvp_status))
-
-if(nrow(species_na_wcvp)&gt;0){
-  knitr::kable(species_na_wcvp %&gt;% select( orig_name))
-}</code></pre>
+knitr::kable(processlist %&gt;% count(wcvp_matched_status))</code></pre>
 <table>
 <thead>
 <tr class="header">
+<th align="left">wcvp_matched_status</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Accepted</td>
+<td align="right">208</td>
+</tr>
+<tr class="even">
+<td align="left">Synonym</td>
+<td align="right">34</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>knitr::kable(subset(processlist,
+             !wcvp_matched_status %in% c(&quot;Accepted&quot;, &quot;Synonym&quot;)) %&gt;% 
+        select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
+      caption = &quot;Species not listed as Accepted or Synonym in WCVP&quot;)</code></pre>
+<table>
+<caption>Species not listed as Accepted or Synonym in WCVP</caption>
+<thead>
+<tr class="header">
+<th align="left">orig_family</th>
 <th align="left">orig_name</th>
+<th align="left">wcvp_matched_status</th>
+<th align="left">wcvp_accepted_name</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Chysis sp.</td>
-</tr>
-<tr class="even">
-<td align="left">Not categorized as epiphytes any more:</td>
-</tr>
-<tr class="odd">
-<td align="left">NA</td>
-</tr>
 </tbody>
 </table>
-</div>
-<div id="case-when-species-name-spelling-changed" class="section level3">
-<h3>Case when species name spelling changed</h3>
-<pre class="r"><code># Identifying typos or spelling errors
-# We filter for cases where the name matched is different from original but is considered &#39;Accepted&#39;
-matchingerrors &lt;- processlist %&gt;%
-  filter((is.na(Name_matched) | orig_name != Name_matched) &amp; wcvp_status == &quot;Accepted&quot;) %&gt;%
-  arrange(match_similarity)  %&gt;%
-  mutate(row_id = row_number())
-
-# Display the potential spelling errors
-if(nrow(matchingerrors) &gt; 0){
-    datatable(
-    matchingerrors %&gt;% select(row_id, orig_name, Name_matched, Accepted_name, match_similarity),
-    caption = &quot;Potential spelling errors: Name is accepted but differs from original.&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-f947ba6c31aef02b1573" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-f947ba6c31aef02b1573">{"x":{"filter":"none","vertical":false,"caption":"<caption>Potential spelling errors: Name is accepted but differs from original.<\/caption>","data":[[1,2,3,4,5,6,7],["Mormodes powelli","Sobralia fragans","Maxillaria powelli","Peperomia macrostachya","Epidendrum umbilliferum","Elaphoglossum lherminieri","Masdesvallia livingstoneana"],["Mormodes powellii","Sobralia fragrans","Maxillaria powellii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana"],["Mormodes powellii","Sobralia fragrans","Maxillaria powellii","Peperomia microstachya","Epidendrum umbelliferum","Elaphoglossum herminieri","Masdevallia livingstoneana"],[0.9409999999999999,0.9409999999999999,0.947,0.955,0.957,0.96,0.963]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>row_id<\/th>\n      <th>orig_name<\/th>\n      <th>Name_matched<\/th>\n      <th>Accepted_name<\/th>\n      <th>match_similarity<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":[0,4]},{"name":"row_id","targets":0},{"name":"orig_name","targets":1},{"name":"Name_matched","targets":2},{"name":"Accepted_name","targets":3},{"name":"match_similarity","targets":4}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># Manual selection of rows that are definitely spelling errors
-# ADJUST THE Species based on your new matchingerrors table. 
-# The idea is to leave out the species were the orig_name and the Naame matched clearly dont match
-
-leave_orig_name1 &lt;- c()
-
-# change name to the correct spelling of the species that are not in that list
-changes_spelling1 &lt;- matchingerrors %&gt;%
-  filter(!orig_name %in% leave_orig_name1) %&gt;% 
-  select(orig_name, Accepted_name)
-
-# Create index for the main dataset
-inc &lt;- with(processlist, orig_name %in% changes_spelling1$orig_name)
-
-# Review the subset to be modified
-species_modified1 &lt;- processlist[inc, ]
-
-if(nrow(species_modified1) &gt; 0){
-  datatable(
-    species_modified1 %&gt;% select(orig_name, Name_matched, Accepted_name, match_similarity), 
-    caption = &quot;Spelling errors confirmed for correction.&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-e12da904bf6c3a78efc2" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-e12da904bf6c3a78efc2">{"x":{"filter":"none","vertical":false,"caption":"<caption>Spelling errors confirmed for correction.<\/caption>","data":[["Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia macrostachya","Sobralia fragans"],["Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia microstachya","Sobralia fragrans"],["Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia microstachya","Sobralia fragrans"],[0.96,0.957,0.963,0.947,0.9409999999999999,0.955,0.9409999999999999]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>orig_name<\/th>\n      <th>Name_matched<\/th>\n      <th>Accepted_name<\/th>\n      <th>match_similarity<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":3},{"name":"orig_name","targets":0},{"name":"Name_matched","targets":1},{"name":"Accepted_name","targets":2},{"name":"match_similarity","targets":3}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># Apply the updates to the main processlist
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp &lt;- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  &lt;- TRUE
-
-  new_comment &lt;- &quot;Spelling changed in WCVP&quot;
-  
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == &quot;&quot;, 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = &quot; | &quot;))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    &lt;- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = &quot;; &quot;))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] &lt;- tmp
-}</code></pre>
-</div>
-<div id="cases-in-which-two-or-more-original-species-would-have-the-same-name-under-wcvp" class="section level2">
-<h2>Cases in which two or more original species would have the same name
-under wcvp:</h2>
-<pre class="r"><code># Two species can now have the same accepted name. 
-# It could be because as synonyms got its name corrected and the accepted species was already in the dataset
-# Or two species are now considered the same and the accepted name was not in the dataset
-
-# Identify cases where different original names now share the same wcvp_name
-acceptednamesdup &lt;- processlist %&gt;% 
-  filter(!is.na(Accepted_name)) %&gt;%
-  group_by(Accepted_name) %&gt;% 
-  filter(n() &gt; 1) %&gt;% 
-  ungroup() %&gt;%
-  arrange(Accepted_name) %&gt;%
-  mutate(row_id = row_number())
-
-if(nrow(acceptednamesdup) &gt; 0){
-  datatable(
-    acceptednamesdup %&gt;% select(row_id, Accepted_name, orig_name, Name_matched, wcvp_status, origchanged ), 
-    caption = &quot;Multiple original entries share one Accepted Name.&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-8437e6f39ec22b3c5d75" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-8437e6f39ec22b3c5d75">{"x":{"filter":"none","vertical":false,"caption":"<caption>Multiple original entries share one Accepted Name.<\/caption>","data":[[1,2],["Peperomia tenuifolia","Peperomia tenuifolia"],["Peperomia killipi","Peperomia tenuifolia"],["Peperomia killipii","Peperomia tenuifolia"],["Synonym","Accepted"],[false,false]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>row_id<\/th>\n      <th>Accepted_name<\/th>\n      <th>orig_name<\/th>\n      <th>Name_matched<\/th>\n      <th>wcvp_status<\/th>\n      <th>origchanged<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":0},{"name":"row_id","targets":0},{"name":"Accepted_name","targets":1},{"name":"orig_name","targets":2},{"name":"Name_matched","targets":3},{"name":"wcvp_status","targets":4},{"name":"origchanged","targets":5}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># create a list of the duplicates to leave their original names
-
-leave_orig_names_dups &lt;- acceptednamesdup %&gt;% filter(wcvp_status != &quot;Accepted&quot;) %&gt;% select(orig_name)
-
-leave_orig_names_dups &lt;- leave_orig_names_dups$orig_name</code></pre>
-</div>
-</div>
-<div id="case-when-match-is-not-perfect-and-species-name-has-changed." class="section level1">
-<h1>Case when match is not perfect and species name has changed.</h1>
-<pre class="r"><code># Filter for species where match isn&#39;t exact and status isn&#39;t Accepted
-noacceptedwcvpname &lt;- processlist %&gt;% 
-  filter(
-    (is.na(wcvp_status) | wcvp_status != &quot;Accepted&quot;) &amp;
-      !is.na(orig_name) &amp;
-      !is.na(Name_matched) &amp;
-      orig_name != Name_matched
-  ) %&gt;%
-  arrange(wcvp_status, match_similarity) %&gt;%
-  mutate(row_id = row_number()) %&gt;%
-  select(row_id, orig_name, Name_matched, Accepted_name, wcvp_status, match_similarity) 
-
-
-if(nrow(noacceptedwcvpname) &gt; 0){
-  datatable(
-    noacceptedwcvpname, caption = &quot;Species where the match is not exact and the name changes&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-96d5c81f7ba1e14d2296" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-96d5c81f7ba1e14d2296">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species where the match is not exact and the name changes<\/caption>","data":[[1,2],["Peperomia killipi","Didymoglossum kraussii"],["Peperomia killipii","Didymoglossum krausii"],["Peperomia tenuifolia","Trichomanes krausii"],["Synonym","Synonym"],[0.944,0.955]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>row_id<\/th>\n      <th>orig_name<\/th>\n      <th>Name_matched<\/th>\n      <th>Accepted_name<\/th>\n      <th>wcvp_status<\/th>\n      <th>match_similarity<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":[0,5]},{"name":"row_id","targets":0},{"name":"orig_name","targets":1},{"name":"Name_matched","targets":2},{"name":"Accepted_name","targets":3},{"name":"wcvp_status","targets":4},{"name":"match_similarity","targets":5}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># the subspecies doenst match well since i dont want to lose information i will leave it like the original name
-leave_out_orig_name2 &lt;- c()
-
-
-leave_out_names &lt;- c(leave_orig_names_dups, leave_out_orig_name2)
-
-# Select the row IDs that you have verified are correct spelling/name updates
-# Note: Ensure these IDs match the table generated above
-change_name2 &lt;- noacceptedwcvpname %&gt;%
-  filter(!orig_name %in% leave_out_names) %&gt;%
-  select(orig_name, Accepted_name)
-
-# Indexing the main processlist
-inc &lt;- with(processlist, orig_name %in% change_name2$orig_name)
-
-# Display what will be modified
-if (any(inc, na.rm = TRUE)) {
-  species_modified2 &lt;- processlist[inc,]
-  
-  datatable(
-    species_modified2 %&gt;% select(orig_name, Name_matched, Accepted_name, match_similarity), 
-    caption = &quot;Confirmed name changes (Keeping Accepted Name)&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-  
-  tmp &lt;- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  &lt;- TRUE
-
-  new_comment &lt;-  paste0(&quot;Imperfect match | Previous name was &quot;, tmp$wcvp_status, &quot; - Name changed in WCVP&quot;)
-  
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == &quot;&quot;, 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = &quot; | &quot;))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    &lt;- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = &quot;; &quot;))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] &lt;- tmp
-}</code></pre>
-<div id="change-species-name-when-the-match-was-perfect-and-wcvp-reported-a-name-change" class="section level2">
-<h2>Change species name when the match was perfect and WCVP reported a
-name change:</h2>
-<pre class="r"><code># Identify species where the match was perfect but status is NOT &#39;Accepted&#39;
-species_accepted_changed &lt;- processlist %&gt;% 
-  filter(
-    !is.na(orig_name) &amp; 
-    !is.na(Name_matched) &amp; 
-    orig_name == Name_matched &amp; 
-    wcvp_status != &quot;Accepted&quot;
-  )
-
-if(nrow(species_accepted_changed) &gt; 0){
-  datatable(
-    species_accepted_changed %&gt;% select(orig_name, Name_matched, Accepted_name, wcvp_status), 
-    caption = &quot;Species matched perfectly but status is not &#39;Accepted&#39; (Synonyms/Illegitimate).&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-c6e2854d44605524c07b" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-c6e2854d44605524c07b">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species matched perfectly but status is not 'Accepted' (Synonyms/Illegitimate).<\/caption>","data":[["Asplenium auritum","Bulbophyllum pachyrachis","Camaridium neglectum","Camaridium ochroleucum","Christensonella uncata","Codonanthe crassifolia","Codonanthe uleana","Didymoglossum ekmanii","Didymoglossum godmanii","Didymoglossum kapplerianum","Didymoglossum ovale","Didymoglossum punctatum","Guarianthe patinii","Heterotaxis sessilis","Lockhartia pittieri","Markea ulei","Maxillariella acervata","Maxillariella alba","Maxillariella variabilis","Monstera adansonii var. laniata","Oncidium stipitatum","Phlegmariurus dichotomus","Rhetinantha friedrichsthalii","Sobralia rolfeana","Tillandsia anceps","Tillandsia monadelpha","Topobea parasitica","Trigonidium egertonianum","Vriesea gladioliflora","Vriesea heliconioides","Vriesea ringens","Vriesea sanguinolenta"],["Asplenium auritum","Bulbophyllum pachyrachis","Camaridium neglectum","Camaridium ochroleucum","Christensonella uncata","Codonanthe crassifolia","Codonanthe uleana","Didymoglossum ekmanii","Didymoglossum godmanii","Didymoglossum kapplerianum","Didymoglossum ovale","Didymoglossum punctatum","Guarianthe patinii","Heterotaxis sessilis","Lockhartia pittieri","Markea ulei","Maxillariella acervata","Maxillariella alba","Maxillariella variabilis","Monstera adansonii var. laniata","Oncidium stipitatum","Phlegmariurus dichotomus","Rhetinantha friedrichsthalii","Sobralia rolfeana","Tillandsia anceps","Tillandsia monadelpha","Topobea parasitica","Trigonidium egertonianum","Vriesea gladioliflora","Vriesea heliconioides","Vriesea ringens","Vriesea sanguinolenta"],["Asplenium erosum var. erosum","Bulbophyllum pinelianum","Maxillaria neglecta","Maxillaria lutescens","Maxillaria uncata","Codonanthopsis crassifolia","Codonanthopsis uleana","Trichomanes ekmanii","Trichomanes godmanii","Trichomanes kapplerianum","Trichomanes ovale","Trichomanes punctatum","Guarianthe hennisiana","Maxillaria crassifolia","Lockhartia parthenoglossa","Hawkesiophyton ulei","Maxillaria acervata","Maxillaria alba","Maxillaria variabilis","Monstera adansonii subsp. laniata","Trichocentrum lacerum","Huperzia dichotoma","Maxillaria friedrichsthalii","Sobralia macrophylla","Wallisia anceps","Lemeltonia monadelpha","Blakea parasitica","Maxillaria egertoniana","Werauhia gladioliflora","Tillandsia heliconioides","Werauhia ringens","Werauhia sanguinolenta"],["Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>orig_name<\/th>\n      <th>Name_matched<\/th>\n      <th>Accepted_name<\/th>\n      <th>wcvp_status<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"orig_name","targets":0},{"name":"Name_matched","targets":1},{"name":"Accepted_name","targets":2},{"name":"wcvp_status","targets":3}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># Now the species names we would like to change:
-# No missmatch between Name_matched and Current_name and The state is non accepted.
-
-# Manual list of species to protect (do not update these even if WCVP suggests a change)
-leave_orig_names &lt;- c(leave_orig_name1, leave_out_orig_name2, leave_orig_names_dups)
-
-
-# Define the logical index for the changes
-inc &lt;- with(processlist, (
-  !is.na(orig_name) &amp; 
-  !is.na(Name_matched) &amp; 
-  orig_name == Name_matched &amp; 
-  wcvp_status != &quot;Accepted&quot; &amp;
-  !orig_name %in% leave_orig_names
-))
-
-
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp &lt;- processlist[inc, ]
-  
-  # Update logical flag and metadata
-  tmp$origchanged  &lt;- TRUE
-
-  new_comment &lt;-  paste0(&quot;Previous name was &quot;, tmp$wcvp_status, &quot; - Name changed in WCVP&quot;)
-  
-
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == &quot;&quot;, 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = &quot; | &quot;))
-  
-  # Update taxonomy using the Accepted Name data from WCVP
-  tmp$current_author  &lt;- ifelse(!is.na(tmp$Accepted_name_author), tmp$Accepted_name_author, tmp$orig_author)
-  tmp$current_family  &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$current_family)
-  tmp$current_name    &lt;- tmp$Accepted_name
-  
-  # Keep original name in synonyms for traceability
-  # Logic: If synonyms is empty, just add name. If not, append with separator.
-  tmp$synonyms &lt;- ifelse(is.na(tmp$synonyms) | tmp$synonyms == &quot;&quot;, 
-                             tmp$orig_name, 
-                             paste(tmp$synonyms, tmp$orig_name, sep = &quot;; &quot;))
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] &lt;- tmp
-}
-
-
-# leave a comment for species were original name was kept as current name because of mismatches
-
-missmatch_names_list = c(leave_orig_name1, leave_out_orig_name2)
-inc &lt;- with(processlist, (orig_name %in% missmatch_names_list))
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp &lt;- processlist[inc, ]
-
-
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- &quot;Original species wcvp match was a missmatch&quot;
-  
-  tmp$wcvp_name = NA
-  tmp$wcvp_family= NA
-  tmp$wcvp_author = NA
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] &lt;- tmp
-}
-
-# leave comment for species duplicates
-inc &lt;- with(processlist, (orig_name %in% leave_orig_names_dups))
-if (any(inc, na.rm = TRUE)) {
-  
-  tmp &lt;- processlist[inc, ]
-
-
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- &quot;WCVP name is the same as another species in list&quot;
-  
-  # Re-assign the modified subset back to the original rows
-  processlist[inc, ] &lt;- tmp
-}</code></pre>
-</div>
-<div id="case-when-the-family-changed" class="section level2">
-<h2>Case when the Family changed</h2>
-<pre class="r"><code># Identifying species where the name matches but the family is different
-familychanged &lt;- processlist %&gt;% 
-  filter(orig_name == wcvp_name &amp; 
-         current_family != Accepted_family &amp;  
-         wcvp_status == &quot;Accepted&quot;) %&gt;%
-  arrange(match_similarity)
-
-print(paste0(&quot;Species with changes in family: &quot;, nrow(familychanged)))</code></pre>
-<pre><code>## [1] &quot;Species with changes in family: 12&quot;</code></pre>
-<pre class="r"><code>if(nrow(familychanged) &gt; 0){
-  datatable(
-    familychanged %&gt;% select(orig_family, Accepted_family, orig_name, Accepted_name, wcvp_status, match_similarity), 
-    caption = &quot;Species with changes in family&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-fa12b86da0a3fadbf3d5" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-fa12b86da0a3fadbf3d5">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species with changes in family<\/caption>","data":[["Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Lomariopsidaceae","Lomariopsidaceae","Dryopteridaceae","Nephrolepidaceae","Nephrolepidaceae","Dryopteridaceae"],["Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae"],["Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Lomariopsis vestita","Maxonia apiifolia","Mickelia nicotianifolia","Nephrolepis biserrata","Nephrolepis pendula","Polybotrya caudata"],["Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Lomariopsis vestita","Maxonia apiifolia","Mickelia nicotianifolia","Nephrolepis biserrata","Nephrolepis pendula","Polybotrya caudata"],["Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted"],[1,1,1,1,1,1,1,1,1,1,1,1]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>orig_family<\/th>\n      <th>Accepted_family<\/th>\n      <th>orig_name<\/th>\n      <th>Accepted_name<\/th>\n      <th>wcvp_status<\/th>\n      <th>match_similarity<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"className":"dt-right","targets":5},{"name":"orig_family","targets":0},{"name":"Accepted_family","targets":1},{"name":"orig_name","targets":2},{"name":"Accepted_name","targets":3},{"name":"wcvp_status","targets":4},{"name":"match_similarity","targets":5}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># Define the logical index (inc) using your NEW column names
-inc &lt;- with(processlist, (
-    !is.na(orig_name) &amp; 
-    !is.na(Accepted_name) &amp;  
-    orig_name == Accepted_name &amp;   
-    wcvp_status == &quot;Accepted&quot; &amp; 
-    orig_name %in% familychanged$orig_name &amp;
-    !orig_name %in% leave_orig_names
-))
-
-# Safety check: are there any matches?
-if (any(inc, na.rm = TRUE)) {
-  
-  # Create the temporary subset
-  tmp &lt;- processlist[inc, ]
-  
-  # Perform updates on the subset
-  tmp$origchanged  &lt;- TRUE
-  # Update family only if Accepted_family is not NA
-  tmp$current_family  &lt;- ifelse(!is.na(tmp$Accepted_family), tmp$Accepted_family, tmp$orig_family)
-
-  new_comment &lt;- &quot;Family changed in WCVP&quot;
-  
-  # Update notes without overwriting
-  tmp$current_name_notes &lt;- ifelse(is.na(tmp$current_name_notes) | tmp$current_name_notes == &quot;&quot;, 
-                          new_comment, 
-                          paste(tmp$current_name_notes, new_comment, sep = &quot; | &quot;))
-  
-  # Re-assign back to processlist
-  processlist[inc, ] &lt;- tmp
-}
-
-# --- Sanity check ---
-# Check by wcvp_genus 
-genus_many_families &lt;- processlist %&gt;%
-  mutate(current_genus = word(current_name, 1)) %&gt;%
-  group_by(current_genus) %&gt;%
-  filter(n_distinct(current_family) &gt; 1) %&gt;% 
-  ungroup() %&gt;% 
-  select(
-    current_family, 
-    current_name, 
-    orig_family, 
-    orig_name, 
-    wcvp_family, 
-    wcvp_name, 
-    current_name_notes,
-    current_genus,
-  ) %&gt;%
-  arrange(current_genus)
-
-if(nrow(genus_many_families) &gt; 0){
-  datatable(genus_many_families, caption=&quot;Sanity check: Genus with more than one family&quot;)
-}
-
-# This is because of NA status, i will leave it as it is because they are unidentified species. </code></pre>
-</div>
-<div id="summary-of-modifications" class="section level2">
-<h2>Summary of modifications</h2>
-<pre class="r"><code># Filter for species that were modified in the main list
-species_modified &lt;- processlist %&gt;% 
-  filter(!is.na(current_name_notes) &amp; current_name_notes != &quot;&quot;) %&gt;% 
-  arrange(current_name_notes, orig_name)
-
-
-# Calculate Percentage of change
-change_perc &lt;- (nrow(species_modified) / nrow(processlist)) * 100
-print(paste0(&quot;Total species modified/consolidated: &quot;, nrow(species_modified)))</code></pre>
-<pre><code>## [1] &quot;Total species modified/consolidated: 53&quot;</code></pre>
-<pre class="r"><code>print(paste0(&quot;Percentage of dataset modified: &quot;, round(change_perc, 2), &quot;%&quot;))</code></pre>
-<pre><code>## [1] &quot;Percentage of dataset modified: 21.72%&quot;</code></pre>
-<pre class="r"><code># Save modifications in a separate file (using the path variables from setup)
-write_xlsx(species_modified, out_wcvp_changes_list)
-
-# Summary table of change types
-knitr::kable(species_modified %&gt;% 
-               group_by(current_name_notes) %&gt;% 
-               summarise(n_species = n(), .groups = &quot;drop&quot;), 
-             caption = &quot;Summary of changes by category&quot;)</code></pre>
-<table>
-<caption>Summary of changes by category</caption>
-<colgroup>
-<col width="87%" />
-<col width="12%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">current_name_notes</th>
-<th align="right">n_species</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Family changed in WCVP</td>
-<td align="right">12</td>
-</tr>
-<tr class="even">
-<td align="left">Imperfect match | Previous name was Synonym - Name
-changed in WCVP</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">Previous name was Synonym - Name changed in WCVP</td>
-<td align="right">32</td>
-</tr>
-<tr class="even">
-<td align="left">Spelling changed in WCVP</td>
-<td align="right">7</td>
-</tr>
-<tr class="odd">
-<td align="left">WCVP name is the same as another species in list</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code># Detailed interactive table of all changes
-datatable(
-  species_modified %&gt;% 
-    select(orig_name, wcvp_name, orig_family, wcvp_family, wcvp_status, current_name_notes),
-  caption = &quot;Species current name is different from original name after matching with WCVP&quot;,
-  options = list(scrollX = TRUE, pageLength = 20),
-  rownames = FALSE
-)</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-ede55286d9f825dea068" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-ede55286d9f825dea068">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species current name is different from original name after matching with WCVP<\/caption>","data":[["Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Lomariopsis vestita","Maxonia apiifolia","Mickelia nicotianifolia","Nephrolepis biserrata","Nephrolepis pendula","Polybotrya caudata","Didymoglossum kraussii","Asplenium auritum","Bulbophyllum pachyrachis","Camaridium neglectum","Camaridium ochroleucum","Christensonella uncata","Codonanthe crassifolia","Codonanthe uleana","Didymoglossum ekmanii","Didymoglossum godmanii","Didymoglossum kapplerianum","Didymoglossum ovale","Didymoglossum punctatum","Guarianthe patinii","Heterotaxis sessilis","Lockhartia pittieri","Markea ulei","Maxillariella acervata","Maxillariella alba","Maxillariella variabilis","Monstera adansonii var. laniata","Oncidium stipitatum","Phlegmariurus dichotomus","Rhetinantha friedrichsthalii","Sobralia rolfeana","Tillandsia anceps","Tillandsia monadelpha","Topobea parasitica","Trigonidium egertonianum","Vriesea gladioliflora","Vriesea heliconioides","Vriesea ringens","Vriesea sanguinolenta","Elaphoglossum lherminieri","Epidendrum umbilliferum","Masdesvallia livingstoneana","Maxillaria powelli","Mormodes powelli","Peperomia macrostachya","Sobralia fragans","Peperomia killipi"],["Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Lomariopsis vestita","Maxonia apiifolia","Mickelia nicotianifolia","Nephrolepis biserrata","Nephrolepis pendula","Polybotrya caudata","Trichomanes krausii","Asplenium erosum var. erosum","Bulbophyllum pinelianum","Maxillaria neglecta","Maxillaria lutescens","Maxillaria uncata","Codonanthopsis crassifolia","Codonanthopsis uleana","Trichomanes ekmanii","Trichomanes godmanii","Trichomanes kapplerianum","Trichomanes ovale","Trichomanes punctatum","Guarianthe hennisiana","Maxillaria crassifolia","Lockhartia parthenoglossa","Hawkesiophyton ulei","Maxillaria acervata","Maxillaria alba","Maxillaria variabilis","Monstera adansonii subsp. laniata","Trichocentrum lacerum","Huperzia dichotoma","Maxillaria friedrichsthalii","Sobralia macrophylla","Wallisia anceps","Lemeltonia monadelpha","Blakea parasitica","Maxillaria egertoniana","Werauhia gladioliflora","Tillandsia heliconioides","Werauhia ringens","Werauhia sanguinolenta","Elaphoglossum herminieri","Epidendrum umbelliferum","Masdevallia livingstoneana","Maxillaria powellii","Mormodes powellii","Peperomia microstachya","Sobralia fragrans","Peperomia tenuifolia"],["Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Lomariopsidaceae","Lomariopsidaceae","Dryopteridaceae","Nephrolepidaceae","Nephrolepidaceae","Dryopteridaceae","Hymenophyllaceae","Aspleniaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Gesneriaceae","Gesneriaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Solanaceae","Orchidaceae","Orchidaceae","Orchidaceae","Araceae","Orchidaceae","Lycopodiaceae","Orchidaceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Melastomataceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Dryopteridaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Piperaceae","Orchidaceae","Piperaceae"],["Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Hymenophyllaceae","Aspleniaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Gesneriaceae","Gesneriaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Solanaceae","Orchidaceae","Orchidaceae","Orchidaceae","Araceae","Orchidaceae","Lycopodiaceae","Orchidaceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Melastomataceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Piperaceae","Orchidaceae","Piperaceae"],["Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Synonym","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Accepted","Synonym"],["Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Imperfect match | Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Previous name was Synonym - Name changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","Spelling changed in WCVP","WCVP name is the same as another species in list"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>orig_family<\/th>\n      <th>wcvp_family<\/th>\n      <th>wcvp_status<\/th>\n      <th>current_name_notes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":20,"columnDefs":[{"name":"orig_name","targets":0},{"name":"wcvp_name","targets":1},{"name":"orig_family","targets":2},{"name":"wcvp_family","targets":3},{"name":"wcvp_status","targets":4},{"name":"current_name_notes","targets":5}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
-</div>
-<div id="sanity-check-species-were-the-name-didint-change-and-check-duplicated-species." class="section level2">
-<h2>Sanity check: species were the name didint change and check
-duplicated species.</h2>
-<pre class="r"><code># 1. Check for species where our final name still differs from the WCVP Accepted Name
-species_no_wcvp &lt;- processlist %&gt;% 
-  filter(is.na(current_name) | is.na(wcvp_name) | current_name != wcvp_name)
-
-print(paste0(&quot;Species where final name differs from WCVP Name: &quot;, nrow(species_no_wcvp)))</code></pre>
-<pre><code>## [1] &quot;Species where final name differs from WCVP Name: 2&quot;</code></pre>
-<pre class="r"><code>if(nrow(species_no_wcvp) &gt; 0){
-  datatable(
-    species_no_wcvp %&gt;% 
-      select(current_name, orig_name, wcvp_name, Name_matched, current_family, wcvp_family, wcvp_status, current_name_notes), 
-    caption = &quot;Species requiring manual review (Name mismatch)&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-07c61f3b2c9f2bf6f0ad" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-07c61f3b2c9f2bf6f0ad">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species requiring manual review (Name mismatch)<\/caption>","data":[["Peperomia killipi",null],["Peperomia killipi",null],["Peperomia tenuifolia",null],["Peperomia killipii",null],["Piperaceae",null],["Piperaceae",null],["Synonym",null],["WCVP name is the same as another species in list",""]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>current_name<\/th>\n      <th>orig_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>Name_matched<\/th>\n      <th>current_family<\/th>\n      <th>wcvp_family<\/th>\n      <th>wcvp_status<\/th>\n      <th>current_name_notes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"current_name","targets":0},{"name":"orig_name","targets":1},{"name":"wcvp_name","targets":2},{"name":"Name_matched","targets":3},{"name":"current_family","targets":4},{"name":"wcvp_family","targets":5},{"name":"wcvp_status","targets":6},{"name":"current_name_notes","targets":7}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<pre class="r"><code># 2. Final check for duplicates: This should ideally return 0 rows
-final_duplicates &lt;- processlist %&gt;% 
-  filter(!is.na(current_name)) %&gt;%
-  group_by(current_name) %&gt;% 
-  filter(n() &gt; 1) %&gt;% 
-  ungroup() %&gt;%
-  mutate(mismatch = (orig_name != Name_matched)) %&gt;% 
-  arrange(current_name, mismatch, match_similarity) %&gt;%
-  select(current_name, wcvp_name, orig_name, Name_matched, wcvp_status, mismatch, match_similarity)
-
-if(nrow(final_duplicates) &gt; 0){
-  datatable(final_duplicates, caption = &quot;WARNING: Remaining Duplicates Found&quot;)
-} else {
-  print(&quot;Sanity Check Passed: No duplicates remaining in the final list.&quot;)
-}</code></pre>
-<pre><code>## [1] &quot;Sanity Check Passed: No duplicates remaining in the final list.&quot;</code></pre>
-<pre class="r"><code># Duplicated names misspelled in the original dataset
-# needs removing
-
-processlist &lt;- processlist %&gt;% 
-  distinct(current_name, .keep_all = TRUE)</code></pre>
-<div id="species-with-missing-information-in-some-column" class="section level3">
-<h3>Species with missing information in some column</h3>
-<pre class="r"><code># Flags species where the genus column doesn&#39;t match the first word of the species name,
-# or where essential taxonomic fields are NA.
-missing_info &lt;- processlist %&gt;% filter(
-   is.na(current_family) | is.na(current_author) | is.na(current_name)
-)   
-
-if(nrow(missing_info) &gt; 0) {
-  datatable(
-    missing_info %&gt;% select(
-      current_name, wcvp_name, orig_name,current_family, wcvp_family, orig_family, 
-      current_author, wcvp_author, orig_author, 
-      current_name_notes
-    ),
-    caption = &quot;Species with missing or inconsistent taxonomic information&quot;,
-    options = list(scrollX = TRUE, pageLength = 10),
-    rownames = FALSE
-  )
-}</code></pre>
-<div class="datatables html-widget html-fill-item" id="htmlwidget-bfd5c9dfa7c1e5abf799" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-bfd5c9dfa7c1e5abf799">{"x":{"filter":"none","vertical":false,"caption":"<caption>Species with missing or inconsistent taxonomic information<\/caption>","data":[["Acianthera verecunda","Aechmea pubescens","Aechmea setigera","Aechmea tillandsioides","Ananthacorus angustifolius","Anthurium acutangulum","Anthurium bakeri","Anthurium brownii","Anthurium clavigerum","Anthurium concolor","Anthurium durandii","Anthurium flexile","Anthurium friedrichsthalii","Anthurium gracile","Anthurium kunthii","Anthurium obtusum","Anthurium paludosum","Anthurium pentaphyllum var. bombacifolium","Anthurium salvinii","Anthurium scandens","Anthurium schlechtendalii subsp. schlechtendalii","Aspasia principissa","Asplenium abscissum","Asplenium erosum var. erosum","Asplenium juglandifolium","Asplenium pteropus","Asplenium serratum","Begonia hirsuta","Billbergia macrolepis","Boehmeria cylindrica","Brassavola nodosa","Brassia caudata","Campylocentrum micranthum","Campylocentrum pachyrrhizum","Campyloneurum angustifolium","Campyloneurum aphanophlebium","Campyloneurum brevifolium","Campyloneurum costatum","Campyloneurum phyllitidis","Catasetum bicolor","Catasetum viridiflavum","Catopsis sessiliflora","Caularthron bilamellatum","Chrysothemis friedrichsthaliana","Chysis sp.","Clusia flavida","Clusia minor","Clusia peninsulae","Clusia uvitana","Columnea billbergiana","Columnea purpurata","Coryanthes maculata","Cosmibuena grandiflora","Cosmibuena macrocarpa","Coussapoa asperifolia subsp. magnifolia","Coussapoa villosa","Dichaea panamensis","Dichaea trulla","Dimerandra emarginata","Drymonia serrulata","Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Elleanthus longibracteatus","Epidendrum bifarium","Epidendrum coronatum","Epidendrum difforme","Epidendrum flexuosum","Epidendrum laterale","Epidendrum lockhartioides","Epidendrum nocturnum","Epidendrum rigidum","Epidendrum schlechterianum","Epidendrum sculptum","Epidendrum stamfordianum","Epidendrum stangeanum","Epidendrum strobiliferum","Epiphyllum hookeri","Epiphyllum phyllanthus","Erycina pusilla","Ficus colubrinae","Ficus curtipes","Ficus dugandii","Ficus maxima","Ficus nymphaeifolia","Ficus obtusiuscula","Ficus paraensis","Ficus pertusa","Ficus popenoei","Ficus trigonata","Gongora fulva","Gongora quinquenervis","Guzmania lingulata","Guzmania monostachia","Hymenasplenium delitescens","Hymenophyllum brevifrons","Ionopsis satyrioides","Ionopsis utricularioides","Leochilus scriptus","Liparis nervosa","Lockhartia acuta","Lomariopsis vestita","Ludovia integrifolia","Lycaste powellii","Marcgravia nepenthoides","Maxillaria porrecta","Maxonia apiifolia","Mickelia nicotianifolia","Microgramma percussa","Microgramma persicariifolia","Microgramma reptans","Monstera dubia","Monstera pinnatipartita","Myoxanthus trachychlamys","Nephrolepis biserrata","Nephrolepis pendula","Niphidium crassifolium","Niphidium oblanceolatum","Not categorized as epiphytes any more:","Notylia albida","Notylia barkeri","Notylia pentachne","Oreopanax capitatus","Ornithocephalus bicornis","Ornithocephalus powellii","Pecluma hygrometrica","Pecluma plumula","Peperomia ciliolibractea","Peperomia cordulata","Peperomia ebingeri","Peperomia elata","Peperomia glabella","Peperomia killipi","Peperomia mameiana","Peperomia obscurifolia","Peperomia obtusifolia","Peperomia pellucida","Peperomia portobellensis","Peperomia rotundifolia","Peperomia tenuifolia","Philodendron alliodorum","Philodendron fragrantissimum","Philodendron hederaceum var. hederaceum","Philodendron immixtum","Philodendron inaequilaterum","Philodendron jacquinii","Philodendron opacum","Philodendron panamense","Philodendron pterotum","Philodendron radiatum","Philodendron rayanum","Philodendron rigidifolium","Philodendron sagittifolium","Philodendron tripartitum","Pitcairnia heterophylla","Pleopeltis christensenii","Pleopeltis panamensis","Pleopeltis polypodioides","Polybotrya caudata","Polystachya foliosa","Polystachya masayensis","Polytaenium citrifolium","Prosthechea aemula","Prosthechea chacaoensis","Prosthechea chimborazoensis","Prosthechea pygmaea","Rhipsalis baccifera","Rhodospatha wendlandii","Rodriguezia lanceolata","Rossioglossum ampliatum","Scaphyglottis graminifolia","Scaphyglottis longicaulis","Scaphyglottis prolifera","Serpocaulon maritimum","Serpocaulon triseriale","Serpocaulon wagneri","Sievekingia suavis","Sobralia bletiae","Sobralia decora","Souroubea sympetala","Specklinia brighamii","Specklinia grobyi","Stelis crescentiicola","Stenospermation angustifolium","Syngonium erythrophyllum","Syngonium podophyllum","Tillandsia bulbosa","Tillandsia elongata var. subimbricata","Tillandsia fasciculata","Tillandsia subulifera","Trichocentrum capistratum","Trichomanes pinnatifidum","Trichomanes polypodioides","Trichopilia maculata","Trichopilia subulata","Vanilla planifolia","Vanilla pompona","Vittaria graminifolia","Vittaria lineata","Warczewiczella lipscombiae","Xylobium foveatum",null],["Acianthera verecunda","Aechmea pubescens","Aechmea setigera","Aechmea tillandsioides","Ananthacorus angustifolius","Anthurium acutangulum","Anthurium bakeri","Anthurium brownii","Anthurium clavigerum","Anthurium concolor","Anthurium durandii","Anthurium flexile","Anthurium friedrichsthalii","Anthurium gracile","Anthurium kunthii","Anthurium obtusum","Anthurium paludosum","Anthurium pentaphyllum var. bombacifolium","Anthurium salvinii","Anthurium scandens","Anthurium schlechtendalii subsp. schlechtendalii","Aspasia principissa","Asplenium abscissum","Asplenium erosum var. erosum","Asplenium juglandifolium","Asplenium pteropus","Asplenium serratum","Begonia hirsuta","Billbergia macrolepis","Boehmeria cylindrica","Brassavola nodosa","Brassia caudata","Campylocentrum micranthum","Campylocentrum pachyrrhizum","Campyloneurum angustifolium","Campyloneurum aphanophlebium","Campyloneurum brevifolium","Campyloneurum costatum","Campyloneurum phyllitidis","Catasetum bicolor","Catasetum viridiflavum","Catopsis sessiliflora","Caularthron bilamellatum","Chrysothemis friedrichsthaliana","Chysis sp.","Clusia flavida","Clusia minor","Clusia peninsulae","Clusia uvitana","Columnea billbergiana","Columnea purpurata","Coryanthes maculata","Cosmibuena grandiflora","Cosmibuena macrocarpa","Coussapoa asperifolia subsp. magnifolia","Coussapoa villosa","Dichaea panamensis","Dichaea trulla","Dimerandra emarginata","Drymonia serrulata","Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Elleanthus longibracteatus","Epidendrum bifarium","Epidendrum coronatum","Epidendrum difforme","Epidendrum flexuosum","Epidendrum laterale","Epidendrum lockhartioides","Epidendrum nocturnum","Epidendrum rigidum","Epidendrum schlechterianum","Epidendrum sculptum","Epidendrum stamfordianum","Epidendrum stangeanum","Epidendrum strobiliferum","Epiphyllum hookeri","Epiphyllum phyllanthus","Erycina pusilla","Ficus colubrinae","Ficus curtipes","Ficus dugandii","Ficus maxima","Ficus nymphaeifolia","Ficus obtusiuscula","Ficus paraensis","Ficus pertusa","Ficus popenoei","Ficus trigonata","Gongora fulva","Gongora quinquenervis","Guzmania lingulata","Guzmania monostachia","Hymenasplenium delitescens","Hymenophyllum brevifrons","Ionopsis satyrioides","Ionopsis utricularioides","Leochilus scriptus","Liparis nervosa","Lockhartia acuta","Lomariopsis vestita","Ludovia integrifolia","Lycaste powellii","Marcgravia nepenthoides","Maxillaria porrecta","Maxonia apiifolia","Mickelia nicotianifolia","Microgramma percussa","Microgramma persicariifolia","Microgramma reptans","Monstera dubia","Monstera pinnatipartita","Myoxanthus trachychlamys","Nephrolepis biserrata","Nephrolepis pendula","Niphidium crassifolium","Niphidium oblanceolatum","Not categorized as epiphytes any more:","Notylia albida","Notylia barkeri","Notylia pentachne","Oreopanax capitatus","Ornithocephalus bicornis","Ornithocephalus powellii","Pecluma hygrometrica","Pecluma plumula","Peperomia ciliolibractea","Peperomia cordulata","Peperomia ebingeri","Peperomia elata","Peperomia glabella","Peperomia tenuifolia","Peperomia mameiana","Peperomia obscurifolia","Peperomia obtusifolia","Peperomia pellucida","Peperomia portobellensis","Peperomia rotundifolia","Peperomia tenuifolia","Philodendron alliodorum","Philodendron fragrantissimum","Philodendron hederaceum var. hederaceum","Philodendron immixtum","Philodendron inaequilaterum","Philodendron jacquinii","Philodendron opacum","Philodendron panamense","Philodendron pterotum","Philodendron radiatum","Philodendron rayanum","Philodendron rigidifolium","Philodendron sagittifolium","Philodendron tripartitum","Pitcairnia heterophylla","Pleopeltis christensenii","Pleopeltis panamensis","Pleopeltis polypodioides","Polybotrya caudata","Polystachya foliosa","Polystachya masayensis","Polytaenium citrifolium","Prosthechea aemula","Prosthechea chacaoensis","Prosthechea chimborazoensis","Prosthechea pygmaea","Rhipsalis baccifera","Rhodospatha wendlandii","Rodriguezia lanceolata","Rossioglossum ampliatum","Scaphyglottis graminifolia","Scaphyglottis longicaulis","Scaphyglottis prolifera","Serpocaulon maritimum","Serpocaulon triseriale","Serpocaulon wagneri","Sievekingia suavis","Sobralia bletiae","Sobralia decora","Souroubea sympetala","Specklinia brighamii","Specklinia grobyi","Stelis crescentiicola","Stenospermation angustifolium","Syngonium erythrophyllum","Syngonium podophyllum","Tillandsia bulbosa","Tillandsia elongata var. subimbricata","Tillandsia fasciculata","Tillandsia subulifera","Trichocentrum capistratum","Trichomanes pinnatifidum","Trichomanes polypodioides","Trichopilia maculata","Trichopilia subulata","Vanilla planifolia","Vanilla pompona","Vittaria graminifolia","Vittaria lineata","Warczewiczella lipscombiae","Xylobium foveatum",null],["Acianthera verecunda","Aechmea pubescens","Aechmea setigera","Aechmea tillandsioides","Ananthacorus angustifolius","Anthurium acutangulum","Anthurium bakeri","Anthurium brownii","Anthurium clavigerum","Anthurium concolor","Anthurium durandii","Anthurium flexile","Anthurium friedrichsthalii","Anthurium gracile","Anthurium kunthii","Anthurium obtusum","Anthurium paludosum","Anthurium pentaphyllum var. bombacifolium","Anthurium salvinii","Anthurium scandens","Anthurium schlechtendalii subsp. schlechtendalii","Aspasia principissa","Asplenium abscissum","Asplenium auritum","Asplenium juglandifolium","Asplenium pteropus","Asplenium serratum","Begonia hirsuta","Billbergia macrolepis","Boehmeria cylindrica","Brassavola nodosa","Brassia caudata","Campylocentrum micranthum","Campylocentrum pachyrrhizum","Campyloneurum angustifolium","Campyloneurum aphanophlebium","Campyloneurum brevifolium","Campyloneurum costatum","Campyloneurum phyllitidis","Catasetum bicolor","Catasetum viridiflavum","Catopsis sessiliflora","Caularthron bilamellatum","Chrysothemis friedrichsthaliana","Chysis sp.","Clusia flavida","Clusia minor","Clusia peninsulae","Clusia uvitana","Columnea billbergiana","Columnea purpurata","Coryanthes maculata","Cosmibuena grandiflora","Cosmibuena macrocarpa","Coussapoa asperifolia subsp. magnifolia","Coussapoa villosa","Dichaea panamensis","Dichaea trulla","Dimerandra emarginata","Drymonia serrulata","Elaphoglossum doanense","Elaphoglossum hayesii","Elaphoglossum latum","Elaphoglossum longicrure","Elaphoglossum peltatum","Elaphoglossum sporadolepis","Elleanthus longibracteatus","Epidendrum bifarium","Epidendrum coronatum","Epidendrum difforme","Epidendrum flexuosum","Epidendrum laterale","Epidendrum lockhartioides","Epidendrum nocturnum","Epidendrum rigidum","Epidendrum schlechterianum","Epidendrum sculptum","Epidendrum stamfordianum","Epidendrum stangeanum","Epidendrum strobiliferum","Epiphyllum hookeri","Epiphyllum phyllanthus","Erycina pusilla","Ficus colubrinae","Ficus curtipes","Ficus dugandii","Ficus maxima","Ficus nymphaeifolia","Ficus obtusiuscula","Ficus paraensis","Ficus pertusa","Ficus popenoei","Ficus trigonata","Gongora fulva","Gongora quinquenervis","Guzmania lingulata","Guzmania monostachia","Hymenasplenium delitescens","Hymenophyllum brevifrons","Ionopsis satyrioides","Ionopsis utricularioides","Leochilus scriptus","Liparis nervosa","Lockhartia acuta","Lomariopsis vestita","Ludovia integrifolia","Lycaste powellii","Marcgravia nepenthoides","Maxillaria porrecta","Maxonia apiifolia","Mickelia nicotianifolia","Microgramma percussa","Microgramma persicariifolia","Microgramma reptans","Monstera dubia","Monstera pinnatipartita","Myoxanthus trachychlamys","Nephrolepis biserrata","Nephrolepis pendula","Niphidium crassifolium","Niphidium oblanceolatum","Not categorized as epiphytes any more:","Notylia albida","Notylia barkeri","Notylia pentachne","Oreopanax capitatus","Ornithocephalus bicornis","Ornithocephalus powellii","Pecluma hygrometrica","Pecluma plumula","Peperomia ciliolibractea","Peperomia cordulata","Peperomia ebingeri","Peperomia elata","Peperomia glabella","Peperomia killipi","Peperomia mameiana","Peperomia obscurifolia","Peperomia obtusifolia","Peperomia pellucida","Peperomia portobellensis","Peperomia rotundifolia","Peperomia tenuifolia","Philodendron alliodorum","Philodendron fragrantissimum","Philodendron hederaceum var. hederaceum","Philodendron immixtum","Philodendron inaequilaterum","Philodendron jacquinii","Philodendron opacum","Philodendron panamense","Philodendron pterotum","Philodendron radiatum","Philodendron rayanum","Philodendron rigidifolium","Philodendron sagittifolium","Philodendron tripartitum","Pitcairnia heterophylla","Pleopeltis christensenii","Pleopeltis panamensis","Pleopeltis polypodioides","Polybotrya caudata","Polystachya foliosa","Polystachya masayensis","Polytaenium citrifolium","Prosthechea aemula","Prosthechea chacaoensis","Prosthechea chimborazoensis","Prosthechea pygmaea","Rhipsalis baccifera","Rhodospatha wendlandii","Rodriguezia lanceolata","Rossioglossum ampliatum","Scaphyglottis graminifolia","Scaphyglottis longicaulis","Scaphyglottis prolifera","Serpocaulon maritimum","Serpocaulon triseriale","Serpocaulon wagneri","Sievekingia suavis","Sobralia bletiae","Sobralia decora","Souroubea sympetala","Specklinia brighamii","Specklinia grobyi","Stelis crescentiicola","Stenospermation angustifolium","Syngonium erythrophyllum","Syngonium podophyllum","Tillandsia bulbosa","Tillandsia elongata var. subimbricata","Tillandsia fasciculata","Tillandsia subulifera","Trichocentrum capistratum","Trichomanes pinnatifidum","Trichomanes polypodioides","Trichopilia maculata","Trichopilia subulata","Vanilla planifolia","Vanilla pompona","Vittaria graminifolia","Vittaria lineata","Warczewiczella lipscombiae","Xylobium foveatum",null],["Orchidaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Pteridaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Orchidaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Begoniaceae","Bromeliaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Bromeliaceae","Orchidaceae","Gesneriaceae","Orchidaceae","Clusiaceae","Clusiaceae","Clusiaceae","Clusiaceae","Gesneriaceae","Gesneriaceae","Orchidaceae","Rubiaceae","Rubiaceae","Urticaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Gesneriaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Cactaceae","Orchidaceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Orchidaceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Aspleniaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Cyclanthaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Araceae","Araceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae",null,"Orchidaceae","Orchidaceae","Orchidaceae","Araliaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Bromeliaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Pteridaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Araceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Orchidaceae","Orchidaceae","Araceae","Araceae","Araceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Orchidaceae","Hymenophyllaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Pteridaceae","Pteridaceae","Orchidaceae","Orchidaceae",null],["Orchidaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Pteridaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Orchidaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Begoniaceae","Bromeliaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Bromeliaceae","Orchidaceae","Gesneriaceae",null,"Clusiaceae","Clusiaceae","Clusiaceae","Clusiaceae","Gesneriaceae","Gesneriaceae","Orchidaceae","Rubiaceae","Rubiaceae","Urticaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Gesneriaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Cactaceae","Orchidaceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Orchidaceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Aspleniaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Cyclanthaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Araceae","Araceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae",null,"Orchidaceae","Orchidaceae","Orchidaceae","Araliaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Bromeliaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Pteridaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Araceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Orchidaceae","Orchidaceae","Araceae","Araceae","Araceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Orchidaceae","Hymenophyllaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Pteridaceae","Pteridaceae","Orchidaceae","Orchidaceae",null],["Orchidaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Pteridaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Orchidaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Aspleniaceae","Begoniaceae","Bromeliaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Bromeliaceae","Orchidaceae","Gesneriaceae","Orchidaceae","Clusiaceae","Clusiaceae","Clusiaceae","Clusiaceae","Gesneriaceae","Gesneriaceae","Orchidaceae","Rubiaceae","Rubiaceae","Urticaceae","Urticaceae","Orchidaceae","Orchidaceae","Orchidaceae","Gesneriaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Dryopteridaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Cactaceae","Orchidaceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Moraceae","Orchidaceae","Orchidaceae","Bromeliaceae","Bromeliaceae","Aspleniaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Lomariopsidaceae","Cyclanthaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Lomariopsidaceae","Dryopteridaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Araceae","Araceae","Orchidaceae","Nephrolepidaceae","Nephrolepidaceae","Polypodiaceae","Polypodiaceae",null,"Orchidaceae","Orchidaceae","Orchidaceae","Araliaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Piperaceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Araceae","Bromeliaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Dryopteridaceae","Orchidaceae","Orchidaceae","Pteridaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Cactaceae","Araceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Polypodiaceae","Polypodiaceae","Polypodiaceae","Orchidaceae","Orchidaceae","Orchidaceae","Marcgraviaceae","Orchidaceae","Orchidaceae","Orchidaceae","Araceae","Araceae","Araceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Bromeliaceae","Orchidaceae","Hymenophyllaceae","Hymenophyllaceae","Orchidaceae","Orchidaceae","Orchidaceae","Orchidaceae","Pteridaceae","Pteridaceae","Orchidaceae","Orchidaceae",null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["Pridgeon &amp; M.W.Chase","Baker","Mart. ex Schult. &amp; Schult.f.","Baker","Underw. &amp; Maxon","Engl.","Hook.f.","Mast.","Poepp.","K.Krause","Engl.","Schott","Schott","Lindl.","Poepp.","Grayum","Engl.","Madison","Hemsl.","Engl.",null,"Rchb.f.","Willd.",null,"Lam.","Kaulf.","L.","Aubl.","L.B.Sm.","Sw.","Lindl.","Lindl.","Rolfe","Rolfe","Fee","T.Moore","Link","C.Presl","C.Presl","Klotzsch","Hook.","Mez","R.E.Schult.","H.E.Moore",null,"Pipoly","L.","Hammel","Pittier","Beurl.","Hanst.","Hook.","Rusby","Klotzsch ex Walp.","Akkermans &amp; C.C.Berg","Poepp. &amp; Endl.","Lindl.","Rchb.f.","Hoehne","Mart.","L.D.Gomez","Maxon","Mickel","Christ","Urb.","T.Moore","Fawc.","Sw.","Ruiz &amp; Pav.","Jacq.","G.Mey.","Rolfe","Schltr.","Jacq.","Jacq.","Ames","Rchb.f.","Bateman","Rchb.f.","Rchb.f.","Haw.","Haw.","N.H.Williams &amp; M.W.Chase","Standl.","Corner","Standl.","Mill.","Mill.","Miq.","Miq.","L.f.","Standl.","L.","Lindl.","Ruiz &amp; Pav.","Mez","Rusby ex Mez","L.Regalado &amp; Prada","Kunze","Rchb.f.","Lindl.","Rchb.f.","Lindl.","Rchb.f.","Fourn.","Harling","Schltr.","Seem.","Lindl.","C.Chr.","R.C.Moran, Labiak &amp; Sundue","de la Sota","C.Presl","A.R.Sm.","Engl. &amp; K.Krause","Schott","Luer","Schott","J.Sm.","Lellinger","A.Rojas",null,"Klotzsch","Lindl.","Rchb.f.","Decne. &amp; Planch.","Lindl.","Schltr.","M.G.Price","M.G.Price","C.DC.","C.DC.","Yunck.","C.DC.","A.Dietr.","C.DC.","C.DC.","C.DC.","A.Dietr.","Kunth","Beurl.","Kunth","C.DC.","Croat &amp; Grayum","G.Don",null,"Croat","Liebm.","Schott","Croat &amp; Grayum","K.Krause","K.Koch &amp; Augustin","Schott","Croat &amp; Grayum","K.Krause","Liebm.","Schott","Beer","A.R.Sm.","Pic.Serm.","E.G.Andrews &amp; Windham","Kunze","Rchb.f.","Rchb.f.","Schuettp.","W.E.Higgins","W.E.Higgins","W.E.Higgins","W.E.Higgins","Stearn","Schott","Ruiz &amp; Pav.","M.W.Chase &amp; N.H.Williams","Poepp. &amp; Endl.","S.Watson","Cogn.","A.R.Sm.","A.R.Sm.","A.R.Sm.","Rchb.f.","Rchb.f.","Bateman","Gilg","Pridgeon &amp; M.W.Chase","F.Barros","Schltr.","Hemsl.","Birdsey ex G.S.Bunting","Schott","Hook.","L.B.Sm.","Sw.","Mez","Linden &amp; Rchb.f.","Bosch","L.","Rchb.f.","Rchb.f.","Andrews","Schiede","Kaulf.","Sm.","Fowlie","G.Nicholson",null],[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],["","","","","","","","","","","","","","","","","","","","","","","","Previous name was Synonym - Name changed in WCVP","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","Family changed in WCVP","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","Family changed in WCVP","","","","","Family changed in WCVP","Family changed in WCVP","","","","","","","Family changed in WCVP","Family changed in WCVP","","","","","","","","","","","","","","","","","WCVP name is the same as another species in list","","","","","","","","","","","","","","","","","","","","","","","","","","Family changed in WCVP","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>current_name<\/th>\n      <th>wcvp_name<\/th>\n      <th>orig_name<\/th>\n      <th>current_family<\/th>\n      <th>wcvp_family<\/th>\n      <th>orig_family<\/th>\n      <th>current_author<\/th>\n      <th>wcvp_author<\/th>\n      <th>orig_author<\/th>\n      <th>current_name_notes<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"scrollX":true,"pageLength":10,"columnDefs":[{"name":"current_name","targets":0},{"name":"wcvp_name","targets":1},{"name":"orig_name","targets":2},{"name":"current_family","targets":3},{"name":"wcvp_family","targets":4},{"name":"orig_family","targets":5},{"name":"current_author","targets":6},{"name":"wcvp_author","targets":7},{"name":"orig_author","targets":8},{"name":"current_name_notes","targets":9}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-</div>
 </div>
 <div id="save-output-of-all-species." class="section level2">
 <h2>Save output of all species.</h2>
-<pre class="r"><code># Remove some columns
-# Standardize lifeform column name and remove technical matching columns
-outtaxa &lt;- processlist %&gt;%
-  rename(
-    wcvp_lifeform_description = lifeform_description
-  ) %&gt;%
-  select(
-     -wcvp_authors, -Name_matched_rank, -Accepted_name, 
-    -Accepted_family, -Accepted_name_rank, -Accepted_name_author, 
-    -Accepted_name_status, -Accepted_name_genus, -Accepted_name_species, 
-    -Accepted_name_infraspecific_rank, -Accepted_name_infraspecies,
-    -match_similarity, -match_edit_distance
-  )
-
-# Save using the path defined in your setup chunk
-write_xlsx(outtaxa, out_wcvp_list)</code></pre>
-<p>Saved 244 species with their names verified with WCVP.</p>
+<pre class="r"><code># Save species list with wcvp columns
+write_xlsx(processlist, out_wcvp_list)</code></pre>
+<p>Saved 242 species with their names verified with WCVP.</p>
 </div>
+<div id="save-output-of-all-changes" class="section level2">
+<h2>Save output of all changes</h2>
+<p>output the taxa that have any differences between accepted name and
+orig_name as a separate file of changes.</p>
+<pre class="r"><code>list_wcvp_changes &lt;- processlist %&gt;% filter(orig_name != wcvp_accepted_name)
+  
+# Save species list with wcvp columns
+write_xlsx(list_wcvp_changes, out_wcvp_changes_list)</code></pre>
+<p>Saved 42 species where the original name is different from the wcvp
+accepted name.</p>
 </div>
 
 
