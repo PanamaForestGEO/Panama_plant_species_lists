@@ -1109,7 +1109,7 @@ if(FIX_SPECIES){
 # and that DO have #1 in any of the following columns: tree, midstory, understory, shrub, liana.  Include a column for their lifeform according to Wright (based on these columns)
  
 missing_from_wright <- usewrighttaxa %>%
-  filter(!sp4 %in% panwoodtaxaout$sp4 &
+  filter((!sp6 %in% panwoodtaxaout$sp6 & !sp4 %in% panwoodtaxaout$sp4) &
         ((!is.na(tree) & tree != 0) | 
         (!is.na(midstory) & midstory != 0) | 
         (!is.na(understory) & understory != 0) | 
