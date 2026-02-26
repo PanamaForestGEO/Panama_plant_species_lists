@@ -492,7 +492,7 @@ mismatches <- mismatches %>%
       c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
         wcvp_id, wcvp_ipni_id,
         wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
-        Accepted_name, Accepted_name_genus, 
+        Accepted_name, Accepted_name_genus,  Accepted_wcvp_authority,
         Accepted_name_species, Accepted_name_rank, Accepted_family, 
         Accepted_name_author, Accepted_name_infraspecific_rank, 
         Accepted_name_infraspecies, match_similarity),
