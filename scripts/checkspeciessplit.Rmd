@@ -56,7 +56,7 @@ DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
 # input files # all in directory DIRINSP
-FNWRIGHTSPLISTIN <- "splists_out/Wright_20210224_WCVP_2026-02-19.xlsx"
+FNWRIGHTSPLISTIN <- "splists_out/wright_nomenclature_R_20210224_WCVP_2026-02-26.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx" 
 
@@ -1100,22 +1100,7 @@ if(FIX_SPECIES){
 
 ```{r synonyms}
 
-panwoodtaxaout <- read_excel("../splists_out/CurrentPanamaWoody_2026-02-22.xlsx")
 
-wcvp_names %>% mutate(
-  sp_name = case_when(
-        is.na(species) | species == "" ~ genus,
-        !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
-        TRUE ~ paste(genus, species))
-    ) 
-
-panwoodtaxaout <- panwoodtaxaout %>% left_join(
-  wcvp_names %>% select(plant_name_id, sp_name),
-  by = c(current_name == sp_name)
-)
-  filter(
-    sp_name %in% panwoodtaxaout$current_name
-  )
 
 ```
 
