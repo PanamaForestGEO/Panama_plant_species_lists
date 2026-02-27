@@ -44,17 +44,17 @@ library(DT)
 
 save_plantlists_dir = "splists_out/Plantnet species/"
 
-pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-25.xlsx", col_types = "text")
+pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-26.xlsx", col_types = "text")
 
 
-garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-02-25.xlsx", col_types = "text")
+garwood_list <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-02-26.xlsx", col_types = "text")
 
-zotz_list <- read_excel("splists_out/83_Zotz_Epiphytes_TableS1_WCVP_2026-02-25.xlsx", col_types = "text")
+zotz_list <- read_excel("splists_out/83_Zotz_Epiphytes_TableS1_WCVP_2026-02-26.xlsx", col_types = "text")
 
-woody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-02-22.xlsx",
+woody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-02-27.xlsx",
                          col_types = "text")
 
-woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-22.xlsx")
+woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-27.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -110,7 +110,9 @@ zotz_no_wcvp <- zotz_no_wcvp %>% mutate(
   any_garwood_match = orig_name %in% zotz_garwood_match$orig_name
 )
 
-datatable(zotz_no_garwood_at_all, options = list(scrollX = TRUE, pageLength = 10))
+datatable(zotz_no_garwood_at_all, 
+          caption="Zotz species that dont match to anything in garwood",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 write_xlsx(zotz_no_garwood_at_all, "splists_out/zotz_species_not_in_garwood.xlsx")
 
@@ -187,7 +189,9 @@ pbiota_no_wcvp <- pbiota_no_wcvp %>% mutate(
 )
 
 
-datatable(pbiota_no_garwood_at_all, options = list(scrollX = TRUE, pageLength = 10))
+datatable(pbiota_no_garwood_at_all, 
+          caption="Panama biota species that dont match to anything in garwood",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 write_xlsx(pbiota_no_garwood_at_all, "splists_out/panamabiota_species_not_in_garwood.xlsx")
 
@@ -239,10 +243,10 @@ If the species is in the woody list
 
 bcilist <- bcilist %>% mutate(
   woody_name =  wcvp_accepted_name %in% woody_list$current_name | 
-                wcvp_accepted_name %in% woody_list$forestgeo_name | 
+                wcvp_accepted_name %in% woody_list$orig_name | 
                 wcvp_matched_name %in% woody_list$current_name |
-                wcvp_matched_name %in% woody_list$forestgeo_name |
-                orig_name %in% woody_list$forestgeo_name |
+                wcvp_matched_name %in% woody_list$orig_name |
+                orig_name %in% woody_list$orig_name |
                 orig_name %in% woody_list$current_name,
   woody_synonym =  wcvp_accepted_name %in% woody_synonyms$SynonymTextSingle |
                    orig_name %in% woody_synonyms$SynonymTextSingle |
@@ -313,7 +317,7 @@ sum(is.na(forestgeo_regional_list$Mnemonic))
 
 match12 <- match(woody_list$sp6, forestgeo_regional_list$Mnemonic)            
 
-woody_list[is.na(match12),] %>% select(sp6, current_name , forestgeo_name)
+woody_list[is.na(match12),] %>% select(sp6, current_name , orig_name)
 
 match21 <- match(forestgeo_regional_list$Mnemonic, woody_list$sp6)            
 
@@ -337,11 +341,6 @@ plotp14_list <- abundall %>% filter(P14 >0)
 plotp11_list <- abundall %>% filter(P11 >0)
 
 
-woody_list <- woody_list %>% rename(
-  wcvp_accepted_name = current_name,
-  wcvp_matched_name = wcvp_Name_matched,
-  orig_name = forestgeo_name
-)
 ### Add columns ####
 
 woody_list <- woody_list %>% mutate(
@@ -377,7 +376,7 @@ write_xlsx(woody_list, paste0(save_plantlists_dir, "WOODY_SPECIES_",Sys.Date(),"
 # How do we verify that no species is being missed?
 
 # print species NOT in panama biota but they are in the plots
-plotmatch <- woody_list %>% filter(!bci_list & bci) %>% select(wcvp_accepted_name, orig_name, forestgeo_synonyms, plotbci, plotbci10, plotp11, plotp11)
+plotmatch <- woody_list %>% filter(!bci_list & bci) %>% select(wcvp_accepted_name, orig_name, plotbci, plotbci10, plotp11, plotp11)
 
 
 datatable(plotmatch, 

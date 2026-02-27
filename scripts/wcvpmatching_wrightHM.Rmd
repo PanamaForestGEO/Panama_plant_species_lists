@@ -1,6 +1,6 @@
 ---
 title: "Matching Wright nomenclature species names with WCVP"
-author: "Paula Uzcategui"
+author: "Paula Uzcategui, Helene Muller-Laundau"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -158,9 +158,7 @@ print(paste0("working with ", nrow(origlist), " species"))
 ```
 
 Do some manual fixes to records that will otherwise not run through the rest of the workflow properly. 
-Specifically for Ficus aff. trigonata, and Trema micranthum 
-
-Piper aristolochiaefolium,  # Piper aristolochiifolium according to Garwood 2009 synonym
+Specifically for Trema micranthum, Piper aristolochiaefolium,  
 
 ```{r manualfixes}
 # make a manual fix to this single case of duplicates, so that they are no longer duplicates
@@ -172,12 +170,14 @@ origlist$orig_binomial[inc] <- "Piper aristolochiifolium"
 inc2 <- origlist$orig_name=="Trema micrantha" 
 origlist$orig_binomial[inc2] <- "Trema micranthum"
 
-
+# adjusting manyally
 inc2 <- origlist$orig_name=="Sterculia costaricana-var.-glauca" 
 origlist$orig_name[inc2] <- "Sterculia costaricana var. glauca" 
 origlist$orig_binomial[inc2] <- "Sterculia costaricana"
 
+
 # undefined species or species that are not in wcvp
+# this is to prevent them to matching to species through fuzzy matching
 unidentified_species <- c(
   "Xylopia roubik", 
   "Nectandra fuzzy", 
@@ -231,36 +231,45 @@ Working with `r nrow(origlist)` species.
 ######################### PANMA BIOTA WCVP names ##################################
 
 # Helper function to merge and format accepted names from WCVP backbone
-matchaccepted_names <- function(matcheswcvp, wcvp_backbone){
+matchwcvp_accepted_names <- function(matcheswcvp, wcvp_backbone){
   matcheswcvp %>% 
-    left_join(wcvp_backbone %>% 
-                select(plant_name_id, ipni_id, powo_id,
-                       genus, species, taxon_rank, family, 
-                       parenthetical_author, primary_author,
-                       infraspecific_rank, infraspecies, 
-                       lifeform_description, taxon_status),
-              by = c("wcvp_accepted_id" = "plant_name_id")) %>% 
-    mutate(
-      Accepted_name = case_when(
+    left_join(
+      wcvp_backbone %>% 
+        select(
+          plant_name_id,
+          # rename immediately
+          wcvp_accepted_ipni_id  = ipni_id,
+          wcvp_accepted_powo_id  = powo_id,
+          wcvp_accepted_family   = family,
+          wcvp_accepted_name_rank = taxon_rank,
+          wcvp_wcvp_accepted_name_status = taxon_status,
+          wcvp_lifeform_description = lifeform_description,
+
+          # rename after the mutate for readability 
+          genus, species, infraspecific_rank, infraspecies,
+          parenthetical_author, primary_author
+        ),
+      by = c("wcvp_accepted_id" = "plant_name_id")
+    ) %>% 
+    mutate( 
+      wcvp_accepted_name = case_when(
         is.na(species) | species == "" ~ genus,
         !is.na(infraspecies) & infraspecies != "" ~ paste(genus, species, infraspecific_rank, infraspecies),
-        TRUE ~ paste(genus, species)),
+        TRUE ~ paste(genus, species)
+      ),
       
-        Accepted_wcvp_authority = paste0(ifelse(!is.na(parenthetical_author),
-                                           paste0("(",parenthetical_author,") "),""),
-                                    primary_author)
-    ) %>%
+      wcvp_accepted_authority =
+        paste0(
+          ifelse(!is.na(parenthetical_author), paste0("(", parenthetical_author, ") "),""),
+          coalesce(primary_author, "")
+        )
+    ) %>% 
     rename(
-      wcvp_accepted_ipni_id = ipni_id,
-      wcvp_accepted_powo_id = powo_id,
-      Accepted_family = family,
-      Accepted_name_rank = taxon_rank,
-      Accepted_name_author = primary_author,
-      Accepted_name_status = taxon_status,
-      Accepted_name_genus = genus, 
-      Accepted_name_species = species, 
-      Accepted_name_infraspecific_rank = infraspecific_rank, 
-      Accepted_name_infraspecies = infraspecies
+      wcvp_accepted_author = primary_author,
+      wcvp_accepted_name_genus = genus,
+      wcvp_accepted_name_species = species,
+      wcvp_accepted_name_infraspecific_rank = infraspecific_rank,
+      wcvp_accepted_name_infraspecies = infraspecies
     )
 }
 
@@ -317,7 +326,7 @@ matchresult_clean <- matchresult %>%
   group_by(orig_name) %>%
   slice_min(status_priority, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
-  matchaccepted_names(wcvp_names)
+  matchwcvp_accepted_names(wcvp_names)
 
 matchresult2_clean <- matchresult2 %>%
   mutate(
@@ -332,19 +341,16 @@ matchresult2_clean <- matchresult2 %>%
   group_by(orig_name) %>%
   slice_min(status_priority, n = 1, with_ties = FALSE) %>%
   ungroup() %>%
-  matchaccepted_names(wcvp_names)
+  matchwcvp_accepted_names(wcvp_names)
 
 ```
-
-
-
 
 ### Fix mismatches
 
 ```{r spot_mismatch}
 
 mismatches <- matchresult_clean %>% 
-  filter(orig_name != wcvp_name | is.na(wcvp_name) | is.na(Accepted_name)) %>%
+  filter(orig_name != wcvp_name | is.na(wcvp_name) | is.na(wcvp_accepted_name)) %>%
   left_join(matchresult2_clean %>% select(-orig_binomial) %>% rename_with(~paste0(., "_binomial"), -orig_name),
             by = "orig_name") %>%
   mutate(
@@ -370,8 +376,8 @@ mismatches <- matchresult_clean %>%
 
 printmismatches <- mismatches %>% 
   select(
-    orig_name, wcvp_name, Accepted_name, match_similarity, 
-    orig_binomial, wcvp_name_binomial, Accepted_name_binomial, match_similarity_binomial,
+    orig_name, wcvp_name, wcvp_accepted_name, match_similarity, 
+    orig_binomial, wcvp_name_binomial, wcvp_accepted_name_binomial, match_similarity_binomial,
     genus_mismatch, species_mismatch, infraspecies_rank_mismatch, infraspecies_mismatch
   ) %>% 
   arrange(match_similarity, match_similarity_binomial)
@@ -379,11 +385,13 @@ printmismatches <- mismatches %>%
 datatable(printmismatches,options = list(scrollX = TRUE, pageLength = 10))
 
 
-colsprint = c("orig_name", "wcvp_name","Accepted_name" ,"orig_binomial", "wcvp_name_binomial", "Accepted_name_binomial")
+colsprint = c("orig_name", "wcvp_name","wcvp_accepted_name" ,"orig_binomial", "wcvp_name_binomial", "wcvp_accepted_name_binomial")
 
 
 mismatches$preferred = "full"
 ```
+
+
 #### Case 1:
 ```{r printmisses}
 # both binomial and full mismatched
@@ -479,6 +487,23 @@ if (any(inc, na.rm = TRUE)) {
 ```
 
 #### Summary of mismatches after fixing:
+List of wcvp columns to keep
+```{r wcvpcolumns}
+
+# list of wcvp columns we are interested to keep at the end.
+wcvp_columns <- c(
+        # columns of matched name
+        "wcvp_name", "wcvp_authors", "wcvp_rank", "wcvp_status", "wcvp_id", "wcvp_ipni_id", "match_similarity",
+        
+        # columns of accepted name
+        "wcvp_accepted_id","wcvp_accepted_powo_id", "wcvp_accepted_ipni_id",
+        "wcvp_accepted_name", "wcvp_accepted_name_genus",  "wcvp_accepted_name_species",
+        "wcvp_accepted_name_rank", "wcvp_accepted_family", 
+        "wcvp_accepted_name_infraspecific_rank", "wcvp_accepted_name_infraspecies",
+        "wcvp_accepted_author", "wcvp_accepted_authority",
+        "wcvp_lifeform_description"
+        )
+```
 
 Now all the mismatches should make more sense
 ```{r fixingmismatches}
@@ -486,16 +511,11 @@ Now all the mismatches should make more sense
 # summary of mismatches
 knitr::kable(mismatches %>% group_by(preferred) %>% summarise(species = n()))
 
+# correct the mismatches with the binomial  matches when necessary 
 mismatches <- mismatches %>% 
   mutate(
     across(
-      c(wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
-        wcvp_id, wcvp_ipni_id,
-        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
-        Accepted_name, Accepted_name_genus,  Accepted_wcvp_authority,
-        Accepted_name_species, Accepted_name_rank, Accepted_family, 
-        Accepted_name_author, Accepted_name_infraspecific_rank, 
-        Accepted_name_infraspecies, match_similarity),
+      all_of(c(wcvp_columns)),
       ~ifelse(
         preferred == "binomial",
         get(paste0(cur_column(), "_binomial")),
@@ -504,12 +524,11 @@ mismatches <- mismatches %>%
     )
   )
 
-datatable(mismatches %>% select(orig_name, wcvp_name, Accepted_name),
+datatable(mismatches %>% select(orig_name, wcvp_name, wcvp_accepted_name),
           options = list(scrollX = TRUE, pageLength = 10),
           caption="Species after setting the wcvp matched name to a closer match")
 
 ```
-
 
 ## Joining mismatch fixes to the main list
 
@@ -517,46 +536,32 @@ datatable(mismatches %>% select(orig_name, wcvp_name, Accepted_name),
 
 # --- 4. Handle  matches ---
 
-# correct the mismatches
-
+# joins the corrected mismatches back to the original wcvp matched list
 inc <- with(matchresult_clean, orig_name %in% mismatches$orig_name)
 if (any(inc, na.rm = TRUE)) {
   corrections <- mismatches %>%
-    select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status, wcvp_homotypic, 
-        wcvp_id, wcvp_ipni_id,
-        wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id,
-        Accepted_wcvp_authority,
-        Accepted_name, Accepted_name_genus, 
-        Accepted_name_species, Accepted_name_rank, Accepted_family, 
-        Accepted_name_author, Accepted_name_infraspecific_rank, 
-        Accepted_name_infraspecies, match_similarity)
+    select(all_of(c("orig_name", wcvp_columns)))
   
   matchresult_clean <- rows_update(matchresult_clean, corrections, 
                                    by = "orig_name")
 }
 
 # --- 5. Final Join and Rename ---
-# This merges the WCVP data back into your processed original list
+# This merges the WCVP column with the original columns of the list
 processlist <- origlist %>%
   left_join(matchresult_clean %>% 
-              select(orig_name, wcvp_name, wcvp_authors, wcvp_rank, wcvp_status,
-                     wcvp_id, wcvp_ipni_id,
-                     wcvp_accepted_id, wcvp_accepted_powo_id, wcvp_accepted_ipni_id, Accepted_wcvp_authority,
-                     Accepted_name, Accepted_family, Accepted_name_author, lifeform_description),
+              select(all_of(c("orig_name", wcvp_columns))),
             by = "orig_name") %>%
   rename(
+    # rename matched columns
     wcvp_matched_name = wcvp_name,
     wcvp_matched_authors = wcvp_authors,
     wcvp_matched_rank = wcvp_rank,
     wcvp_matched_status=wcvp_status,
     wcvp_matched_plant_name_id = wcvp_id,
     wcvp_matched_ipni_id = wcvp_ipni_id,
-    wcvp_accepted_name = Accepted_name,
-    wcvp_accepted_family = Accepted_family,
-    wcvp_accepted_author = Accepted_name_author,
-    wcvp_accepted_authority = Accepted_wcvp_authority,
+    
     wcvp_accepted_plant_name_id =  wcvp_accepted_id,
-    wcvp_lifeform_description = lifeform_description
   ) %>%
   mutate(
   origmatches = orig_name == wcvp_matched_name
@@ -566,7 +571,7 @@ processlist <- origlist %>%
 knitr::kable(processlist %>% count(wcvp_matched_status))
 
 knitr::kable(subset(processlist,
-             !wcvp_matched_status %in% c("Accepted", "Synonym")) %>% 
+             is.na(wcvp_accepted_name) | !wcvp_matched_status %in% c("Accepted", "Synonym") ) %>% 
         select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
       caption = "Species not listed as Accepted or Synonym in WCVP")
 ```
@@ -574,38 +579,85 @@ knitr::kable(subset(processlist,
 
 ## Make decision for current name
 
+Previously we made sure the wcvp_accepted_name are all from good matches, otherwise we keep the wcvp_accepted_name as NA.
+
+Now for the current name we keep set it to the wcvp_accepted_name if there it is not NA. Otherwise the current name is the original name. 
+
+EXCEPT when two or more species have the same wcvp_accepted_name, in that case we keep the original name
+
+First find the duplicate wcvp_accepted_names
+```{r finddups}
+
+acceptednamesdup <- processlist %>% 
+  filter(!is.na(wcvp_accepted_name)) %>%
+  group_by(wcvp_accepted_name) %>% 
+  arrange(wcvp_accepted_name) %>% filter(n()>1) %>% ungroup() %>%
+  mutate(mismatch = (orig_name != wcvp_matched_name)) %>% 
+  arrange(wcvp_accepted_name, mismatch, match_similarity) %>%
+  select(sp6, sp4, wcvp_accepted_name, orig_name, wcvp_matched_name, wcvp_matched_status, mismatch, match_similarity )
+
+if( nrow(acceptednamesdup) > 0){
+  datatable(acceptednamesdup,
+            caption="Two species have now the same accepted name",
+            options = list(scrollX = TRUE, pageLength = 10),)
+}
+
+
+
+```
+
+See all the species names changes:
+
+```{r seechanges}
+
+changes_names <- processlist %>% 
+  filter( !is.na(wcvp_accepted_name) &  wcvp_accepted_name != orig_name & !orig_name %in% acceptednamesdup$orig_name) %>%
+  select(sp6, sp4, orig_name, wcvp_accepted_name, wcvp_matched_name, wcvp_matched_status)
+
+
+datatable(changes_names,
+          caption="Changes to be applied, the original name is different from the wcvp_name",
+          options = list(scrollX = TRUE, pageLength = 10),)
+
+
+```
+
+
+
 ```{r currentname choice}
 
 processlist <- processlist %>% 
   mutate(
     # Use accepted name if available, otherwise use original name
-    current_name = ifelse(is.na(wcvp_accepted_name), orig_name, wcvp_accepted_name),
+    current_name = ifelse(is.na(wcvp_accepted_name) | orig_name %in% acceptednamesdup$orig_name, orig_name, wcvp_accepted_name),
     
     # Use accepted author if available, otherwise use original author
-    current_author = ifelse(is.na(wcvp_accepted_author), orig_author, wcvp_accepted_author),
+    current_author = ifelse(is.na(wcvp_accepted_author) | orig_name %in% acceptednamesdup$orig_name, orig_author, wcvp_accepted_author),
     
     # Use accepted family if available, otherwise use original family
-    current_family = ifelse(is.na(wcvp_accepted_family), orig_family, wcvp_accepted_family),
+    current_family = ifelse(is.na(wcvp_accepted_family) | orig_name %in% acceptednamesdup$orig_name, orig_family, wcvp_accepted_family),
     
     # Flag whether the name changed from original to WCVP accepted
-    orig_name_changed_wcvp = (!is.na(wcvp_accepted_name) &  orig_name != wcvp_accepted_name)
+    orig_name_changed_wcvp =  orig_name != current_name,
+    
+    wcvp_accepted_duplicated = orig_name %in% acceptednamesdup$orig_name
   )
 
-
-datatable(processlist %>% filter(orig_name_changed_wcvp) %>%
-            select(current_name,orig_name, wcvp_matched_name,wcvp_accepted_name))
 
 ```
 
 
 ## Save output of all species.
+
+Showing columns saved in the final dataset:
 ```{r saveoutput}
 
 # Save species list with wcvp columns
 write_xlsx(processlist, out_wcvp_list)
 
-
+print(paste(colnames(processlist), collapse=", "))
 ```
+
 
 Saved `r nrow(processlist)` species with their names verified with WCVP. 
 
