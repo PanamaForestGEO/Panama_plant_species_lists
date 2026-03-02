@@ -27,7 +27,7 @@ viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTax
 
 viewtaxonomy_synonyms_path <- "splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
 
-woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-22.xlsx")
+woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-02-27.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -114,7 +114,7 @@ v_tax <- viewtaxonomy_synonyms %>%
   mutate(in_viewtax = TRUE)
 
 w_syn <- woody_synonyms %>%
-  select(prefname = forestgeo_name, altname = SynonymTextSingle) %>%
+  select(prefname = orig_name, altname = SynonymTextSingle) %>%
   mutate(in_woody = TRUE)
 
 g_syn <- garwood_synonyms %>%
