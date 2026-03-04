@@ -1,7 +1,7 @@
 ---
 title: "Assemble BCI PlantNet list"
 author: "Helene Muller-Landau, Paula Uzcategui"
-date: "2026-02-10"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -9,19 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Using three sources: garwood list (2009), zotz list, and panama biota list. 
+Using different lists as sources: Garwood list (2009), Zotz list, Species in bci that appear in plots census, and species in a BCI lianas list.
 
-We match the names by the wcvp accepted name, if its not in any of the other lists it is added as a new row. The original name of the species in each list is preserved, as well as the wcvp_matched_name. 
+Additionally a list of PanamaBiota species that don't match to any of the species in the lists mentioned above is outputed. This list needs revision, since PanamaBiota combines species from many sources it might not be very accurate. 
+
+We check that the names of the species added to the list don't match in anyway to the names of the species already in the list. By synonyms or by alternate names (names previously used for the species, not quite synonyms in the botanical sense). 
+
 
 OUTPUTS: 
 
-- list of BCI panama plant species
+- list of BCI panama plant species combining lists revised by botanists
 
-- list of Zotz species that are not in any way in Garwood (synonym, Croat name, original name, matched name)
+- list of PanamaBiota species that are not in any way in the other botanists-revised lists (synonym, original name, matched name)
 
-- list of PanamaBiota species that are not in any way in Garwood (synonym, original name, matched name)
-
-- list of BCI species that might be woody according to the wcvp lifeform (needs revision)
+- list of BCI species that might be woody according to the wcvp lifeform. This needs revision
 
 ```{r setup2, echo=TRUE,message=FALSE, warning=FALSE, results="hide"}
 
@@ -615,7 +616,7 @@ datatable(garwood_list_orig %>%
           options = list(scrollX = TRUE, pageLength = 10))
 
 
-write_xlsx(bci_plots_no_garwood_at_all, "splists_out/Plantnet species/plots_bci_not_garwood.xlsx")
+write_xlsx(bci_plots_no_garwood_at_all, "splists_out/plots_bci_not_garwood.xlsx")
 
 ```
 
@@ -950,7 +951,7 @@ datatable(pbiota_no_garwood_at_all,
           caption="Panama biota species that dont match to anything in garwood",
           options = list(scrollX = TRUE, pageLength = 10))
 
-write_xlsx(pbiota_no_garwood_at_all, "splists_out/panamabiota_species_not_in_garwood.xlsx")
+write_xlsx(pbiota_no_garwood_at_all, "splists_out/Plantnet species/panamabiota_species_not_in_garwood.xlsx")
 
 ```
 
