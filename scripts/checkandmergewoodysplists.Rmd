@@ -45,7 +45,7 @@ To be added in the future - also include data from the following file, and check
 
 Panama plot liana species table, specifically from the folder Schnitzer.  These are lists of liana species that are included in censuses of plots in central Panama conducted under the supervision of Stefan Schnitzer.  It includes a 6-letter species code that should align with the ForestGEO codes.  
 
-
+## Settings
 ```{r setpath, include=FALSE}
 rm(list=ls())
 ```
@@ -372,9 +372,8 @@ These are both assembled by ForestGEO, and generally updated in tandem, so shoul
 Check that all taxa in the ViewTaxonomy list that are identified to species are also in the Panama woody plants list. 
 
 ```{r checkforestgeoconsistency}
-# check for 6-letter codes in the Fgeo codes list that are not in the Panama woody plant species list (and are for identified species)
-sp6dropped <- subset(treeplottaxa,!sp6 %in% panwoodtaxa$sp6 
-                       &IDLevel=="species") %>%
+# check for 6-letter codes in the Fgeo codes list that are not in the Panama woody plant species list (does not matter if they dont have full species id)
+sp6dropped <- subset(treeplottaxa,!sp6 %in% panwoodtaxa$sp6) %>%
       mutate(binomial_in_flora=binomial %in% panwoodtaxa$binomial) %>%
       arrange(sp6)
 
@@ -404,14 +403,14 @@ Adding species in forestgeo Viewtaxonomy that are not in the woodylist
 
 # add species in forestgeo that are not in panama woody
 panwoodtaxa <- bind_rows(
-  panwoodtaxa,
+  panwoodtaxa %>% mutate(IDLevel = "species"),
   sp6dropped %>% select(sp6 = sp6, sp6curr = sp6, orig_family = Family, orig_genus = Genus, 
                         orig_name = species_name, orig_species = SpeciesName,
-                        orig_infraspcies = Subspecies, orig_infrasepecies_rank = Rank,
+                        orig_infraspecies = Subspecies, orig_infraspecies_rank = Rank,
                         binomial = binomial,
                         orig_name_author = author_name, orig_synonyms = ListOfOldNames,
-                        
-                        )
+                        IDLevel
+                        ) 
 )
 
 ```
@@ -461,7 +460,7 @@ Among other useful columns returned by wcvp...
 
 origlist <- panwoodtaxa %>% mutate(
       orig_binomial = str_squish(paste0(orig_genus, " ", 
-                               ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species))))
+                               ifelse(substr(orig_species, 1, 3) == "sp." | IDLevel !="species", "", orig_species))))
 
 ```
 
@@ -521,7 +520,7 @@ if(file.exists(FNPANAMASPLISTWCVP) & !redoWCVP){
   matchresult <- readRDS(FNPANAMASPLISTWCVP)
 } else {
   # Run the matching process
-  matchresult <- wcvp_match_names(origlist, wcvp_names, name_col = "orig_name")
+  matchresult <- wcvp_match_names(subset(origlist,IDLevel == "species"), wcvp_names, name_col = "orig_name")
 
   # Save as RDS for speed
   saveRDS(matchresult, FNPANAMASPLISTWCVP)
@@ -540,8 +539,6 @@ if(file.exists(FNPANAMASPLISTWCVP2) & !redoWCVP){
 
 
 # --- 2. Sanity Checks & Duplicate Resolution ---
-# Ensure all species are accounted for
-stopifnot(all(origlist$orig_name %in% matchresult$orig_name))
 
 # Identify names that mapped to multiple 'Accepted' records
 manyaccepted <- matchresult %>%
@@ -663,16 +660,17 @@ datatable( mismatchcase3 %>% select(all_of(colsprint)),
 
 ```
 
-The mismatch is a difference only in infraspecific rank. Use the WCVP accepted name for the full match. 
+The match is different only in infraspecific rank. Use the WCVP accepted name for the full match. 
 
 #### Case 3:
 ```{r findingcase2}
-# full name mismatched, binomial didin't. And genus and species did not mismatch
+# full name mismatched or didint match to anything, binomial didin't. And genus and species did not mismatch
 # this is because the infraspecies is messing the fuzzy matching
-mismatchcase2 <- mismatches %>% filter( orig_name != wcvp_name &
-                       orig_binomial == wcvp_name_binomial &
+mismatchcase2 <- mismatches %>% filter( (orig_binomial == wcvp_name_binomial) &
+                                          is.na(wcvp_name) | (
+                      (orig_name != wcvp_name &
                       (genus_mismatch | species_mismatch) &
-                       !is.na(orig_infraspecies) & orig_infraspecies!= ""
+                       !is.na(orig_infraspecies) & orig_infraspecies!= ""))
                          ) 
 datatable( mismatchcase2 %>% select(all_of(colsprint)),
            caption="Mismatch for full name involving a mismatch on genus or species, and at the same time perfect match when just on binomial.",
@@ -806,9 +804,10 @@ processlist <- origlist %>%
 # Review Results
 knitr::kable(processlist %>% count(wcvp_matched_status))
 
-knitr::kable(subset(processlist,
+datatable(subset(processlist,
              is.na(wcvp_accepted_name) | !wcvp_matched_status %in% c("Accepted", "Synonym") ) %>% 
         select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
+      options = list(scrollX = TRUE, pageLength = 10),
       caption = "Species not listed as Accepted or Synonym in WCVP")
 ```
 
@@ -1310,7 +1309,8 @@ if (nrow(genus_check2) > 0) {
   datatable(genus_check2, caption="Genus lifeform. Check wether a single genus always has the same life form", options = list(scrollX = TRUE, pageLength = 10))
 } 
 
-if(genus_check2$n_genera[genus_check2$habit_class == "Both"] > 0){
+numbergenus <- genus_check2 %>% filter(habit_class == "Both") %>% select(n_genera)
+if(nrow(numbergenus) > 0){
   datatable(table_2rows, caption="Genus with species with two life forms",options = list(scrollX = TRUE, pageLength = 10))
 }
 ```
