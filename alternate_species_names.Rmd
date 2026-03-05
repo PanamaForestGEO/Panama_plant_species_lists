@@ -25,8 +25,6 @@ library(DT)
 
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
 
-viewtaxonomy_synonyms_path <- "splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
-
 woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-03-04.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
@@ -34,6 +32,11 @@ garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synon
 garwood_synonyms <- garwood_synonyms %>% mutate(
   sp_name = trimws(paste0(Genus, " ", Species)),
   synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)))
+
+
+FILEVIEWTAXSYN <- "splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
+
+FILEALLSYN <- paste0("splists_out/AltNames_",Sys.Date(), ".xlsx")
 
 ```
 
@@ -101,9 +104,11 @@ datatable(viewtaxonomy_synonyms,
              caption = "Mapping: Original Name to Individual Synonym")
 
 
-write_xlsx(viewtaxonomy_synonyms, viewtaxonomy_synonyms_path)
+write_xlsx(viewtaxonomy_synonyms, FILEVIEWTAXSYN)
 
 ```
+Writing the synonyms from the ViewTaxonomy file to `r FILEVIEWTAXSYN`
+
 
 ## Combined table of synonyms and alternate names
 
@@ -131,8 +136,12 @@ altnames <- w_syn %>%
 
 datatable(altnames)
 
+# remove cases in which the two names are the same
+altnames <- altnames %>%
+  filter(altname!=prefname)
 
-write_xlsx(altnames, paste0("splists_out/AltNames_",Sys.Date(), ".xlsx"))
+
+write_xlsx(altnames, FILEALLSYN)
 
 ```
-
+Writing all synonyms to the file `r FILEALLSYN`
