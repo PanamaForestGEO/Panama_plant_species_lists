@@ -1000,7 +1000,7 @@ bcilist <- bcilist %>%  mutate(
   
 bcilist <- bcilist %>%
   mutate(
-    woody = is.na(sp6), # If they matched it also means it is a woody species 
+    woody = !is.na(sp6), # If they matched it also means it is a woody species 
     garwood_diff_forestgeo = orig_name != forestgeo_current_name & 
       wcvp_accepted_name != forestgeo_current_name &
       orig_binomial != forestgeo_current_name &
