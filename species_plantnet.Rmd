@@ -30,11 +30,11 @@ Schnitzer, Stefan, David DeFilippis, Rigoberto Rivera-Camaña, et al. 2024. Lian
 
 Zotz, Gerhard.  2024.  Table S1. Updated list of epiphyte species on BCI. Online Supplementary Material for Zotz, G. 2024. Epiphyte Research on BCI. In *The First 100 Years of Research on Barro Colorado: Plant and Ecosystem Science*, ed. H. C. Muller-Landau and S. J. Wright. Smithsonian Institution Scholarly Press. https://doi.org/10.5479/si.26880865
 
-### To Do
+### To do 
 
-Associate the current ForestGEO name whenever that is available, along with 6-letter and 4-letter species codes.  DONE
+Address cases with Prefix %in% c("X", "sp. aff.") in the Garwood list.  This means the morphospecies is a hybrid.  Our current workflow ignores this info and is constructing "orig_name" and orig_binomial without including the prefix, leading to matches on the name without the prefix, but that is incorrect.  We should keep the prefix in the orig_name and the orig_binomial, and remove these from the taxa that are matched under WCVP.  The Garwood name should be kept (these aren't very important as they are mostly cultivated species and there aren't many of them). 
 
-Change how alternate names are dealt with - the source matters. DONE  
+When reading in files, it would be good to rename columns right away if necessary to get rid of blanks, /’s, and other problematic characters, so subsequent references can be simplified.
 
 
 ## Setup
@@ -73,7 +73,7 @@ pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-26.xlsx", col
 panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-09.xlsx", col_types = "text")
 panwoody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-03-09.xlsx", col_types="text")
 
-viewtaxa_list <- read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM.xlsx")
+viewtaxa_list <- read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 viewtaxa_synonyms <- read_excel("splists_out/ViewTaxonomy_dec4_25_SYNONYMS.xlsx")
 
 alternate_names <- read_excel("splists_out/AltNames_2026-03-06.xlsx")
@@ -643,43 +643,37 @@ bci_plots_garwood_match <- bind_rows(
 bci_plots_no_garwood_at_all <- bci_plots %>%
   filter(!sp6 %in% bci_plots_garwood_match$sp6)
 
-if (nrow(bci_plots_no_garwood_at_all)>0) {
-  kable(bci_plots_no_garwood_at_all  %>% select(sp6, orig_name, wcvp_matched_name, 
-                                                wcvp_accepted_name, plot_name), 
-            caption="Species recorded in BCI plots census that don't match anything in Garwood",
-            options = list(scrollX = TRUE, pageLength = 10))
+kable(bci_plots_no_garwood_at_all  %>% select(sp6, orig_name, wcvp_matched_name, 
+                                              wcvp_accepted_name, plot_name), 
+          caption="Species recorded in BCI plots census that don't match anything in Garwood")
 
 
+plotsingarwoodorig <- garwood_list_orig %>% 
+  filter(orig_name %in% bci_plots_no_garwood_at_all$orig_name)
 
-kable(garwood_list_orig %>% 
-  filter(orig_name %in% bci_plots_no_garwood_at_all$orig_name) %>%
-  select(orig_name, chg), 
-          caption="Some of these species we removed earlier...",
-          options = list(scrollX = TRUE, pageLength = 10))
-  
+if (nrow(bci_plots_no_garwood_at_all)>0 & nrow(plotsingarwoodorig)>0) {
+  datatable(plotsingarwoodorig %>%
+    select(orig_name, chg), 
+            caption="In some cases, these species were on the original Garwood list but recorded there as being only in the BCNM, not on BCI.")
+    
 }
-
 
 write_xlsx(bci_plots_no_garwood_at_all, FILECHECKPLOTS)
 
 ```
 
+Add the completely new rows to the BCI list
+
+
 ```{r addplottobci}
-# Add the completely new rows to the BCI list
-bci_plots_no_garwood_at_all$source_list = "PlotCensusBCI"
+# bci_plots_no_garwood_at_all$source_list = "PlotCensusBCI"
 
 bcilist <- bind_rows(
   bcilist,
-  bci_plots_no_garwood_at_all %>% select(all_of(c(listscol, "plot_name", "bci50ha", "bci10ha", "P11", "P14"))
+  bci_plots_no_garwood_at_all %>% 
+    mutate(source_list="plotcensuses") %>%
+    select(all_of(c(listscol, "plot_name", "bci50ha", "bci10ha", "P11", "P14"))
 ))
-
-
-# Add the forestegeo names of the species that matched by alternate names
-
-bcilist <- bcilist %>% left_join(
-  bci_plots_garwood_synonym_print %>% select(orig_garwood, pref_forestgeo = prefered_name),
-  by = c("orig_name" = "orig_garwood")
-)
 
 ```
 
@@ -932,14 +926,14 @@ datatable(
 ```
 
 
-### Link codes and update names woody plant species using the ForestGEO synonym list
+### Use the Panama woody plant morphospecies list to link in currento ForestGEO names and 6-letter and 4-letter species codes for all species.
 
 And add column indicating if the species is in the woody list
 ```{r addforestgeocurrentname}
 
 # For all the species in the bcilist
 # check if they are directly on the forestgeo /woody list
-# check if they have an alternate name of that list
+# check if they have an alternate name on that list
 
 # Add a column with the forestgeo name
 # Flag when the forestgeo_current_name != orig_garwood name
@@ -962,7 +956,7 @@ forestgeo_names_lookup <- bind_rows(
 # check for cases where one garwood name corresponds to multiple forestgeo names.  
 
 
-# 2. Match foretsgeo names and codes from the woody list
+# 2. Match forestgeo names and codes from the woody list
 bcilist <- bcilist %>% 
   left_join(forestgeo_names_lookup, by = c("pref_forestgeo"= "match_key")) %>%
   left_join(forestgeo_names_lookup, by = c("orig_name"= "match_key"), suffix = c("", "_orig")) %>%
