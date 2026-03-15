@@ -105,18 +105,45 @@ origlist <- origlist %>%
     orig_infraspecies_rank = "v/s",
     orig_infraspecies = Varsub
   ) %>% 
-  mutate(orig_infraspecies_rank=ifelse(orig_infraspecies_rank=="ssp.","subsp.",orig_infraspecies_rank)) %>%
-  mutate(orig_name = case_when(
-        is.na(orig_species) | orig_species == "" ~ orig_genus,
-        !is.na(orig_infraspecies) & orig_infraspecies != "" ~ paste(orig_genus, orig_species, orig_infraspecies_rank, orig_infraspecies),
-        TRUE ~ paste(orig_genus, orig_species))
-        ) %>%
   mutate(
+    # Set wcvp nomenclature for infraspecies rank
+    orig_infraspecies_rank = ifelse(
+      orig_infraspecies_rank=="ssp.",
+        "subsp.",
+        orig_infraspecies_rank),
+    
+    # Set wcvp nomenclature for prefix
+    Prefix = case_when(
+      Prefix == "X" ~ "x",
+      Prefix == "sp. aff."~ "aff.",
+      TRUE ~ NA_character_),
+    
+    # Create full name string
+    orig_name = case_when(
+      
+        # Genus only
+        is.na(orig_species) | orig_species == "" ~ orig_genus,
+        
+        #Genus + prefix + species + infraspecies
+        !is.na(Prefix) & !is.na(orig_infraspecies) & orig_infraspecies != "" ~ paste(orig_genus, Prefix, orig_species, orig_infraspecies_rank, orig_infraspecies),
+        
+        # Genus + species + infrasepecies
+        !is.na(orig_infraspecies) & orig_infraspecies != "" ~ paste(orig_genus, orig_species, orig_infraspecies_rank, orig_infraspecies),
+        
+        # Genus + prefix + species
+        !is.na(Prefix) ~ paste(orig_genus, Prefix,  orig_species),
+        
+        # Gensu + species
+        TRUE ~ paste(orig_genus, orig_species)),
+
     # remove extra spaces inside name
     orig_name = str_squish(orig_name), 
-    # add columns for the simple species name (not including "sp." or such), and simple binomial
-    orig_binomial = str_squish(paste0(orig_genus, " ", 
-                               ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species)))
+    
+    # Create binomial name columns. Simple species name (not including "sp." or such), and simple binomial. Keeping the preffix "X" and "sp. aff." in the binomial
+    orig_binomial = str_squish(
+      paste0(orig_genus, " ", 
+             ifelse(!is.na(Prefix),paste0(Prefix, " "), ""),
+             ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species))),
          ) %>% 
   arrange(orig_name)
 
@@ -134,16 +161,14 @@ if(nrow(dups) > 0){
 Do some manual fixes to records that will otherwise not run through the rest of the workflow properly.  Specifically for Ficus aff. trigonata, and Trema micranthum 
 
 ```{r manualfixes}
-# make a manual fix to this single case of duplicates, so that they are no longer duplicates
-# and to better reflect what the text says about them
-inc <- origlist$orig_name=="Ficus trigonata" & origlist$Prefix=="sp. aff."
-origlist$orig_name[inc] <- "Ficus aff. trigonata"
-origlist$orig_binomial[inc] <- "Ficus"
 
 # change the name so the species will match with wcvp
-inc2 <- origlist$orig_name=="Trema micrantha" 
-origlist$orig_binomial[inc2] <- "Trema micranthum"
+inc <- origlist$orig_name=="Trema micrantha" 
+origlist$orig_binomial[inc] <- "Trema micranthum"
 
+# Manually removing the author name from this species. 
+inc <- origlist$orig_name=="Croton draco subsp. panamensis (Klotzsch) G.L.Webster"
+origlist$orig_name[inc] <- "Croton draco subsp. panamensis"
 
 ```
 
@@ -201,7 +226,8 @@ if(file.exists(matches_mid_path) & !redoWCVP){
   matchresult <- readRDS(matches_mid_path)
 } else {
   # Run the matching process
-  matchresult <- wcvp_match_names(origlist, wcvp_names, name_col = "orig_name")
+  # keep hybrids and aff out of the wcvp matching...
+  matchresult <- wcvp_match_names(subset(origlist,is.na(Prefix)), wcvp_names, name_col = "orig_name")
 
   # Save as RDS for speed
   saveRDS(matchresult, matches_mid_path)
@@ -211,7 +237,7 @@ if(file.exists(matches_mid_path) & !redoWCVP){
 if(file.exists(matches_mid_path2) & !redoWCVP){
   matchresult2 <- readRDS(matches_mid_path2)
 } else {
-  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial), wcvp_names, 
+  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial & is.na(Prefix)), wcvp_names, 
                                    name_col = "orig_binomial")
 
   # Save as RDS for speed
@@ -220,7 +246,6 @@ if(file.exists(matches_mid_path2) & !redoWCVP){
 
 # --- 2. Sanity Checks & Duplicate Resolution ---
 # Ensure all species are accounted for
-stopifnot(all(origlist$orig_name %in% matchresult$orig_name))
 
 # Identify names that mapped to multiple 'Accepted' records
 manyaccepted <- matchresult %>%
@@ -505,6 +530,16 @@ knitr::kable(subset(processlist,
              is.na(wcvp_accepted_name) | !wcvp_matched_status %in% c("Accepted", "Synonym") ) %>% 
         select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
       caption = "Species not listed as Accepted or Synonym in WCVP")
+
+
+# Species matched only to the genus level
+
+onlygenus_match <- processlist %>% 
+  filter((is.na(word(orig_name,2)) | word(orig_name,2) == "" ) | 
+           (!is.na(wcvp_accepted_name) & is.na(word(wcvp_accepted_name,2)))) %>% select(orig_name, wcvp_matched_name, wcvp_accepted_name)
+
+knitr::kable(onlygenus_match, caption="Species that matched only to genus ")
+
 ```
 
 

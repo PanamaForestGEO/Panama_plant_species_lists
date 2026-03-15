@@ -23,9 +23,9 @@ library(stringr)
 library(DT)
 
 
-viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2025-12-04FromSuzanne/ViewTaxonomy_dec4_25.xlsx")
+viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
-woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-03-04.xlsx")
+woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-03-13.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -54,7 +54,7 @@ mutate(across(everything(), ~ {
   }
 }))
 
- #set the code to the subspecies code if it is a subspecies
+# set the code to the subspecies code if it is a subspecies
 viewtaxonomy <- viewtaxonomy %>% 
   mutate(
          sp6 = ifelse(is.na(Subspecies), Mnemonic, subspMnemonic), 
@@ -152,6 +152,8 @@ datatable(identnames,caption="Altname and prefname are the same")
 altnames <- altnames %>%
   filter(altname!=prefname)
 
+nrow(altnames)
+
 # find cases in which two rows have the same altname and prefname
 dup_altpref <- altnames %>%
   arrange(prefname,altname,GarwoodNotes) %>%
@@ -176,6 +178,7 @@ altnames <- altnames %>%
     .groups = "drop"
   )
 
+nrow(altnames)
 
 # detect cases where the same combination of names appears both directions:
 recipnames <- altnames %>%
@@ -200,6 +203,70 @@ datatable(recipnames,caption="Cases in which the same pair of names appears in o
 These are all cases in which Garwood 2009 has one set of changes, and the more recent ForestGEO species lists (Panama woody and/or ViewTaxonomy) have the opposite. In these cases, the ForestGEO preference is kept, because it is more recent.
 
 
+### Redundant garwood synonyms getting removed
+
+Here we highlight the garwood synonyms getting removed in the previous block. 
+```{r garwoodcheck}
+
+nrow(garwood_synonyms)
+# Add a unique ID to every row first
+garwood_work <- garwood_synonyms %>%
+  mutate(row_id = row_number())
+
+# --- CHECK 1: Name == Synonym ---
+remove_equals <- garwood_work %>% 
+  filter(sp_name == synonym_sp)
+
+ids_to_remove <- remove_equals$row_id
+
+# --- CHECK 2: Redundant Duplicates (excluding those already in ids_to_remove) ---
+# We look at what's left
+remaining_after_1 <- garwood_work %>% 
+  filter(!row_id %in% ids_to_remove)
+
+duplicate_sets <- remaining_after_1 %>%
+  add_count(sp_name, synonym_sp) %>%
+  filter(n > 1)
+
+# We want to remove all but one from each duplicate group
+# We'll keep the first row_id of each group and flag the rest
+ids_to_keep_from_dupes <- duplicate_sets %>%
+  group_by(sp_name, synonym_sp) %>%
+  slice(1) %>%
+  pull(row_id)
+
+remove_duplicates <- duplicate_sets %>%
+  filter(!row_id %in% ids_to_keep_from_dupes)
+
+ids_to_remove <- c(ids_to_remove, remove_duplicates$row_id)
+
+# --- CHECK 3: ForestGeo Switch (excluding those already flagged) ---
+remaining_after_2 <- garwood_work %>% 
+  filter(!row_id %in% ids_to_remove)
+
+garwood_forestgeo_switch <- remaining_after_2 %>% 
+  filter(
+    (sp_name %in% w_syn$altname & synonym_sp %in% w_syn$prefname) |
+    (sp_name %in% v_tax$altname & synonym_sp %in% v_tax$prefname)
+  )
+
+ids_to_remove <- c(ids_to_remove, garwood_forestgeo_switch$row_id)
+  
+length(ids_to_remove)
+
+# Final summary
+cat(paste0(
+  "Total Rows: ", nrow(garwood_work), "\n",
+  "1. Removed (prefname == synonym): ", nrow(remove_equals), "\n",
+  "2. Removed (Duplicates of prefname, altname combination): ", nrow(remove_duplicates), "\n",
+  "3. Removed (ForestGeo prefname and altname is prefered): ", nrow(garwood_forestgeo_switch), "\n",
+  "---------------------------\n",
+  "Total unique rows to delete: ", length(unique(ids_to_remove)), "\n",
+  "Final Row Count will be: ", nrow(garwood_work) - length(unique(ids_to_remove))
+))
+
+```
+
 ```{r writecombined}
 
 # drop the Garwood variants of the reciprocol changes
@@ -209,9 +276,88 @@ altnames <- altnames %>%
     by = c("altname", "prefname")
   )
 
+nrow(altnames)
 
 write_xlsx(altnames, FILEALLSYN)
 ```
 
-
 Writing all remaining sets of alternate names to the file `r FILEALLSYN`
+
+
+## Problem with alternate names list. 
+
+These need revision. 
+
+We can have a preferred name pointing to many different alternate names. That is okay, a current name could have multiple synonyms/alternate names in the past. 
+
+However to have an alternate name point to many preferred names is a problem. If we find a species with that name in an old list, we wouldn't know  to what name it should have currently. 
+
+I think that this is a problem that needs to be resolved depending on where is the alternate names list being used. For example, so far it has not affected finding the forestgeo names of the species in the plantnet list. 
+```{r altnamesduplicates}
+
+# Species pointing to the same prefname. 
+datatable(altnames %>% # Count how many times each altname appears in the whole dataset
+  add_count(prefname) %>%
+  # Keep only the rows where the count is greater than 1
+  filter(n > 1) %>%
+  select(prefname, altname,GarwoodNotes, n) %>%
+  arrange(prefname), 
+  caption= "Species prefered name that have multiple alternate names")
+
+
+# Problematic: if the same alternate name points to two different prefered name
+datatable(altnames %>%
+    group_by(altname) %>%
+    # Filter only where the same altname maps to more than one unique prefname
+    filter(n_distinct(prefname) > 1) %>%
+    ungroup() %>%
+    select(altname, prefname) %>%
+    arrange(altname),
+  caption = "Conflict Report: The same altnames mapping to different prefnames"
+)
+
+```
+
+Next we breakdown where this is coming from to try to figure out what is happening:
+```{r breakingdown}
+# Breaking down this conflict:
+  
+  
+# The forestgeo names are better, so if this happens keep only the forestgeo option. 
+# if one is not in garwood and the other is, drop the one that is in garwood. 
+duplicate_altnamedrop <- altnames %>%
+  group_by(altname) %>%
+   filter(n_distinct(prefname) > 1) %>%
+  mutate(
+    # Create a flag: Is this group "mixed"?
+    is_mixed = any(in_garwood2009 == TRUE) && any(in_garwood2009 == FALSE)
+  ) 
+  
+  
+datatable(duplicate_altnamedrop %>% filter(is_mixed) %>% select(altname, prefname, GarwoodNotes, in_garwood2009, in_panwoodycurr, in_viewtaxcurr), 
+          caption="The same alternate name pointing to different prefnames where one copy of the alternate name comes form garwood and the other from forestgeo.")
+
+
+duplicated_source_garwood <- duplicate_altnamedrop %>%
+  filter(
+    # Rule: If one one copy is in garwood, and the other in forestgeo, keep the one in forestgeo. Otherwise keep both copies.
+    (!is_mixed & in_garwood2009 == TRUE)
+  ) 
+
+datatable(duplicated_source_garwood %>% select(altname, prefname, GarwoodNotes, in_garwood2009), 
+          caption="The same alternate name pointing to different prefnames where the conflict originates from garwood. Both copies are in garwood.")
+
+
+# see only the conflicts in forestgeo
+duplicated_source_forestgeo <- duplicate_altnamedrop %>% filter(
+  !in_garwood2009 & !is_mixed
+)
+
+datatable(duplicated_source_forestgeo %>% select(altname, prefname, GarwoodNotes, in_viewtaxcurr, in_panwoodycurr ), 
+          caption="The same alternate name pointing to different prefnames where the conflict originates from forestgeo. Both copies are in forestgeo.")
+
+
+```
+
+
+

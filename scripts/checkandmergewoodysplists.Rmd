@@ -244,7 +244,6 @@ if(nrow(spnamedups) > 0){
 These are both assembled by ForestGEO, and generally updated in tandem, so should be fully consistent.  
 
 
-
 Check that species with the same code in the two datasets also have the same name.
 ```{r checkconsistencyfgeo2}
 checknamesbycode <- treeplottaxa %>%
@@ -351,6 +350,7 @@ panwoodtaxafull <- bind_rows(
                         IDLevel
                         ) 
 )
+
 
 ```
 
@@ -857,7 +857,7 @@ datatable(
 Now add in all the morphospecies lacking complete species IDs from the ViewTaxa list.  (There would be no point in running these through WCVP.)
 
 ```{r addpartialid}
-treeplottaxapartialid <- treeplottaxa %>% filter(!sp6 %in% panwoodtaxa$sp6) %>%  
+treeplottaxapartialid <- treeplottaxa %>% filter(!sp6 %in% panwoodtaxafull$sp6) %>%  
               select(sp6 = sp6, orig_family = Family, orig_genus = Genus, 
                         orig_name = species_name, orig_species = SpeciesName,
                         orig_infraspecies = Subspecies, orig_infraspecies_rank = Rank,
@@ -876,6 +876,7 @@ allpanwoodtaxa <- bind_rows(processlist,treeplottaxapartialid)
 
 ```
 
+The woody species list now has `r nrow(allpanwoodtaxa)` species. 
 
 # Add sp4 codes from Wright list
 
