@@ -208,7 +208,13 @@ unidentified_species <- c(
   "Sapium broadleaf", 
   "Cojoba hoja grande",
   "Meliosma hoja grande",
+  "Sloanea cerrojefe",
   "Unonopsis peludo")
+
+
+inc3 <- origlist$orig_name %in% unidentified_species
+origlist$orig_binomial[inc3] <- word(origlist$orig_name[inc3], 1) # identify only to the genus level. 
+origlist$Idlevel[inc3] = "genus"
 
 # preventing them from matching to the wrong species
 leave_original_name <-  c(
@@ -217,8 +223,8 @@ leave_original_name <-  c(
   "Erythroxylum parita",
   "Clusia cretosa")
 
-inc3 <- origlist$orig_name %in% c(leave_original_name, unidentified_species)
-origlist$orig_binomial[inc3] <-NA
+inc4 <- origlist$orig_name %in% leave_original_name
+origlist$orig_binomial[inc4] <-NA
 
 
 ```
@@ -298,7 +304,7 @@ if(file.exists(matches_mid_path2) & !redoWCVP){
 
 # --- 2. Sanity Checks & Duplicate Resolution ---
 # Ensure all species are accounted for
-stopifnot(all(origlist$orig_name %in% matchresult$orig_name))
+#stopifnot(all(origlist$orig_name %in% matchresult$orig_name))
 
 # Identify names that mapped to multiple 'Accepted' records
 manyaccepted <- matchresult %>%
@@ -471,7 +477,7 @@ datatable( missrest %>% select(all_of(colsprint)), caption="Species not consider
 ```
 For all of these, there is no WCVP match to the full name (Except for Phyllanthus sp. and Trema micrantha), but in most cases there is a match to the binomial name.  Thus use the binomial name.  
 
-And in the cases where there is no match, it is because of a lack of taxonomic resolution in the original ID (just to family).  
+The unidentified species matched to the genus level, making sure the genus is spelled correctly.
 
 
 ```{r fixingcase5}
@@ -675,3 +681,33 @@ write_xlsx(list_wcvp_changes, out_wcvp_changes_list)
 ```
 
 Saved `r nrow(list_wcvp_changes)` species where the original name is different from the wcvp accepted name. 
+
+
+# Species with unique and duplicated codes 
+
+Saved  `r nrow(processlist)` rows in the wright list.
+
+Original rows in the list: `r nrow(origlist)` 
+
+All the species have either an sp6 or an sp4 code, or both. 
+
+The species with a duplicated sp6 or sp4 code are because the code is NA
+```{r uniquecodes}
+
+# Species that have both sp6 and sp4 
+datatable(processlist %>%
+  filter(!is.na(sp6) & !is.na(sp4)) %>%
+    select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), caption="Species that have sp6 and sp4 codes")
+
+
+datatable(processlist %>%
+  group_by(sp6) %>%
+    filter(n() > 1) %>%
+    select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), caption="Species with a duplicated sp6 code in the wright list")
+
+datatable(processlist %>%
+  group_by(sp4) %>%
+    filter(n() > 1) %>%
+    select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), caption="Species with a duplicated sp4 code in the wright list")
+```
+

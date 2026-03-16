@@ -65,7 +65,7 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= TRUE
+redoWCVP= FALSE
 
 
 
@@ -721,4 +721,82 @@ write_xlsx(list_wcvp_changes, out_wcvp_changes_list)
 Saved `r nrow(list_wcvp_changes)` species where the original name is different from the wcvp accepted name. 
 
 
+## Checking sp6 matches with current woody species
 
+```{r woodymatch}
+
+current_woody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-16.xlsx", col_types = "text")
+#current_woody_list %>% filter(sp6 != sp6prior)
+
+processlist <- processlist %>% mutate(sp6 = tolower(sp6))
+
+# Species sp6 code dont match. 
+match_sp6 <- match(processlist$sp6, current_woody_list$sp6)
+lianas_sp6_no_woody <- processlist[is.na(match_sp6),]
+
+knitr::kable(lianas_sp6_no_woody %>% select(sp6, orig_name, wcvp_matched_name, wcvp_accepted_name), 
+             caption="Liana species where the sp6 code does not match sp6 codes in the woody list")
+
+```
+
+The majority of the species that don't match by sp6 code are in the woody list by name, but with a different sp6 code. 
+
+```{r solvewoodymatch}
+# For some species  the code doesn't match but the names do match. 
+lianas_name_woody <- processlist %>% 
+  filter(sp6 %in% lianas_sp6_no_woody$sp6) %>%
+  left_join(current_woody_list %>% 
+              filter(!is.na(sp6)) %>% 
+              select(woody_sp6 = sp6, orig_name, woody_current_name = current_name), by = "orig_name")
+  
+knitr::kable(lianas_name_woody %>% filter(!is.na(woody_sp6))%>%
+               select(sp6, orig_name, wcvp_accepted_name, woody_sp6, woody_current_name),
+             caption="Liana species sp6 code is not in the current woody list but the origin name is")
+
+# See if we can match by the wcvp name
+lianas_name_woody_wcvp <- lianas_name_woody %>% 
+  filter(is.na(woody_sp6)) %>%
+  select(-woody_sp6, -woody_current_name) %>%
+left_join(current_woody_list %>% filter(!is.na(current_name)) %>%
+              select(woody_sp6 = sp6, woody_orig_name = orig_name, current_name), by = c( "wcvp_accepted_name" = "current_name" ))
+
+
+knitr::kable(lianas_name_woody_wcvp %>%  filter(!is.na(woody_sp6))  %>% 
+               select(sp6, orig_name, wcvp_accepted_name, woody_sp6, woody_orig_name),
+             caption="Liana species sp6 code is not in the current woody list but the wcvp accepted name is")
+
+
+# Output the species that are definitely not in the woody list.
+knitr::kable(lianas_name_woody_wcvp %>% 
+               filter(is.na(woody_sp6)) %>% 
+               select(sp6, orig_name, wcvp_accepted_name),
+             caption="Species in the lianas list that are not in the woody list")
+
+```
+
+These need revision to find their correct sp6 code, and the last one needs revision because it is not in the woody list at all. (I suspect the name is wrong, there is no wcvp match and I can't find the species on the internet)
+
+
+Now we verify that the species that do have their sp6 code in the woody list match by name:
+```{r woodycheck2}
+
+# Show species that have the same code in the woody list but different names. 
+lianas_woody <- processlist %>% 
+  left_join(current_woody_list %>% 
+              filter(!is.na(sp6)) %>% 
+              select(sp6, woody_orig_name = orig_name, woody_current_name = current_name, woody_synonyms = orig_synonyms), by = "sp6")
+  
+# Many of these problems are solved using the wcvp accepted name and the current woody name...
+knitr::kable(
+  lianas_woody %>% 
+    filter(orig_name != woody_orig_name & 
+             wcvp_accepted_name != woody_current_name) %>%
+    select(sp6, orig_name, woody_orig_name, wcvp_accepted_name,  woody_current_name),
+  caption="Liana species that have their code in the woody list but under a different origin or wcvp accepted species name. (The woody current name is the most up-to-date names for the woody species. )"
+)
+
+
+
+```
+
+Some species are using the same sp6 code between the two list but under different names, needs revision.

@@ -150,6 +150,8 @@ panwoodtaxa <- panwoodtaxaorig %>%
   mutate(orig_infraspecies_rank = word(orig_infraspecies,1),
          orig_infraspecies = word(orig_infraspecies,2))
 
+
+
 ```
 
 Number of species in Panama woody plant species list: `r paste(nrow(panwoodtaxa))`
@@ -337,6 +339,12 @@ It appears that in all these cases, the main species or subspecies is in the Pan
 
 Adding species in forestgeo Viewtaxonomy that are not in the woodylist
 ```{r addsp, echo=TRUE, results="hide"}
+
+# adding sp6 prior column for sp6 codes in forestgeolist
+panwoodtaxa <- panwoodtaxa %>% mutate(
+sp6prior=treeplottaxa$Mnemonic[match(orig_name,treeplottaxa$binomial)]
+)
+
 
 # add species in forestgeo that are not in panama woody
 panwoodtaxafull <- bind_rows(
