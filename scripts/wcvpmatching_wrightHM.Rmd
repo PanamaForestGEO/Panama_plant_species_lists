@@ -652,6 +652,44 @@ processlist <- processlist %>%
 
 ```
 
+## Correct id level of unidentified species
+```{r}
+# some species in wright are not proper binomials but instead morphospecies names
+unidentified_species <- c(
+  "Xylopia roubik", 
+  "Nectandra fuzzy", 
+  "Phyllanthus chagres",
+  "Crossopetalum coba",
+  "Leandra roja",
+  "Mouriri coba", 
+  "Guarea arbusto", 
+  "Neea roja", 
+  "Licania coba",
+  "Drypetes coba",
+  "Faramea coba",
+  "Cassipourea hoja grande",
+  "Guatteria flor roja", 
+  "Licaria arco seco", 
+  "Solanum enves purpura", 
+  "Unonopsis peludo", 
+  "Apeiba hybrid", 
+  "Anthurium NA", 
+  "Couepia chocolate", 
+  "Crossopetalum coba", 
+  "Guapira campochagres", 
+  "Guarea sherman", 
+  "Leandra roja", 
+  "Licania coba", 
+  "Plinia cerrojefe", 
+  "Randia campo chagres", 
+  "Sapium broadleaf", 
+  "Cojoba hoja grande",
+  "Meliosma hoja grande")
+
+
+processlist <- processlist %>% 
+  mutate(Idlevel = ifelse(orig_name %in% unidentified_species, "genus", Idlevel))
+```
 
 ## Save output of all species.
 

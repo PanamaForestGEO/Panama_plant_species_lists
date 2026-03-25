@@ -22,10 +22,9 @@ library(stringi)
 library(stringr)
 library(DT)
 
-
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
-woody_synonyms <- read_excel("splists_out/CurrentPanamaWoody_SYNONYMS_2026-03-13.xlsx")
+woody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-16.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -34,9 +33,27 @@ garwood_synonyms <- garwood_synonyms %>% mutate(
   synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)))
 
 
-FILEVIEWTAXSYN <- "splists_out/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
+garwood_synonyms <- garwood_synonyms %>% mutate(
+  sp_name = trimws(paste0(Genus, " ", Species)),
+  synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)),
+  synonym_binomial = paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)) 
+# note that synonym_sp and synonym_binomial are identical; retaining for clarity of completeness
 
-FILEALLSYN <- paste0("splists_out/AltNames_",Sys.Date(), ".xlsx")
+
+garwood_list  <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-03-15.xlsx", col_types = "text")
+
+garwood_list <- garwood_list %>%
+  mutate(wcvp_accepted_binomial = 
+           paste0(wcvp_accepted_name_genus, " ", wcvp_accepted_name_species),
+         wcvp_matched_binomial = word(wcvp_matched_name,)) %>%
+  rename(wcvp_accepted_lifeform = wcvp_lifeform_description)
+
+
+FILEVIEWTAXSYN <- "splists_out/alternates_and_synonyms/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
+
+FILEALLSYN <- paste0("splists_out/alternates_and_synonyms/AltNames_",Sys.Date(), ".xlsx")
+
+FILEALLSYNGARWOOD = paste0("./splists_out/alternates_and_synonyms/alternate_names_garwood_",Sys.Date(),".xlsx")
 
 ```
 
@@ -101,7 +118,7 @@ viewtaxonomy_synonyms <- viewtaxonomy %>%
 
 # View the result
 datatable(viewtaxonomy_synonyms, 
-             caption = "Mapping: Original Name to Individual Synonym")
+             caption = "Mapping: Original Name to Individual Synonym",options = list(scrollX = TRUE, pageLength = 10))
 
 
 write_xlsx(viewtaxonomy_synonyms, FILEVIEWTAXSYN)
@@ -134,7 +151,8 @@ altnames <- w_syn %>%
   mutate(across(starts_with("in_"), ~ coalesce(.x, FALSE))) %>%
   select(prefname, altname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes)
 
-datatable(altnames)
+datatable(altnames,
+          options = list(scrollX = TRUE, pageLength = 10))
 
 ```
 
@@ -146,7 +164,8 @@ Find and examine problematic entries.
 identnames <- altnames %>% filter(altname==prefname)
 
 # show these cases
-datatable(identnames,caption="Altname and prefname are the same")
+datatable(identnames,caption="Altname and prefname are the same",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 # remove them
 altnames <- altnames %>%
@@ -162,7 +181,8 @@ dup_altpref <- altnames %>%
   ungroup()
 
 # check these cases
-datatable(dup_altpref,caption="Cases with the same combination of altname and prefname binomials (likely different full names including subspecies)")
+datatable(dup_altpref,caption="Cases with the same combination of altname and prefname binomials (likely different full names including subspecies)",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 # consolidate these duplicate rows
 altnames <- altnames %>%
@@ -195,7 +215,7 @@ recipnames <- altnames %>%
   select(-name1,-name2)
 
 # check these cases
-datatable(recipnames,caption="Cases in which the same pair of names appears in opposite positions.")
+datatable(recipnames,caption="Cases in which the same pair of names appears in opposite positions.",options = list(scrollX = TRUE, pageLength = 10))
 
 
 ```
@@ -278,7 +298,7 @@ altnames <- altnames %>%
 
 nrow(altnames)
 
-write_xlsx(altnames, FILEALLSYN)
+
 ```
 
 Writing all remaining sets of alternate names to the file `r FILEALLSYN`
@@ -302,20 +322,32 @@ datatable(altnames %>% # Count how many times each altname appears in the whole 
   filter(n > 1) %>%
   select(prefname, altname,GarwoodNotes, n) %>%
   arrange(prefname), 
-  caption= "Species prefered name that have multiple alternate names")
+  caption= "Species prefered name that have multiple alternate names",
+  options = list(scrollX = TRUE, pageLength = 10)
+  )
 
 
 # Problematic: if the same alternate name points to two different prefered name
-datatable(altnames %>%
+# Adding this also as a column
+altnames <- altnames %>%
     group_by(altname) %>%
-    # Filter only where the same altname maps to more than one unique prefname
-    filter(n_distinct(prefname) > 1) %>%
-    ungroup() %>%
-    select(altname, prefname) %>%
-    arrange(altname),
-  caption = "Conflict Report: The same altnames mapping to different prefnames"
+    mutate(prefnames_pairs = n_distinct(prefname)) %>%
+    ungroup()
+
+datatable(
+    altnames %>%
+        filter(prefnames_pairs > 1) %>%
+        select(altname, prefname) %>%
+        arrange(altname),
+    caption = "Conflict Report: The same altnames mapping to different prefnames",
+          options = list(scrollX = TRUE, pageLength = 10)
 )
 
+```
+Finally saving the altnames
+
+```{r}
+write_xlsx(altnames, FILEALLSYN)
 ```
 
 Next we breakdown where this is coming from to try to figure out what is happening:
@@ -335,7 +367,8 @@ duplicate_altnamedrop <- altnames %>%
   
   
 datatable(duplicate_altnamedrop %>% filter(is_mixed) %>% select(altname, prefname, GarwoodNotes, in_garwood2009, in_panwoodycurr, in_viewtaxcurr), 
-          caption="The same alternate name pointing to different prefnames where one copy of the alternate name comes form garwood and the other from forestgeo.")
+          caption="The same alternate name pointing to different prefnames where one copy of the alternate name comes form garwood and the other from forestgeo.",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 
 duplicated_source_garwood <- duplicate_altnamedrop %>%
@@ -345,7 +378,8 @@ duplicated_source_garwood <- duplicate_altnamedrop %>%
   ) 
 
 datatable(duplicated_source_garwood %>% select(altname, prefname, GarwoodNotes, in_garwood2009), 
-          caption="The same alternate name pointing to different prefnames where the conflict originates from garwood. Both copies are in garwood.")
+          caption="The same alternate name pointing to different prefnames where the conflict originates from garwood. Both copies are in garwood.",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 
 # see only the conflicts in forestgeo
@@ -354,10 +388,349 @@ duplicated_source_forestgeo <- duplicate_altnamedrop %>% filter(
 )
 
 datatable(duplicated_source_forestgeo %>% select(altname, prefname, GarwoodNotes, in_viewtaxcurr, in_panwoodycurr ), 
-          caption="The same alternate name pointing to different prefnames where the conflict originates from forestgeo. Both copies are in forestgeo.")
+          caption="The same alternate name pointing to different prefnames where the conflict originates from forestgeo. Both copies are in forestgeo.",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+
+In the case of where the conflict originates from the forestgeo names. It is because one pair of prefered names and alternate names comes from the viewtaxa list. In this case, it is better to ignore the Viwtaxa names alternate names since that list needs to be revised. 
+
+Here we create a list of alternate viewtaxa names that are not in the Flora de Panama list and viceversa. ???? Actually what do we want to see here
+```{r}
 
 
 ```
 
 
+
+# Creating a garwood match list
+
+
+The species_plantnet.Rmd assembles a list of species in BCI using as base the most up-to-date list of species in BCI. For this the alternate list table is useful to check if a species that is not in the garwood list directly is there by an alternate name. 
+
+Here we convert the alternate names list filtering by matches with garwood. We will use this list to check for whether species listed in the BCI plots or lianas datasets have a match in the Garwood list by alternate names.  
+
+Definitions:
+
+F=ForestGEO
+
+G=Garwood
+
+Fcur = ForestGEO current name from most recent list
+
+Falt = ForestGEO alternate name from most recent list for Panama woody plants in general
+
+Gorig = Garwood 2009 original name
+
+Galt = Garwood 2009 alternate name
+```{r altnames}
+
+# this block of code was reformated/commented using Claude
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ALTERNATE NAMES × GARWOOD MATCHING
+#
+# Background:
+#   The "altnames" table pools every name ever used for a morphospecies,
+#   drawn from the synonyms / old-name columns of currentwoody, viewtaxa, and
+#   garwood. "Alternate names" here are not synonyms in the strict botanical
+#   sense — they are any name historically applied to the morphospecies, including
+#   former misidentifications.
+#
+# Goal:
+#   For species in the BCI plots or lianas list that do NOT match Garwood
+#   directly (by current name), we check whether any of their alternate names
+#   can be linked to a Garwood entry. If so, we know the species IS represented
+#   in Garwood under a different name.
+#
+# Garwood (2009) is a taxonomic revision that provides:
+#   • orig_name / orig_binomial — the name as Garwood originally listed it
+#                                 (not necessarily the currently accepted name)
+#   • synonyms (garwood_synonyms) — older or alternate names Garwood documented
+#     for each species in his revision
+#
+# Matching strategy (attempted in this order):
+#   1. prefname → Garwood orig_name        ("pref-orig")
+#   2. prefname → Garwood orig_binomial    ("pref-origbi")
+#   3. altname  → Garwood orig_name        ("alt-orig")
+#   4. altname  → Garwood orig_binomial    ("alt-origbi")
+#   5. prefname → Garwood synonym name     ("pref-syn")
+#   6. prefname → Garwood synonym binomial ("pref-synbi")
+#   7. altname  → Garwood synonym name     ("alt-syn")
+#   8. altname  → Garwood synonym binomial ("alt-synbi")
+#
+# Entries flagged in_garwood2009 are names that appear directly in the Garwood
+# list itself and are labelled "direct synonym".
+# ─────────────────────────────────────────────────────────────────────────────
+
+alternate_names_garwood <- altnames %>%
+
+  # ── 1. prefname matches a name originally listed in Garwood ───────────────
+  left_join(
+    garwood_list %>% select(garwood_direct_pref_join = orig_name,
+                            garwood_direct_pref      = orig_name),
+    by = c("prefname" = "garwood_direct_pref_join")
+  ) %>%
+
+  # ── 2. prefname matches the binomial of a name originally in Garwood ──────
+  left_join(
+    garwood_list %>% select(garwood_direct_prefbi_join = orig_binomial,
+                            garwood_direct_prefbi      = orig_name),
+    by = c("prefname" = "garwood_direct_prefbi_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 3. altname matches a name originally listed in Garwood ────────────────
+  left_join(
+    garwood_list %>% select(garwood_direct_alt_join = orig_name,
+                            garwood_direct_alt      = orig_name),
+    by = c("altname" = "garwood_direct_alt_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 4. altname matches the binomial of a name originally in Garwood ───────
+  left_join(
+    garwood_list %>% select(garwood_direct_altbi_join = orig_binomial,
+                            garwood_direct_altbi      = orig_name),
+    by = c("altname" = "garwood_direct_altbi_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 5. prefname matches a synonym documented by Garwood (full name) ───────
+  left_join(
+    garwood_synonyms %>%
+      select(synonym_full_join     = synonym_sp,
+             garwood_syn_orig_pref = sp_name,
+             synonym_pref_full     = synonym_sp),
+    by = c("prefname" = "synonym_full_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 6. prefname matches a synonym documented by Garwood (binomial only) ───
+  left_join(
+    garwood_synonyms %>%
+      select(synonym_bi_join      = synonym_binomial,
+             garwood_syn_bi_pref  = sp_name,
+             synonym_pref_bi      = synonym_binomial),
+    by = c("prefname" = "synonym_bi_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 7. altname matches a synonym documented by Garwood (full name) ────────
+  left_join(
+    garwood_synonyms %>%
+      select(synonym_full_join    = synonym_sp,
+             garwood_syn_orig_alt = sp_name,
+             synonym_alt_full     = synonym_sp),
+    by = c("altname" = "synonym_full_join"), relationship = "many-to-many"
+  ) %>%
+
+  # ── 8. altname matches a synonym documented by Garwood (binomial only) ────
+  left_join(
+    garwood_synonyms %>%
+      select(synonym_bi_join    = synonym_binomial,
+             garwood_syn_bi_alt = sp_name,
+             synonym_alt_bi     = synonym_binomial),
+    by = c("altname" = "synonym_bi_join"), relationship = "many-to-many"
+  )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Collapse the eight join columns into two summary fields:
+#   garwood_orig_match    — the name as originally listed in Garwood (2009)
+#                           that was matched (not necessarily current)
+#   garwood_synonym_match — the Garwood synonym string that triggered the
+#                           match, if applicable
+#   firstmatchtype        — which matching route fired first
+# ─────────────────────────────────────────────────────────────────────────────
+
+alternate_names_garwood <- alternate_names_garwood %>%
+  mutate(
+    garwood_orig_match = coalesce(
+      garwood_direct_pref,
+      garwood_direct_prefbi,
+      garwood_direct_alt,
+      garwood_direct_altbi,
+      garwood_syn_orig_pref,
+      garwood_syn_bi_pref,
+      garwood_syn_orig_alt,
+      garwood_syn_bi_alt
+    ),
+    garwood_synonym_match = coalesce(
+      synonym_pref_full,
+      synonym_pref_bi,
+      synonym_alt_full,
+      synonym_alt_bi
+    ),
+    firstmatchtype = case_when(
+      in_garwood2009                 ~ "direct synonym",
+      !is.na(garwood_direct_pref)    ~ "Fcur-Gorig",
+      !is.na(garwood_direct_prefbi)  ~ "Fcur-Gorigbi",
+      !is.na(garwood_direct_alt)     ~ "Falt-Gorig",
+      !is.na(garwood_direct_altbi)   ~ "Falt-Gorigbi",
+      !is.na(garwood_syn_orig_pref)  ~ "Fcur-Galt",
+      !is.na(garwood_syn_bi_pref)    ~ "Fcur-Galtbi",
+      !is.na(garwood_syn_orig_alt)   ~ "Falt-Galt",
+      !is.na(garwood_syn_bi_alt)     ~ "Falt-Galtbi",
+      TRUE                           ~ NA_character_
+    )
+  ) %>%
+  distinct(prefname, altname, .keep_all = TRUE) %>%
+  filter(!is.na(garwood_orig_match) | in_garwood2009)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Display — one table per match type, with explanatory captions.
+# "Garwood original name" refers to the name as it appears in Garwood (2009),
+# not to any claim about current taxonomic status.
+# ─────────────────────────────────────────────────────────────────────────────
+
+display_cols <- function(df) {
+  df %>% select(
+    `Prefered name`   = prefname,
+    `Alternate name` = altname,
+    `Garwood original name`    = garwood_orig_match,
+    `Garwood synonym matched`  = garwood_synonym_match
+  )
+}
+
+# ── direct synonym ────────────────────────────────────────────────────────────
+# These names were drawn directly from the Garwood (2009) list. A match here
+# confirms the species appears in Garwood under either its current ForestGEO
+# name or one of its recorded alternate names.
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "direct synonym") %>%
+    display_cols(),
+  caption = paste(
+    "Table 1. These prefname-altname pair comes from the Garwood synonym list"
+  ),
+          options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── pref-orig ─────────────────────────────────────────────────────────────────
+# The ForestGEO preferred (current) name matches a name as originally listed
+# by Garwood (2009).
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Fcur-Gorig") %>%
+    display_cols(),
+  caption = paste(
+    "Table 2. The current ForestGEO name matches a name listed by Garwood.",
+    "This means the ForestGEO name appears exactly as listed in the Garwood list"
+  ),
+          options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── pref-origbi ───────────────────────────────────────────────────────────────
+# The ForestGEO preferred name matches the binomial (genus + species, authority
+# excluded) of a name originally in Garwood (2009).
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Fcur-Gorig") %>%
+    display_cols(),
+  caption = paste(
+    "Table 3. The current ForestGEO name matches the binomial of a Garwood original name.",
+    "This means the ForestGEO name matches the genus + species portion of a name in the",
+    "Garwood list."
+  ),
+          options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── alt-orig ──────────────────────────────────────────────────────────────────
+# A historical ForestGEO alternate name matches a name as originally listed by
+# Garwood (2009). The species was likely recorded under that alternate name in
+# the plots at some point in the past.
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Falt-Gorig") %>%
+    display_cols(),
+  caption = paste(
+    "Table 4. aAForestGEO alternate name matches a name originally listed by Garwood
+."
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── alt-origbi ────────────────────────────────────────────────────────────────
+# A historical ForestGEO alternate name matches the binomial of a name
+# originally in Garwood (2009), with the author citation excluded.
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Falt-Gorigbi") %>%
+    display_cols(),
+  caption = paste(
+    "Table 5. A ForestGEO alternate name matches the binomial of a Garwood original name."
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── pref-syn ────────────────────────────────────────────────────────────────
+# The current ForestGEO name matches the a Garwood synonym that was excluded form the alternate list because it had a conflict with the forestgeoname
+# (authority excluded).
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Fcur-Galt") %>%
+    display_cols(),
+  caption = paste(
+    "Table 6. ForestGEO preferred name matched to a Garwood (2009) synonym. This synonym was conflicting with another alternate name and was removed. The forestgeo name is the most up-to-date"
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+
+# ── pref-synbi ────────────────────────────────────────────────────────────────
+# The current ForestGEO name matches the binomial of a Garwood synonym
+# (authority excluded).
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Fcur-Galtbi") %>%
+    display_cols(),
+  caption = paste(
+    "Table 7. ForestGEO preferred name matched to the binomial of a Garwood (2009) synonym.",
+    "The current ForestGEO name matches the genus + species portion of a Garwood synonym",
+    "'Garwood original name' shows the name prefered by Garwood."
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── alt-syn ───────────────────────────────────────────────────────────────────
+# A historical ForestGEO alternate name matches a synonym documented by
+# Garwood (2009). Both the ForestGEO alternate name and the Garwood synonym
+# are non-primary names for the same species.
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Falt-Galt") %>%
+    display_cols(),
+  caption = paste(
+    "Table 8. ForestGEO alternate name matched to a synonym recorded by Garwood (2009).",
+    "A historical ForestGEO name for this species is also documented as a synonym in",
+    "the Garwood revision.",
+    "'Garwood original name' shows the name prefered by Garwood."
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ── alt-synbi ─────────────────────────────────────────────────────────────────
+# A historical ForestGEO alternate name matches the binomial of a Garwood
+# synonym (authority excluded).
+datatable(
+  alternate_names_garwood %>%
+    filter(firstmatchtype == "Falt-Galtbi") %>%
+    display_cols(),
+  caption = paste(
+    "Table 9. ForestGEO alternate name matched to the binomial of a Garwood (2009) synonym.",
+    "A historical ForestGEO name matches the genus + species portion of a Garwood synonym",
+    "'Garwood original name' shows the name prefered by Garwood."
+  ),options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Summary of match counts by type
+# ─────────────────────────────────────────────────────────────────────────────
+match_summary <- alternate_names_garwood %>%
+  group_by(firstmatchtype) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+
+knitr::kable(match_summary, caption = "Summary: number of alternate-name pairs resolved per match type.")
+
+
+
+```
+
+```{r}
+#Save this as an excel file
+write_xlsx(alternate_names_garwood, FILEALLSYNGARWOOD)
+
+```
 
