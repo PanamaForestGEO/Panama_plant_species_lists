@@ -64,6 +64,8 @@ wcvp_names <- rWCVPdata::wcvp_names
 # INPUT PATHS
 original_list_path <- "splists_raw/Zotz/83_Zotz_Epiphytes_TableS1.xlsx" 
 
+zotz_changes <- "splists_raw/Zotz/Zotz_changes.xlsx"
+
 # Extract file name without extension 
 original_list_name <- tools::file_path_sans_ext(basename(original_list_path))
 
@@ -77,15 +79,30 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= FALSE
+redoWCVP= TRUE
 ```
 
 ## Prepare datasets
 
-Prepare the panama biota dataset
+Prepare the Zotz. This list is under continuos revision. Some species names have changed:
 
 ```{r preparedata, echo=TRUE}
+
+
 origlist <- read_excel(original_list_path)
+
+zotz_changes_list <- read_excel(zotz_changes)
+
+origlist <- origlist %>%
+  left_join(zotz_changes_list, by = c("Species" = "NameZotz2024")) %>%
+  mutate(
+    # If a NewName exists, use it; otherwise, keep the original Species
+    Species = if_else(!is.na(NewName), str_squish(NewName), str_squish(Species)),
+    # Use the new authority if available, otherwise leave as NA
+    orig_author = if_else(!is.na(NewAuthority), NewAuthority, NA_character_)
+  )
+
+
 ```
 
 
@@ -96,7 +113,6 @@ origlist <- origlist %>%
   mutate(
     orig_family = str_squish(Family),
     orig_name   = str_squish(Species),
-    orig_author = NA,
     orig_genus = word(orig_name,1),
     orig_species = word(orig_name,2),
     orig_infraspecies_rank = word(orig_name, 3),
@@ -124,6 +140,8 @@ origlist <- origlist %>% filter(!is.na(orig_name) & orig_name != "Not categorize
 
 print(paste0("working with ", nrow(origlist), " species"))
 ```
+ 
+
  
 ### Match WCVP names
 
