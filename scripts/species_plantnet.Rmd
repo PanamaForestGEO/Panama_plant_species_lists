@@ -74,8 +74,8 @@ lianas_list <- read_excel("splists_out/Lianas_Species_complete_list_WCVP_2026-03
 
 pbiota_list <- read_excel("splists_out/PanamaBiotaBCI_WCVP_2026-02-26.xlsx", col_types = "text")
 
-panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-25.xlsx", col_types = "text")
-panwoody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-25.xlsx", col_types="text")
+panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-26.xlsx", col_types = "text")
+panwoody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx", col_types="text")
 
 viewtaxa_list <- read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 viewtaxa_synonyms <- read_excel("splists_out/alternates_and_synonyms/ViewTaxonomy_dec4_25_SYNONYMS.xlsx")
@@ -1147,7 +1147,7 @@ case3_forestgeoalternate <- case3_forestgeoalternate %>%
            !is.na(current_name) & !current_name %in% matched_species$current_name
          )
 
-matched_species <- bind_rows(case0_fgsource, case1_directmatch, case3_forestgeoalternate)
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate)
 
 bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name) %>% select(-sp6, -forestgeo_current_name)
 
@@ -1228,7 +1228,7 @@ case4_forestgeoalternate <- case4_forestgeoalternate %>%
            !is.na(current_name) & !current_name %in% matched_species$current_name
          )
  
-matched_species <- bind_rows(case0_fgsource, case1_directmatch, case3_forestgeoalternate, case4_forestgeoalternate)
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate)
 
 bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name) %>% select(-sp6, -forestgeo_current_name)
 
@@ -1321,7 +1321,7 @@ case5_binomials <- case5_binomials %>%
            !is.na(current_name) & !current_name %in% matched_species$current_name
          )
 
-matched_species <- bind_rows(case0_fgsource, case1_directmatch, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials)
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials)
 
 bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name) %>% select(-sp6, -forestgeo_current_name)
 
@@ -1361,7 +1361,7 @@ datatable(case6_directwcvp %>%
           options = list(scrollX = TRUE, pageLength = 10),
           )
 
-matched_species <- bind_rows(case0_fgsource, case1_directmatch, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_directwcvp)
+matched_species <- bind_rows(case0_fgsource, case1_directmatch,case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_directwcvp)
 
 bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name) %>% select(-sp6, -forestgeo_current_name)
 
@@ -1397,7 +1397,7 @@ case6_binomialwcvp <- case6_binomialwcvp %>%
       filter(!orig_name %in% matched_species$orig_name &
            !is.na(current_name) & !current_name %in% matched_species$current_name
          )
-matched_species <- bind_rows(case0_fgsource, case1_directmatch, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_directwcvp, case6_binomialwcvp)
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate,case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_directwcvp, case6_binomialwcvp)
 
 bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name) %>% select(-sp6, -forestgeo_current_name)
 ```
