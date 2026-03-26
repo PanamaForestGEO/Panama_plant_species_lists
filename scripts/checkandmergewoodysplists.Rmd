@@ -92,7 +92,7 @@ DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
 # input files # all in directory DIRINSP
-FNWRIGHTSPLISTIN <- "splists_out/wright_nomenclature_R_20210224_WCVP_2026-03-24.xlsx"
+FNWRIGHTSPLISTIN <- "splists_out/wright_nomenclature_R_20210224_WCVP_2026-03-26.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx" 
 
@@ -104,7 +104,6 @@ FNPANAMASPLISTWCVP2 <- paste0(DIRMIDSP,tools::file_path_sans_ext(basename(FNPANA
 PANAMA_COMBINED_OUT_PATH <- paste0(DIROUTSP,"CurrentPanamaWoody_",Sys.Date(),".xlsx")
 
 
-WRIGHT_MISSING_PANWOODY_PATH <- paste0(DIROUTSP,"needs_revision/Wright_not_CurrentPanamaWoody_",Sys.Date(),".xlsx")
 
   
 FNPANAMATAXA <- paste0(DIROUTSP,"AllTaxa_CurrentPanamaWoody_",Sys.Date(),".xlsx")
@@ -933,19 +932,16 @@ datatable(changes_names,
 
 We will use the sp6 codes and species names to match records and merge in sp4 codes. 
 
-```{r loadspwright, echo=TRUE}
+```{r addlifeform}
 # Joe Wright's taxonomy dataset (includes 4-letter codes and some non-woody species as well as trees and lianas)
 
 # this list was already processed with the wcvp v13 names
-allwrighttaxa <- read_excel(FNWRIGHTSPLISTIN)
+usewrighttaxa <- read_excel(FNWRIGHTSPLISTIN, na = c("", "NA"))
+# convert names from "NA" to NA
 
-# given that we are only interested in linking sp4, and in woody species, remove other cases
-usewrighttaxa <- allwrighttaxa %>%
-  filter(!is.na(sp4) & 
-           (herb==0 | is.na(herb)) & 
-           (epiphyte==0 | is.na(epiphyte)) & 
-           (parasite==0 | is.na(parasite)))
+```
 
+```{r loadspwright, echo=TRUE}
 ### check for consistency
 
 # duplicated sp6 codes
@@ -985,11 +981,7 @@ if(nrow(spcurrnamedups) > 0){
     print("No duplicated current species names in Wright nomenclature file.")
 }
 
-
-
 ```
-
-
 
 There are `r nrow(usewrighttaxa)` species in the Wright list and `r nrow(allpanwoodtaxa)` in the Panama woody species list. So naturally. We expect some species won't have a sp4 code. 
 Now we add the sp4 codes from the Wright list to our species list. 
@@ -1057,6 +1049,22 @@ if(nrow(sp4dups) > 0){
 `r paste(sum(!is.na(allpanwoodtaxa$sp4)), "/", nrow(allpanwoodtaxa))` woody taxa were successfully assigned a sp4 code.
 
 
+```{r addinglifeform}
+
+allpanwoodtaxa <- allpanwoodtaxa %>%
+    mutate(
+      # check first by s6 code
+      lifeform_wright = usewrighttaxa$lifeform_wright[match(allpanwoodtaxa$sp6,usewrighttaxa$sp6match)],
+      # if still NA check by sp4 code
+       lifeform_wright = ifelse(
+             is.na(lifeform_wright),
+             usewrighttaxa$lifeform_wright[match(allpanwoodtaxa$sp4,usewrighttaxa$sp4)],
+             lifeform_wright
+                                    )
+           )
+
+```
+
 
 # Save files
 
@@ -1066,7 +1074,11 @@ Saving combined panama woody
 
 
 write_xlsx(allpanwoodtaxa, PANAMA_COMBINED_OUT_PATH)
-  
+
+# View the result
+datatable(allpanwoodtaxa %>% select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), 
+             caption = "Final current panama list",
+          options = list(scrollX = TRUE, pageLength = 10))
 
 
 ```
@@ -1118,70 +1130,6 @@ write_xlsx(alternate_synonym_table, FNSYNONYMS)
 
 ```
 
-# Wright species missing from woody
-```{r sp4missing}
-# 4. Find codes in Wright list NOT present in the woody list AND 
-# and that DO have #1 in any of the following columns: tree, midstory, understory, shrub, liana.  Include a column for their lifeform according to Wright (based on these columns)
-
-wright_no_woody_match <- usewrighttaxa %>%
-  mutate(
-    # field if there is no match at all with the woody list
-    no_woody_match = !(
-      sp6 %in% na.omit(allpanwoodtaxa$sp6) |
-      sp6 %in% na.omit(allpanwoodtaxa$sp6prior) |
-      sp4 %in% na.omit(allpanwoodtaxa$sp4) |
-      orig_name %in% allpanwoodtaxa$orig_name |
-      orig_name %in% allpanwoodtaxa$orig_name |
-      orig_binomial %in% allpanwoodtaxa$orig_binomial |
-      orig_name %in% alternate_synonym_table$SynonymTextSingle |
-      orig_name %in% alternate_synonym_table$SynonymTextSingle
-    ),
-    lifeform_wright = paste(
-      if_else(!is.na(tree) & tree != 0, "TREE", "_"),
-      if_else(!is.na(midstory) & midstory != 0, "MIDSTORY", "_"),
-      if_else(!is.na(understory) & understory != 0, "UNDERSTORY", "_"),
-      if_else(!is.na(shrub) & shrub != 0, "SHRUB", "_"),
-      if_else(!is.na(liana) & liana != 0, "LIANA", "_"), # No longer breaks!
-      if_else(!is.na(climber) & climber != 0, "CLIMBER", "_"),
-      if_else(!is.na(free) & free != 0, "FREE", "_"),
-      if_else(!is.na(vine) & vine != 0, "VINE", "_"),
-      if_else(!is.na(herb) & herb != 0, "HERB", "_"),
-      if_else(!is.na(epiphyte) & epiphyte != 0, "EPIPHYTE", "_"),
-      if_else(!is.na(hemiepiphyte) & hemiepiphyte != 0, "HEMIEPIPHYTE", "_"),
-      if_else(!is.na(parasite) & parasite != 0, "PARASITE", "_"),
-      sep = ", "
-    ),
-    
-    # Remove the underscores and extra commas
-    # This regex looks for "_" followed by a comma or a comma followed by "_"
-    lifeform_wright = str_remove_all(lifeform_wright, "_, | ,_|_"),
-    
-    # 3. Final polish to remove any leading/trailing commas or spaces
-    lifeform_wright = str_trim(str_remove_all(lifeform_wright, "^, |, $")),
-    
-    # 4. If nothing is left, make it a true NA
-    lifeform_wright = if_else(lifeform_wright == "", NA_character_, lifeform_wright)
-           )
-
-# Table of Wright woody species lacking 6-letter codes
-# Note: I used a regex check on lifeform_wright to see if it contains 
-# any of your 5 target woody types.
-wright_no_woody_match <- wright_no_woody_match %>%
-  filter(
-    no_woody_match) %>% 
-  mutate(
-    might_be_woody = str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA")
-  )
-
-# Table of Wright unmatched species
-datatable(wright_no_woody_match %>% select(sp4, sp6, orig_name, orig_name, might_be_woody, lifeform_wright),
-          caption = "Wright species missing from the woody list. The column might_be_woody indicates if it could be woody based on the wright lifeform",
-          options = list(scrollX = TRUE, pageLength = 10))
-
-
-write_xlsx(wright_no_woody_match, WRIGHT_MISSING_PANWOODY_PATH)
-
-```
 
 # Some checks on consistency of codes for higher level taxa:
 

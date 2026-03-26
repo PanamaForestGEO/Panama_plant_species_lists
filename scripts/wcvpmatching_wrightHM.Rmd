@@ -75,7 +75,7 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= FALSE
+redoWCVP= TRUE
 ```
 
 ## Prepare datasets
@@ -95,23 +95,8 @@ wrighttaxa <- wrighttaxa %>%
                               binomialorig=gsub("_"," ",binomialorig)
                               )
 
-
-# Filtering the original list for efficient wcvp processing 
-# removing unidentified species
-usewrighttaxa <- wrighttaxa %>% 
-  filter(
-    str_to_lower(genus) != "unidentified" & 
-    # remove species that are "sp" (ej: sp., sp.1, sp.algo)
-    !str_detect(species, "^sp\\.?") &
-    !str_detect(species, "^aff\\.?") & 
-    !str_detect(species, "\\?") & 
-    str_to_lower(genus) != "indet" &
-    !is.na(genus) & !is.na(species) &
-    !is.na(Idlevel) & Idlevel == "species" 
-  )
-  
 # Adjusting columns of the original list for efficient wcvp processing  
-origlist <- usewrighttaxa %>%
+origlist <- wrighttaxa %>%
   mutate(
     orig_family = family,
     orig_genus = genus,
@@ -120,18 +105,16 @@ origlist <- usewrighttaxa %>%
     orig_infraspecies = word(binomialorig, 4),
     orig_author = NA,
     orig_name = str_squish(binomialorig),
-
-    # add columns for the simple species name (not including "sp." or such), and simple binomial
+# add columns for the simple species name (not including "sp." or such), and simple binomial
     orig_binomial = str_squish(paste0(orig_genus, " ", 
-                               ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species)))) %>% 
-  select(-genus, -species, -family)
+                               ifelse(substr(orig_species, 1, 3) == "sp.", "", orig_species)))) %>% select(-genus, -species, -family)
                   
 
 # check for duplicate codes
 sp6dupsj <- origlist %>% filter(!is.na(sp6)) %>% group_by(sp6) %>% filter(n()>1) %>% ungroup()
 
 if(nrow(sp6dupsj) > 0){
-  knitr::kable(sp6dupsj %>% select(sp4, sp6, binomial), caption="Duplicated sp6 codes in wright list")
+  datatable(sp6dupsj %>% select(sp4, sp6, binomial), caption="Duplicated sp6 codes in wright list")
 } else{ 
   print("No duplicated sp6 codes")
 }
@@ -141,7 +124,7 @@ binomialdupsj <- origlist %>% group_by(orig_binomial) %>% filter(n()>1) %>%
   ungroup() %>% arrange(orig_binomial)
   
 if(nrow(binomialdupsj) > 0){
-  knitr::kable(binomialdupsj %>% select(sp4, sp6, orig_name ,orig_binomial), caption="Duplicated binomial names in wright list")
+  datatable(binomialdupsj %>% select(sp4, sp6, orig_name ,orig_binomial), caption="Duplicated binomial names in wright list")
 } else{ 
   print("No duplicated species names")
 }
@@ -150,7 +133,7 @@ if(nrow(binomialdupsj) > 0){
 dups <- origlist %>% group_by(orig_name) %>% filter(n() > 1) %>% select(orig_name)
 
 if(nrow(dups) > 0){
-  knitr::kable(dups, caption="Duplicated names")
+  datatable(dups, caption="Duplicated names")
 }
 
 
@@ -161,6 +144,28 @@ Do some manual fixes to records that will otherwise not run through the rest of 
 Specifically for Trema micranthum, Piper aristolochiaefolium,  
 
 ```{r manualfixes}
+# Filtering the original list for efficient wcvp processing 
+# removing unidentified species
+wright_dont_match <- origlist %>% 
+  filter(
+    !(
+    str_to_lower(orig_genus) != "unidentified" & 
+    # remove species that are "sp" (ej: sp., sp.1, sp.algo)
+    !str_detect(orig_species, "\\bsp\\b|\\bsp\\.") & 
+    !str_detect(orig_species, "\\baff\\b|\\baff\\.") & 
+    !str_detect(orig_species, "\\?") &
+    str_to_lower(orig_genus) != "indet" &
+    !is.na(orig_genus) & !is.na(orig_species) &
+    !is.na(Idlevel) & Idlevel == "species")
+  )
+
+incnomatch <- origlist$orig_name %in% wright_dont_match$orig_name 
+origlist$Idlevel[incnomatch] = "unidentified"
+
+datatable(wright_dont_match%>% select(sp6, sp4,orig_name, Idlevel, orig_genus, orig_species),
+          caption="Species to be omited from wcvp matching")
+
+
 # make a manual fix to this single case of duplicates, so that they are no longer duplicates
 # and to better reflect what the text says about them
 inc <- origlist$orig_name=="Piper aristolochiaefolium"
@@ -212,7 +217,7 @@ unidentified_species <- c(
   "Unonopsis peludo")
 
 
-inc3 <- origlist$orig_name %in% unidentified_species
+inc3 <- origlist$orig_name %in% unidentified_species 
 origlist$orig_binomial[inc3] <- word(origlist$orig_name[inc3], 1) # identify only to the genus level. 
 origlist$Idlevel[inc3] = "genus"
 
@@ -227,6 +232,9 @@ inc4 <- origlist$orig_name %in% leave_original_name
 origlist$orig_binomial[inc4] <-NA
 
 
+# the modified orig list has to have the same length as wrighttaxa!
+nrow(origlist)
+nrow(wrighttaxa)
 ```
 
 Working with `r nrow(origlist)` species. 
@@ -284,7 +292,7 @@ if(file.exists(matches_mid_path) & !redoWCVP){
   matchresult <- readRDS(matches_mid_path)
 } else {
   # Run the matching process
-  matchresult <- wcvp_match_names(origlist, wcvp_names, name_col = "orig_name")
+  matchresult <- wcvp_match_names(subset(origlist, !orig_name %in% wright_dont_match$orig_name), wcvp_names, name_col = "orig_name")
 
   # Save as RDS for speed
   saveRDS(matchresult, matches_mid_path)
@@ -294,7 +302,7 @@ if(file.exists(matches_mid_path) & !redoWCVP){
 if(file.exists(matches_mid_path2) & !redoWCVP){
   matchresult2 <- readRDS(matches_mid_path2)
 } else {
-  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial), wcvp_names, 
+  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial & !orig_name %in% wright_dont_match$orig_name), wcvp_names, 
                                    name_col = "orig_binomial")
 
   # Save as RDS for speed
@@ -580,6 +588,10 @@ knitr::kable(subset(processlist,
              is.na(wcvp_accepted_name) | !wcvp_matched_status %in% c("Accepted", "Synonym") ) %>% 
         select(orig_family,orig_name,wcvp_matched_status,wcvp_accepted_name),
       caption = "Species not listed as Accepted or Synonym in WCVP")
+
+
+# All the species in the original list must be kept
+stopifnot(nrow(processlist) == nrow(origlist))
 ```
 
 
@@ -652,49 +664,39 @@ processlist <- processlist %>%
 
 ```
 
-## Correct id level of unidentified species
-```{r}
-# some species in wright are not proper binomials but instead morphospecies names
-unidentified_species <- c(
-  "Xylopia roubik", 
-  "Nectandra fuzzy", 
-  "Phyllanthus chagres",
-  "Crossopetalum coba",
-  "Leandra roja",
-  "Mouriri coba", 
-  "Guarea arbusto", 
-  "Neea roja", 
-  "Licania coba",
-  "Drypetes coba",
-  "Faramea coba",
-  "Cassipourea hoja grande",
-  "Guatteria flor roja", 
-  "Licaria arco seco", 
-  "Solanum enves purpura", 
-  "Unonopsis peludo", 
-  "Apeiba hybrid", 
-  "Anthurium NA", 
-  "Couepia chocolate", 
-  "Crossopetalum coba", 
-  "Guapira campochagres", 
-  "Guarea sherman", 
-  "Leandra roja", 
-  "Licania coba", 
-  "Plinia cerrojefe", 
-  "Randia campo chagres", 
-  "Sapium broadleaf", 
-  "Cojoba hoja grande",
-  "Meliosma hoja grande")
-
-
-processlist <- processlist %>% 
-  mutate(Idlevel = ifelse(orig_name %in% unidentified_species, "genus", Idlevel))
-```
 
 ## Save output of all species.
 
 Showing columns saved in the final dataset:
 ```{r saveoutput}
+
+processlist <- processlist %>% mutate(
+# adding a column to make the lifeform easier to read
+    lifeform_wright = paste(
+      if_else(!is.na(tree) & tree != 0, "TREE", "_"),
+      if_else(!is.na(midstory) & midstory != 0, "MIDSTORY", "_"),
+      if_else(!is.na(understory) & understory != 0, "UNDERSTORY", "_"),
+      if_else(!is.na(shrub) & shrub != 0, "SHRUB", "_"),
+      if_else(!is.na(liana) & liana != 0, "LIANA", "_"), # No longer breaks!
+      if_else(!is.na(climber) & climber != 0, "CLIMBER", "_"),
+      if_else(!is.na(free) & free != 0, "FREE", "_"),
+      if_else(!is.na(vine) & vine != 0, "VINE", "_"),
+      if_else(!is.na(herb) & herb != 0, "HERB", "_"),
+      if_else(!is.na(epiphyte) & epiphyte != 0, "EPIPHYTE", "_"),
+      if_else(!is.na(hemiepiphyte) & hemiepiphyte != 0, "HEMIEPIPHYTE", "_"),
+      if_else(!is.na(parasite) & parasite != 0, "PARASITE", "_"),
+      sep = ", "
+    ),
+    # Remove the underscores and extra commas
+    # This regex looks for "_" followed by a comma or a comma followed by "_"
+    lifeform_wright = str_remove_all(lifeform_wright, "_, | ,_|_"),
+    
+    # 3. Final polish to remove any leading/trailing commas or spaces
+    lifeform_wright = str_trim(str_remove_all(lifeform_wright, "^, |, $")),
+    
+    # 4. If nothing is left, make it a true NA
+    lifeform_wright = if_else(lifeform_wright == "", NA_character_, lifeform_wright))
+
 
 # Save species list with wcvp columns
 write_xlsx(processlist, out_wcvp_list)
