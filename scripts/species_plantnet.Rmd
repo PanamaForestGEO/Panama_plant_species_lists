@@ -115,6 +115,13 @@ We have a list of alternate_names_garwood is a list of alternate names that matc
 # Both the preferred name and the alternate name are indexed as possible keys
 # so that either form can be used to retrieve the Garwood match.
 # ─────────────────────────────────────────────────────────────────────────────
+
+alternate_names_garwood <- alternate_names_garwood %>% filter(!in_viewtaxcurr & (in_panwoodycurr | in_garwood2009))
+
+
+alternate_names <- alternate_names %>% filter(!in_viewtaxcurr & (in_panwoodycurr | in_garwood2009))
+
+
 alt_match_lookup <- bind_rows(
   alternate_names_garwood %>%
     select(match_key = prefname, garwood_orig_match, garwood_synonym_match,
@@ -969,7 +976,7 @@ bcilist <- bcilist %>% mutate(row_id = row_number(),
 
 ```  
 
-### Case 0. The species comes from a forestgeo list
+### Case 0. The species comes from a forestgeo list or was already matched 
 
 ```{r case0matchfg}
 # 0. The source of the names is the forestgeo list
@@ -978,14 +985,20 @@ case0_fgsource <- bcilist %>% filter(!is.na(sp6)) %>%
                          source_current_name = "ForestGeo"
                          )
 
-bcilist_fgeomatch <- bcilist %>% filter(is.na(sp6)) %>% select(-sp6, -forestgeo_current_name)
-
 # The 6 species that are uniquely in the plots and not in the garwood list already have their forestgeo name. 
 datatable(case0_fgsource %>%
             select(sp6,sp4, orig_name, forestgeo_current_name, source_list, current_name, source_current_name),
           caption="Species that are only in the plot list already have a foresgeo code",
            options = list(scrollX = TRUE, pageLength = 10),
           )
+
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% case0_fgsource$orig_name) %>% select(-sp6, -forestgeo_current_name)
+
+
+
+
+
 
 matched_species <- case0_fgsource
 ```
@@ -996,22 +1009,25 @@ matched_species <- case0_fgsource
 
 case1_directmatch <- bcilist_fgeomatch %>% 
   left_join(forestgeo_names_lookup, by = c("orig_name"= "match_key"), suffix = c("", "_orig")) %>%
-  left_join(forestgeo_names_lookup, by = c("wcvp_matched_name"= "match_key"), suffix = c("", "_wcvpmatch"))
+  
+  left_join(forestgeo_names_lookup, by = c("wcvp_matched_name"= "match_key"), suffix = c("", "_wcvpmatch")) 
+
+
 
   
 case1_directmatch <- case1_directmatch %>%  mutate(
     forestgeo_current_name =     coalesce(
       forestgeo_current_name,
-      forestgeo_current_name_wcvpmatch
+      forestgeo_current_name_wcvpmatch,
     ),
     sp6 = coalesce(
       sp6,
-      sp6_wcvpmatch
+      sp6_wcvpmatch,
     ),
     sp4 = coalesce(
       sp4,
       sp4_wcvpmatch
-    )) %>%   select(-ends_with(c("_orig",  "_wcvpacc", "_wcvpmatch"))) 
+    )) %>%   select(-ends_with(c("_orig", "_wcvpmatch"))) 
 
 
 case1_directmatch <- case1_directmatch %>%
@@ -1026,7 +1042,7 @@ case1_directmatch <- case1_directmatch %>%
 case1_directmatch %>% group_by(forestgeo_current_name) %>% filter(n() > 1)
 
 datatable(case1_directmatch %>%
-          select(sp6,sp4, orig_name, wcvp_matched_name, wcvp_accepted_name, forestgeo_current_name, source_list, matchby),
+          select(sp6,sp4, orig_name, wcvp_matched_name, wcvp_accepted_name, pref_forestgeo, forestgeo_current_name, source_list, matchby),
           caption="Species original name is a forestgeo_current_name",
           options = list(scrollX = TRUE, pageLength = 10),
           )
@@ -1040,13 +1056,24 @@ bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_nam
 
 ### Case 2. The species original name matches to forestgeo alternate name
 
-```{r case2fgname}
+```{r case2_1}
+
 
 case2_forestgeoalternate <- bcilist_fgeomatch %>% 
   left_join(panwoody_synonyms %>% select(altname, forestgeo_current_name , sp6), 
             by=c("orig_name" = "altname"),suffix = c("", "_orig")) %>%
   left_join(panwoody_synonyms %>% select(altname, forestgeo_current_name , sp6), 
             by=c("wcvp_matched_name" = "altname"),suffix = c("", "_wcvpmatch"))
+
+
+
+
+```
+
+
+```{r case2fgname}
+
+
 
 case2_forestgeoalternate <- case2_forestgeoalternate %>%  mutate(
     forestgeo_current_name =     coalesce(
