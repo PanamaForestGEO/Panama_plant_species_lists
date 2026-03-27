@@ -907,23 +907,27 @@ datatable(
 ```
 
 
-# Use the Panama woody plant morphospecies list to link in current ForestGEO names and 6-letter and 4-letter species codes for all species.
+# Use the Panama woody plant morphospecies list to link in current ForestGEO names and 6-letter and 4-letter species codes whenever possible
 
-The forestgeo name is the most up-to-date name for these species, as they are the names used by the botanists in Panama. Next we check if the names in the current panama woody list are different from the names in Garwood, in that case the name in forestgeo is preferred. We add a new columns "current name" abd  "current_name_source" with the preferred name and whether it is Garwood, Forestgeo, Zots or the Lianas list. 
+The 6-letter and 4-letter codes and the ForestGEO  names are the ways these morphospecies are known to the STRI botanists, and thus it is important to associated these whenever possible. 
+
+We add new columns "current name" and  "current_name_source" with the preferred name and whether it is from Garwood, Forestgeo, Zotz or possibly the Lianas list (only if the lianas list species is not in ForestGEO, which does not currently ever happen).
 
 
 ```{r renamingsome}
 #checkpoint...
 bcilist_orig <- bcilist
 ```
+For all the species in the BCI plant list (bcilist)
 
+0,1. Check if they are directly on the Forestgeo woody list
 
+2,3,4,5. For the remaining species, check if there is a unique match using alternate names (Garwood alternates and forestgeo alternates)
+
+6. For the reamining species, check if WCVP accepted names match.
+
+Note that in the following "original" name means the name of the species in the list from which this entry came.  So in most cases, it is the Garwood 2009 names, but in a few it is from Zotz, plots, or lianas.  
 ```{r addforestgeocurrentname}
-
-# For all the species in the bcilist
-# check if they are directly on the forestgeo /woody list
-# check if they have an alternate name on that list
-
 # Add a column with the forestgeo name
 # Flag when the forestgeo_current_name != orig_garwood name
 
@@ -989,7 +993,7 @@ case0_fgsource <- bcilist %>% filter(!is.na(sp6)) %>%
 # The 6 species that are uniquely in the plots and not in the garwood list already have their forestgeo name. 
 datatable(case0_fgsource %>%
             select(sp6,sp4, orig_name, forestgeo_current_name, source_list, current_name, source_current_name),
-          caption="Species that are only in the plot list already have a foresgeo code",
+          caption="Species that came from the plot list already have a foresgeo code",
            options = list(scrollX = TRUE, pageLength = 10),
           )
 
@@ -1000,7 +1004,7 @@ bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% case0_fgsource$orig_name
 matched_species <- case0_fgsource
 ```
 
-### Case 1. The species name is a current forestgeoname
+### Case 1. The species name is a current forestgeo name
 
 ```{r case1fgname}
 
@@ -1061,7 +1065,7 @@ case2_forestgeoalternate <- bcilist_fgeomatch %>%
             by=c("orig_name" = "altname"),suffix = c("", "_orig")) %>%
   left_join(panwoody_synonyms %>% select(altname, forestgeo_current_name , sp6), 
             by=c("wcvp_matched_name" = "altname"),suffix = c("", "_wcvpmatch")) %>%
-#Some species were matched before with an forestgeo name  kept in the column pref_forestgeo
+#Some species were matched before with a forestgeo name kept in the column pref_forestgeo
   left_join(panwoody_list %>% select(orig_name, sp6), 
             by=c("pref_forestgeo" = "orig_name"),suffix = c("", "_prefmatch"))
 
@@ -1581,7 +1585,7 @@ bcilist_possibly_woody <- bcilist_fgnames %>%
          wcvp_accepted_lifeform, garwood_lifeform)
 
 datatable(bcilist_possibly_woody, 
-          caption="BCI species that might be woody according to the wcvp lifeform",
+          caption="Other BCI species that might be woody according to the wcvp lifeform",
           options = list(scrollX = TRUE, pageLength = 10))
 
 
