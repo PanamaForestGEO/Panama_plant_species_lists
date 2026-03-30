@@ -83,7 +83,7 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= FALSE
+redoWCVP= TRUE
 ```
 
 
@@ -170,6 +170,28 @@ origlist$orig_binomial[inc] <- "Trema micranthum"
 inc <- origlist$orig_name=="Croton draco subsp. panamensis (Klotzsch) G.L.Webster"
 origlist$orig_name[inc] <- "Croton draco subsp. panamensis"
 
+
+# for the hybrids, set the  binomial without the x so that they will match
+origlist <- origlist %>%
+  mutate(orig_binomial = ifelse(grepl(" x ", orig_name), 
+                                gsub(" x ", " ", orig_binomial), 
+                                orig_binomial))
+
+# do the same for the .aff
+# set the  binomial without the .aff so that they will match
+origlist <- origlist %>%
+  mutate(orig_binomial = ifelse(grepl(" aff. ", orig_name), 
+                                gsub(" aff. ", " ", orig_binomial), 
+                                orig_binomial))
+
+# change the name so the species will match with wcvp
+inc <- origlist$orig_name=="Citrus x aurantium NA (Sour Orange Group)" 
+origlist$orig_binomial[inc] <- "Citrus aurantium"
+
+# change the name so the species will match with wcvp
+inc <- origlist$orig_name=="Citrus x aurantium NA (Sweet Orange Group)" 
+origlist$orig_binomial[inc] <- "Citrus aurantium"
+
 ```
 
 Working with `r nrow(origlist)` species. 
@@ -227,7 +249,7 @@ if(file.exists(matches_mid_path) & !redoWCVP){
 } else {
   # Run the matching process
   # keep hybrids and aff out of the wcvp matching...
-  matchresult <- wcvp_match_names(subset(origlist,is.na(Prefix)), wcvp_names, name_col = "orig_name")
+  matchresult <- wcvp_match_names(subset(origlist), wcvp_names, name_col = "orig_name")
 
   # Save as RDS for speed
   saveRDS(matchresult, matches_mid_path)
@@ -237,7 +259,7 @@ if(file.exists(matches_mid_path) & !redoWCVP){
 if(file.exists(matches_mid_path2) & !redoWCVP){
   matchresult2 <- readRDS(matches_mid_path2)
 } else {
-  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial & is.na(Prefix)), wcvp_names, 
+  matchresult2 <- wcvp_match_names(subset(origlist,orig_name!=orig_binomial), wcvp_names, 
                                    name_col = "orig_binomial")
 
   # Save as RDS for speed
