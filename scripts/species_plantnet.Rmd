@@ -243,8 +243,8 @@ kable(garwoodtoremove %>% select(orig_name,SYNONYMS),
 
 
 # remove garwood that is NA
-
-garwood_list <- garwood_list %>% filter(!is.na(orig_name))
+# and leave out Ficus aff. Trigonata, it is already in zotz withputh the aff.
+garwood_list <- garwood_list %>% filter(!is.na(orig_name)  & orig_name != "Ficus aff. trigonata")
 
 ```
 
