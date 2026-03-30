@@ -24,7 +24,7 @@ library(DT)
 
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
-woody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-16.xlsx")
+woody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -132,11 +132,11 @@ Writing the synonyms from the ViewTaxonomy file to `r FILEVIEWTAXSYN`
 ```{r combinedsyn}
 
 v_tax <- viewtaxonomy_synonyms %>%
-  select(prefname = species_name, altname = SynonymTextSingle) %>%
+  select(prefname = species_name, altname = SynonymTextSingle, sp6) %>%
   mutate(in_viewtaxcurr = TRUE)
 
 w_syn <- woody_synonyms %>%
-  select(prefname = orig_name, altname = SynonymTextSingle) %>%
+  select(prefname = orig_name, altname = SynonymTextSingle, sp6, sp4) %>%
   mutate(in_panwoodycurr = TRUE)
 
 g_syn <- garwood_synonyms %>%
@@ -145,11 +145,11 @@ g_syn <- garwood_synonyms %>%
 
 # 2. Join them all together
 altnames <- w_syn %>%
-  full_join(v_tax, by = c("prefname", "altname")) %>%
+  full_join(v_tax, by = c("prefname", "altname", "sp6")) %>%
   full_join(g_syn, by = c("prefname", "altname")) %>%
   # 3. Handle NAs and finalize column order
   mutate(across(starts_with("in_"), ~ coalesce(.x, FALSE))) %>%
-  select(prefname, altname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes)
+  select(prefname, altname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes, sp6, sp4)
 
 datatable(altnames,
           options = list(scrollX = TRUE, pageLength = 10))
@@ -184,6 +184,19 @@ dup_altpref <- altnames %>%
 datatable(dup_altpref,caption="Cases with the same combination of altname and prefname binomials (likely different full names including subspecies)",
           options = list(scrollX = TRUE, pageLength = 10))
 
+# find cases in which two rows have conflicting sp6 codes
+dup_sp6 <- altnames %>%
+  filter(!is.na(sp6)) %>%
+  group_by(prefname) %>%
+  filter(n_distinct(sp6) > 1) %>%
+  ungroup()
+
+# check these cases
+datatable(dup_sp6 %>% select(sp6, prefname, altname, in_panwoodycurr,in_viewtaxcurr),
+          caption="Cases with the same prefname but different sp6 code",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
 # consolidate these duplicate rows
 altnames <- altnames %>%
   group_by(altname, prefname) %>%
@@ -195,8 +208,10 @@ altnames <- altnames %>%
       x <- unique(na.omit(GarwoodNotes))
       if (length(x) == 0) NA_character_ else paste(x, collapse = ". ")
     },
+    sp6 = first(na.omit(sp6)),
+    sp4 = first(na.omit(sp4)),
     .groups = "drop"
-  )
+  ) %>% relocate(sp6, sp4, .after= prefname)
 
 nrow(altnames)
 
@@ -312,7 +327,7 @@ We can have a preferred name pointing to many different alternate names. That is
 
 However to have an alternate name point to many preferred names is a problem. If we find a species with that name in an old list, we wouldn't know  to what name it should have currently. 
 
-I think that this is a problem that needs to be resolved depending on where is the alternate names list being used. For example, so far it has not affected finding the forestgeo names of the species in the plantnet list. 
+I think that this is a problem that needs to be resolved depending on where is the alternate names list being used. 
 ```{r altnamesduplicates}
 
 # Species pointing to the same prefname. 
@@ -344,16 +359,14 @@ datatable(
 )
 
 ```
-Finally saving the altnames
-
-```{r}
-write_xlsx(altnames, FILEALLSYN)
-```
 
 Next we breakdown where this is coming from to try to figure out what is happening:
 ```{r breakingdown}
 # Breaking down this conflict:
-  
+
+altnames <- altnames %>% mutate(
+  row_id = row_number()
+)
   
 # The forestgeo names are better, so if this happens keep only the forestgeo option. 
 # if one is not in garwood and the other is, drop the one that is in garwood. 
@@ -396,12 +409,23 @@ datatable(duplicated_source_forestgeo %>% select(altname, prefname, GarwoodNotes
 
 In the case of where the conflict originates from the forestgeo names. It is because one pair of prefered names and alternate names comes from the viewtaxa list. In this case, it is better to ignore the Viwtaxa names alternate names since that list needs to be revised. 
 
-Here we create a list of alternate viewtaxa names that are not in the Flora de Panama list and viceversa. ???? Actually what do we want to see here
-```{r}
+
+```{r removeconflict}
+# Removing the conflicting viewtaxa synonyms from the final list
+
+altnames <- altnames %>% 
+  filter(!row_id %in% duplicated_source_forestgeo$row_id | in_panwoodycurr)
+
 
 
 ```
 
+
+Finally saving the altnames
+
+```{r}
+write_xlsx(altnames, FILEALLSYN)
+```
 
 
 # Creating a garwood match list
@@ -640,7 +664,7 @@ datatable(
     filter(firstmatchtype == "Falt-Gorig") %>%
     display_cols(),
   caption = paste(
-    "Table 4. aAForestGEO alternate name matches a name originally listed by Garwood
+    "Table 4. A ForestGEO alternate name matches a name originally listed by Garwood
 ."
   ),options = list(scrollX = TRUE, pageLength = 10)
 )
@@ -724,6 +748,10 @@ match_summary <- alternate_names_garwood %>%
 
 knitr::kable(match_summary, caption = "Summary: number of alternate-name pairs resolved per match type.")
 
+# for the sake of simplicity Fcur-Galt will be changed to direct synonym
+
+alternate_names_garwood <- alternate_names_garwood %>%
+  mutate(firstmatchtype = ifelse(firstmatchtype == "Fcur-Galt", "direct synonym", firstmatchtype))
 
 
 ```
