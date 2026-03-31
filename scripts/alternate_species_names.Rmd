@@ -22,6 +22,8 @@ library(stringi)
 library(stringr)
 library(DT)
 
+panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-26.xlsx")
+
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
 woody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx")
@@ -419,6 +421,28 @@ altnames <- altnames %>%
 
 
 ```
+
+
+Another thing that might be problematic is when both prefname and altname are in forestgeo. Since they are both the prefered name for a species. 
+
+```{r}
+altnames <- altnames %>%
+  mutate(
+    
+    prefname_fg = prefname %in% panwoody_list$orig_name,
+    altname_fg = altname %in% panwoody_list$orig_name
+    
+  )
+
+datatable(
+altnames %>% filter(prefname_fg & altname_fg) %>%
+  select(altname, prefname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes),
+caption="Prefname and altname are both in forestgeo",
+ options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+
 
 
 Finally saving the altnames
