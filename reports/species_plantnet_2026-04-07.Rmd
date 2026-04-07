@@ -1,0 +1,2938 @@
+---
+title: "Assemble plant species list for Barro Colorado Island and Barro Colorado Natural Monument, Panama"
+author: "Paula Uzcategui and Helene Muller-Landau"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Summary
+
+This Rmarkdown merges information from multiple high-quality plant species lists for Barro Colorado Island (BCI) and other Barro Colorado Natural Monument sites in Panama, updates to the best current woody plant species names based on the current Smithsonian ForestGeo woody species lists, utilizes prior checks of species names against the World Checklist of Vascular Plants (WCVP) version 13, and outputs the combined high-quality list. The reason for using WCVP version 13 is because that is the version currently in use by PlantNet.  The contributing lists are Garwood et al. 2009, Schnitzer et al. 2024, Zotz 2024, the Smithsonian ForestGeo Panama woody plant species and ViewTaxonomy lists (Perez et al. 2025), and a file of tree species found in forest inventory plots on BCI.  These lists are considered high-quality because they were each assembled by one or more botanists familiar with the local flora, and build on the work of Croat 1978. Combining the lists involves checking overlap not only in the original names on each list, but also on two lists of "synonyms" for BCI plant species, as well as in the current accepted name.  The synonym lists include one from Garwood 2009 and two from Smithsonian ForestGeo.  In all cases, these include not only synonyms in the botanical sense, but also prior names used for the same BCI morphospecies (including in cases where species determination was revised).  
+
+This Rmarkdown additionally outputs a list of plant species that appear in panamabiota.org's list of plants of Barro Colorado, that are *not* in the combined high-quality list. This list is generated for the purpose of later review.  
+
+The component and output lists are all available in the public GitHub site https://github.com/PanamaForestGEO/Panama_plant_species_lists 
+
+
+## References 
+
+Croat, Thomas B. 1978. *Flora of Barro Colorado Island*. Stanford University Press.
+
+Garwood, Nancy C., Nancy Hensold, and Robin B. Foster. 2009. Appendix 1.  Revised Species List for Barro Colorado Island, with Synonyms. In *Seedlings of Barro Colorado Island and the Neotropics*. Cornell University Press.
+
+Pérez, Rolando, Salomón Aguilar and David Mitre.  2025. Lista de árboles, arbustos, palmas, lianas y enredaderas de la flora de Panamá.  Version 2025-12-04.  
+
+Schnitzer, Stefan, David DeFilippis, Rigoberto Rivera-Camaña, et al. 2024. Liana Species of the Barro Colorado Island 50-Ha Plot 2007 and 2017 Censuses. Version 7. *Dryad* https://doi.org/10.5061/DRYAD.Q2BVQ83V4.
+
+Zotz, Gerhard.  2024.  Table S1. Updated list of epiphyte species on BCI. Online Supplementary Material for Zotz, G. 2024. Epiphyte Research on BCI. In *The First 100 Years of Research on Barro Colorado: Plant and Ecosystem Science*, ed. H. C. Muller-Landau and S. J. Wright. Smithsonian Institution Scholarly Press. https://doi.org/10.5479/si.26880865
+    
+## Setup
+
+### Load libraries
+```{r setup2,}
+
+rm(list=ls())
+
+library(readxl)
+library(writexl)
+library(dplyr)
+library(tidyr)
+library(stringi)
+library(stringr)
+library(knitr)
+library(DT)
+library(rgbif)
+#install.packages("rgbif")
+```
+
+### Read input files and initial data prep
+
+```{r readprepdata, echo=TRUE, results="hide"}
+# --- File paths ---
+FILE_GARWOOD          <- "splists_out/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-03-30.xlsx"
+FILE_GARWOOD_SYN      <- "splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx"
+FILE_ZOTZ             <- "splists_out/species_list_WCVP/83_Zotz_Epiphytes_TableS1_WCVP13_2026-03-25.xlsx"
+FILE_LIANAS           <- "splists_out/species_list_WCVP/Lianas_Species_complete_list_WCVP13_2026-03-16.xlsx"
+FILE_PBIOTA           <- "splists_out/species_list_WCVP/PanamaBiotaBCI_WCVP13_2026-02-26.xlsx"
+FILE_PANWOODY         <- "splists_out/species_list_WCVP/CurrentPanamaWoody_2026-03-26.xlsx"
+FILE_PANWOODY_SYN     <- "splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx"
+FILE_ALTNAMES         <- "splists_out/alternates_and_synonyms/AltNames_2026-03-31.xlsx"
+FILE_ALTNAMES_GARWOOD <- "splists_out/alternates_and_synonyms/alternate_names_garwood_2026-03-31.xlsx"
+FILE_WRIGHT           <- "splists_out/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-03-26.xlsx"
+
+# --- Load data ---
+
+# Original Garwood list + WCVP v13 names
+garwood_list_orig <- read_excel(FILE_GARWOOD, col_types = "text")
+
+# Garwood synonyms
+garwood_synonyms <- read_excel(FILE_GARWOOD_SYN)
+
+# Original Zotz list + WCVP v13 names
+zotz_list <- read_excel(FILE_ZOTZ, col_types = "text") %>%
+  rename_with(~ gsub("[()]", "", gsub(" ", "_", .x))) %>%
+  rename(wcvp_accepted_lifeform = wcvp_lifeform_description)
+
+# Original lianas list + WCVP v13 names
+lianas_list <- read_excel(FILE_LIANAS, col_types = "text") %>%
+  mutate(sp6 = tolower(sp6)) %>%
+  rename(wcvp_accepted_lifeform = wcvp_lifeform_description)
+
+# Original Panama biota list + WCVP v13 names
+pbiota_list <- read_excel(FILE_PBIOTA, col_types = "text")
+
+# Current Panama woody species list + WCVP v13 names
+# This list has the names used in ForestGeo in the column "orig_name"
+panwoody_list <- read_excel(FILE_PANWOODY, col_types = "text")
+panwoody_synonyms <- read_excel(FILE_PANWOODY_SYN, col_types = "text")
+
+# Alternate names of species in Garwood and Panama woody
+alternate_names <- read_excel(FILE_ALTNAMES)
+
+# Alternate names of species in Garwood and Panama woody that are directly or indirectly in Garwood
+alternate_names_garwood <- read_excel(FILE_ALTNAMES_GARWOOD)
+
+# Wright list
+allwrighttaxa <- read_excel(FILE_WRIGHT, na = c("", "NA"))
+```
+
+Adding some columns to the Garwood list
+```{r prepare garwood}
+garwood_synonyms <- garwood_synonyms %>% mutate(
+  sp_name = trimws(paste0(Genus, " ", Species)),
+  synonym_sp = trimws(paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)),
+  synonym_binomial = paste0(SynonymGenusSingle, " ", SynonymSpeciesSingle)) 
+# note that synonym_sp and synonym_binomial are identical; retaining for clarity of completeness
+
+garwood_list <- garwood_list_orig %>%
+  mutate(wcvp_accepted_binomial = 
+           paste0(wcvp_accepted_name_genus, " ", wcvp_accepted_name_species),
+         wcvp_matched_binomial = word(wcvp_matched_name,)) %>%
+  rename(wcvp_accepted_lifeform = wcvp_lifeform_description)
+```
+
+
+*alternate_names_garwood* is a list of alternate names that match to the Garwood list. It is generated in the *alternate_species_names.Rmd* to be used in this script.
+
+```{r buildaltmatchlookup}
+# ─────────────────────────────────────────────────────────────────────────────
+# Build a flat lookup table used downstream to resolve BCI plot species and
+# lianas list entries that did not match Garwood directly.
+# Both the preferred name and the alternate name are indexed as possible keys
+# so that either form can be used to retrieve the Garwood match.
+# ─────────────────────────────────────────────────────────────────────────────
+
+alt_match_lookup <- bind_rows(
+  alternate_names_garwood %>%
+    select(match_key = prefname, garwood_orig_match, garwood_synonym_match,
+           firstmatchtype, alt_name = altname, pref_name = prefname),
+  alternate_names_garwood %>%
+    select(match_key = altname,  garwood_orig_match, garwood_synonym_match,
+           firstmatchtype, alt_name = altname, pref_name = prefname)
+) %>%
+  filter(!is.na(match_key)) %>%
+  distinct(match_key, .keep_all = TRUE)
+
+
+
+
+
+# garwood look up table
+garwood_synonym_full <- garwood_synonyms %>%
+  select(garwood_name= sp_name, garwood_syn = synonym_sp) %>%
+  # Bring in the full data for the accepted garwood_name
+  inner_join(garwood_list %>% 
+               select(garwood_name = orig_name, 
+                      garwood_wcvp_accepted = wcvp_accepted_name,
+                      garwood_synonym = SYNONYMS
+                      ), 
+             by = "garwood_name")%>%
+  distinct() # Ensure no duplicate mapping rows
+
+garwood_list$garwood_name <- garwood_list$orig_name
+  
+garwood_list_lookup <- bind_rows(
+  garwood_list %>% select(match_key = orig_name, garwood_name, garwood_wcvp_accepted = wcvp_accepted_name, garwood_synonym=  SYNONYMS), 
+  garwood_list %>% select(match_key = orig_binomial, garwood_name, garwood_wcvp_accepted = wcvp_accepted_name, garwood_synonym= SYNONYMS), 
+  garwood_list %>% select(match_key = wcvp_matched_binomial, garwood_name, garwood_wcvp_accepted = wcvp_accepted_name,  garwood_synonym= SYNONYMS), 
+  garwood_list %>% select(match_key = wcvp_matched_name, garwood_name, garwood_wcvp_accepted = wcvp_accepted_name, garwood_synonym=  SYNONYMS), 
+  garwood_list %>% select(match_key = wcvp_accepted_name, garwood_name, garwood_wcvp_accepted = wcvp_accepted_name,  garwood_synonym= SYNONYMS), 
+  garwood_synonym_full %>% select(match_key = garwood_syn, garwood_name, garwood_wcvp_accepted, garwood_synonym), 
+) %>%
+  filter(!is.na(match_key)) %>%
+  distinct(match_key, .keep_all = TRUE)
+
+
+```
+
+
+### Output file names 
+
+MAIN OUTPUTS: 
+
+- Combined, high-quality list of BCNM plant species.  
+
+- List of BCI species that might be woody according to WCVP lifeform. 
+
+ADDITIONAL OUTPUTS OF FILES TO CHECK: 
+
+- List of Zotz species that are not in Garwood or conflicting with a species in Garwood. 
+
+- List of BCI plot species that need revision because they are not in Garwood or conflicting with a species in Garwood
+
+- List of BCI liana list species that need revision because they are not in Garwood or conflicting with a species in Garwood.
+
+- List of Wright species that are not in the Current Panama Woody list but that might be woody according to the lifeform in Wright, WCVP and Garwood. 
+
+- List of PanamaBiota BCI species that are not in the final high-quality list
+
+
+```{r outfilenames}
+
+current_date <- Sys.Date()
+
+FILECOMBINEDLIST <- paste0("splists_out/Plantnet/BCNM_SPECIES_BOTANISTS_LIST_",current_date,".xlsx")
+
+FILEBCIWOODY <- paste0("splists_out/needs_check/BCNM_SPECIES_POSSIBLY_WOODY_",current_date,".xlsx")
+
+FILECHECKPLOTS <- paste0("splists_out/needs_check/plotsbci_not_garwood_", current_date, ".xlsx")
+
+FILECHECKLIANAS <- paste0("splists_out/needs_check/lianasbci_not_garwood_", current_date, ".xlsx")
+
+FILECHECKPANAMABIOTA <- paste0("splists_out/needs_check/panamabiota_not_garwood_", current_date, ".xlsx")
+
+FILECHECKWRIGHT <- paste0("splists_out/needs_check/Wright_not_CurrentPanamaWoody_", current_date, ".xlsx")
+
+FILECHECKZOTZ <- paste0("splists_out/needs_check/zotz_garwood_check_", current_date, ".xlsx")
+```
+
+## Assembling a combined BCI high-quality botanist-determined plant species list
+
+```{r columnsetup}
+# Initializing the columns that all of the species added should have
+listscol <- c("orig_name",
+              "orig_binomial",
+              "wcvp_accepted_binomial",
+              "wcvp_matched_name",
+              "wcvp_matched_plant_name_id",
+              "wcvp_matched_ipni_id",
+              "wcvp_matched_status",
+              "wcvp_accepted_name",
+              "wcvp_accepted_family", 
+              "wcvp_accepted_authority",
+              "wcvp_accepted_plant_name_id", 
+              "wcvp_accepted_powo_id",
+              "wcvp_accepted_ipni_id",
+              "wcvp_accepted_lifeform",
+              "source_list"
+              )
+
+# Create the empty dataframe of BCI species list
+bcilist <- data.frame(matrix(ncol = length(listscol), nrow = 0))
+colnames(bcilist) <- listscol
+
+```
+
+
+### Garwood 2009 list
+
+Some species in Garwood are listed as being only in the Barro Colorado Nature Monument but not on BCI itself (chg=="BCNM"). However, after matching with species recorded in the plots in BCI these species show up:
+
+Matayba oppositifolia, Myrcia zetekiana, Buchenavia tetraphylla. 
+
+(Buchenavia tetraphylla is an alternate name of Terminalia tetraphylla which is found in the plot censuees of BCI)
+
+
+```{r garwoodnobcnm}
+
+yesonbcibinomial <- c("Matayba oppositifolia", "Myrcia zetekiana", "Buchenavia tetraphylla")
+
+garwood_list <- garwood_list %>% mutate(
+  garwood_Other_BCNM_plots = ifelse(!is.na(chg) & chg == "BCNM", TRUE, FALSE)
+) 
+
+garwoodBCNM <- subset(garwood_list_orig, chg=="BCNM")
+
+kable(garwoodBCNM %>% select(orig_name,SYNONYMS),
+      caption = "Species that according to Garwood are in the mainland peninsulas but not on BCI itself.")
+```
+
+Removing some conflicting species from the Garwood list:
+```{r garwoodmod}
+# remove garwood that is NA
+# and leave out Ficus aff. Trigonata, it is already in zotz without the aff.
+# And also remove Citrus x aurantium NA (Sour Orange Group) which has the same name as Citrus x aurantium NA (Sweet Orange Group)
+
+# remove Aspidosperma excelsum, this is the name in Garwood but in the plots it is called Aspidosperma Megalocarpon, which is the correct name for the species in BCNM
+garwood_list <- garwood_list %>% filter(!is.na(orig_name)  & !orig_name %in% c("Ficus aff. trigonata", "Citrus x aurantium NA (Sour Orange Group)", "Aspidosperma excelsum"))
+
+# Add this species to garwood instead of  "Aspidosperma excelsum"
+
+megalocarpon <- panwoody_list %>% 
+  filter(orig_name == "Aspidosperma megalocarpon") %>% 
+  mutate(source_list = "Garwood2009",
+         garwood_Other_BCNM_plots = FALSE) %>% 
+  select(all_of(listscol))
+
+
+garwood_list <- bind_rows(garwood_list,
+                          megalocarpon)
+
+
+
+
+```
+
+
+```{r garwoodnoid}
+
+# view unidentified species
+garwoodnobinomial <- subset(garwood_list_orig,is.na(word(orig_binomial,2)))
+
+kable(garwoodnobinomial %>% select(orig_name,Syn_notes) %>% rename(garwood_name=orig_name),
+      caption="Garwood species lacking a complete binomial")
+
+```
+
+In `r nrow(garwoodnobinomial)` cases these species lack proper binomials, indicating their species identity remains uncertain (including possible new species).  These are left in anyway because they are known morphospecies.  
+ 
+We have `r nrow(garwood_list)` plant species on the Garwood list. 
+
+Add Garwood species to the BCI list. 
+```{r startbcilist}
+
+garwood_list$source_list = "Garwood2009"
+garwood_list$in_garwood = TRUE
+garwood_list$garwood_name = garwood_list$orig_name
+garwood_list$garwood_synonyms = garwood_list$SYNONYMS
+
+          
+# Some additional columns in Garwood. 
+bcilist <- garwood_list %>% select(all_of(c(listscol,"in_garwood","garwood_name", "garwood_synonyms", "LF_RF", "BCI cult", "garwood_Other_BCNM_plots")))
+
+bcilist <- bcilist %>% mutate(
+  bci_rowid = row_number()
+)
+```  
+
+---
+
+
+### Zotz 2024 epiphyte species list
+
+*There are `r nrow(zotz_list)` species on the Zotz 2024 epiphyte list.  *
+
+We will only add species that match to Garwood directly (?)
+```{r prepzotz}
+
+zotz_list <- zotz_list %>% mutate(
+  wcvp_matched_binomial = word(wcvp_matched_name,1,2),
+) 
+
+# setting column indicating zotz list presence
+zotz_list$source_list = "Zotz"
+zotz_list$zotz_name = zotz_list$orig_name
+
+
+# removing morphospecies identified only at the genus level (there is only one)
+zotz_list <- zotz_list %>% 
+  filter(is.na(orig_binomial) | !is.na(word(orig_binomial,2) )) 
+
+
+# when the name listed is the same as in Croat 1978, the column Sp_Croat_1978 is blank (NA)
+# so create a new name_Croat field that is the name of the species in Croat 1978
+zotz_list <- zotz_list %>% 
+  mutate(wcvp_accepted_binomial = 
+           paste0(wcvp_accepted_name_genus," ",wcvp_accepted_name_species),
+         wcvp_matched_binomial = word(wcvp_matched_name,1,2),
+         croat_name = ifelse(!is.na(Sp_Croat_1978),Sp_Croat_1978,orig_name)) %>%
+  mutate(croat_binomial = word(croat_name,1,2)) 
+
+# make one manual correction so matches work right
+zotz_list <- zotz_list %>%
+  mutate(croat_name =ifelse(croat_name=="Bolbiltis nicotianifolia",
+         "Bolbitis nicotianifolia",croat_name))
+```
+
+#### 1. Direct match to garwood names
+
+```{r zotzdirect}
+# 1. direct name match
+bcilist <- bcilist %>% 
+  left_join(zotz_list %>% select(zotz_name, orig_name), by="orig_name")
+
+
+# Match by wcvp matched name (the species name is slightly different)
+bcilist <- bcilist %>% 
+  left_join(zotz_list %>% select(zozt_name_matchwcvp = zotz_name, wcvp_matched_name), by="wcvp_matched_name") %>%
+  mutate(
+    zotz_name = coalesce(zotz_name, zozt_name_matchwcvp)
+  )
+
+datatable(
+  bcilist %>%
+    filter(!is.na(zotz_name))%>%
+    select(garwood_name, zotz_name, wcvp_matched_name), 
+          caption="Zotz species matching directly to Garwood names",
+          options = list(scrollX = TRUE, pageLength = 10))  
+
+# Set the Zotz name (the spelling is Zotz as the original name.)
+bcilist <- bcilist %>%
+  mutate(
+    orig_name = coalesce(zotz_name, orig_name),
+    source_list = ifelse(!is.na(zotz_name), "Zotz", source_list)
+  )
+
+zotz_garwood_name_match <- bcilist %>% filter(!is.na(zotz_name))
+```
+          
+*Matched `r nrow(zotz_garwood_name_match)` species in the plots directly to garwood.*
+
+#### 2. Indirect name match 
+```{r zotzalter}
+
+
+# 2. everything that did not match directly to garwood, match to alternate names
+zotz_garwood_indirect_match <- zotz_list %>% 
+  filter(
+      !zotz_name %in% bcilist$zotz_name &
+    (
+      orig_name %in% garwood_list_lookup$match_key |
+      orig_binomial %in% garwood_list_lookup$match_key |
+        
+      (!is.na(croat_name) &
+         croat_name %in% garwood_list_lookup$match_key) |
+      
+      (!is.na(wcvp_matched_binomial) &
+         wcvp_matched_binomial %in% garwood_list_lookup$match_key) |
+        
+      (!is.na(wcvp_matched_name) &
+         wcvp_matched_name %in% garwood_list_lookup$match_key) |
+        
+      (!is.na(wcvp_accepted_name) &
+         wcvp_accepted_name %in% garwood_list_lookup$match_key)
+    )
+  )
+
+
+# 3. print the altname it matched to and why that name is in garwood
+
+zotz_garwood_indirect_match_print <- zotz_garwood_indirect_match %>%
+  # Join using a chain of coalesce to check the most reliable fields first
+  left_join(garwood_list_lookup, by = c("orig_name" = "match_key")) %>%
+  left_join(garwood_list_lookup, by = c("orig_binomial" = "match_key"), 
+            suffix = c("", "_bi")) %>%
+  
+
+  left_join(garwood_list_lookup, by = c("wcvp_matched_name" = "match_key"), 
+            suffix = c("", "_match")) %>%
+  left_join(garwood_list_lookup, by = c("wcvp_matched_binomial" = "match_key"), 
+            suffix = c("", "_matchbi")) %>%
+  
+    left_join(garwood_list_lookup, by = c("croat_name" = "match_key"), 
+            suffix = c("", "_croat")) %>%
+  
+  left_join(garwood_list_lookup, by = c("wcvp_accepted_name" = "match_key"), 
+            suffix = c("", "_acc")) %>%
+  
+  # Now, condense everything into final fields
+  mutate(
+    garwood_name    = coalesce(
+      garwood_name,
+      garwood_name_bi,
+      garwood_name_match,
+      garwood_name_matchbi,
+      garwood_name_croat,
+      garwood_name_acc),
+    
+    garwood_wcvp_accepted    = coalesce(
+      garwood_wcvp_accepted,
+      garwood_wcvp_accepted_bi,
+      garwood_wcvp_accepted_match,
+      garwood_wcvp_accepted_matchbi,
+      garwood_wcvp_accepted_croat,
+      garwood_wcvp_accepted_acc),
+    
+    garwood_synonym = coalesce(
+      garwood_synonym,
+      garwood_synonym_bi,
+      garwood_synonym_match, 
+      garwood_synonym_matchbi,
+      garwood_synonym_croat,
+      garwood_synonym_acc),
+    
+  ) %>%
+  select(-ends_with("_bi"), -ends_with("_match"), -ends_with("_matchbi"), 
+         -ends_with("_croat"),-ends_with("_acc")) # Clean up extra columns
+
+```
+
+*Matched `r nrow(zotz_garwood_indirect_match)` species in Zotz by synonyms or alternate names to garwood.*
+
+
+```{r zotzprintaltmatches}
+datatable(
+  zotz_garwood_indirect_match_print %>% 
+  select(zotz_name, croat_name, wcvp_matched_name, wcvp_accepted_name, garwood_name, garwood_synonym), 
+          caption="Zotz species that match indirectly to Garwood",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+
+#### Changing Garwood to Zotz name, since the Zotz name is better in some cases.
+
+Set the current name to the Zotz name if:
+
+1. The WCVP accepted name of the Garwood name is the same as the current Zotz name.
+
+2. The Garwood name is the same as the Croat name 
+
+3. Zotz and Garwood have the same binomial, And the match is one-one. 
+
+4. Zotz and Garwood have the same binomial, but there is more than one match, keep the one were the subspecies is the same as the species. 
+
+```{r garwoodchangezotz}
+
+#1. Change because Zotz is more up-to-date 
+zotz_wcvp_change <- zotz_garwood_indirect_match_print %>% 
+  filter(
+  garwood_wcvp_accepted == wcvp_matched_name |
+  garwood_name == croat_name 
+  )
+
+datatable(
+  zotz_wcvp_change %>%
+  select( garwood_name, garwood_wcvp_accepted, garwood_synonym, zotz_name, croat_name,wcvp_accepted_name), 
+          caption="Garwood names should change to the Zotz names since they are more up-to-date",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+# Make sure that the names that will be changed don't generate a conflict: 
+datatable(garwood_list %>% filter(
+  garwood_name %in% zotz_wcvp_change$zotz_name
+) %>% select(garwood_name)
+, caption="Zotz name is already in Garwood")
+
+
+#3. Change because its the same species, but one list is using subspecies
+zotz_disctinct_subp <- zotz_garwood_indirect_match_print %>% 
+  filter(!zotz_name %in% zotz_wcvp_change$zotz_name & 
+           # make sure they have subspecies
+          (!is.na(word(zotz_name,3)) | !is.na(word(garwood_name, 3))) & 
+           # see that they matched by the binomial
+           (orig_binomial %in% garwood_list_lookup$match_key |
+          (!is.na(wcvp_matched_binomial) &
+          wcvp_matched_binomial %in% garwood_list_lookup$match_key))) %>%
+          add_count(garwood_name, name="n_garwood") %>%
+          add_count(zotz_name, name = "n_zotz")%>%
+    filter(n_zotz == 1 & n_garwood == 1) 
+
+
+datatable(
+  zotz_disctinct_subp %>%
+  select( garwood_name, garwood_wcvp_accepted, garwood_synonym, zotz_name, croat_name,wcvp_accepted_name), 
+          caption="Garwood names should change to the Zotz names, because they just have different subspecies",
+          options = list(scrollX = TRUE, pageLength = 10)) 
+
+
+# Make sure that the names that will be changed don't generate a conflict: 
+datatable(garwood_list %>% filter(
+  garwood_name %in% zotz_disctinct_subp$zotz_name
+) %>% select(garwood_name)
+, caption="Zotz name is already in Garwood")
+
+
+  
+```
+
+The other species that are an indirect match but need revision: 
+```{r zotzforrevision}
+
+zotz_needs_check <- zotz_garwood_indirect_match_print %>% 
+           filter(!zotz_name %in% zotz_wcvp_change$zotz_name &
+                   !zotz_name %in% zotz_disctinct_subp$zotz_name
+                    ) %>%
+    select(zotz_name, croat_name, wcvp_accepted_name, garwood_name, garwood_wcvp_accepted, garwood_synonym)
+
+datatable(
+  zotz_needs_check,
+  caption="Zotz species that need revision for their match to Garwood",
+  options = list(scrollX = TRUE, pageLength = 10)
+)
+
+
+```
+
+
+```{r change_garwood_to_zotz_name}
+zotz_garwood_change_name = bind_rows(zotz_wcvp_change,
+                                     zotz_disctinct_subp)
+
+bcilist_stay <- bcilist %>% 
+  filter(!garwood_name %in% zotz_garwood_change_name$garwood_name)
+
+bcilist_to_update <- bcilist %>% 
+  filter(garwood_name %in% zotz_garwood_change_name$garwood_name) %>%
+  select(-all_of(listscol), -any_of("zotz_name")) %>%
+  left_join(zotz_garwood_change_name %>% 
+              select(garwood_name, zotz_name, all_of(listscol)), 
+            by = "garwood_name")
+
+bcilist <- bind_rows(bcilist_stay, bcilist_to_update)
+```
+
+
+Printing species in Zotz that are  definitely not in Garwood. 
+```{r allnomatchzotz}
+
+# combine direct matches and matches by alternate names or synonyms
+zotz_garwood_match <- bind_rows(
+  zotz_garwood_name_match,
+  zotz_garwood_indirect_match
+) %>%
+  distinct(zotz_name, .keep_all = TRUE)
+
+# filter unmatched rows
+zotz_no_garwood_at_all <- zotz_list %>%
+  filter(!zotz_name %in% zotz_garwood_match$zotz_name) 
+
+datatable(zotz_no_garwood_at_all%>% 
+  select(zotz_name , wcvp_matched_name,wcvp_accepted_name, croat_name), 
+          caption="Species in Zotz that don't match anything in Garwood")
+
+
+# Writing file to be reviewed by a botanists
+write_xlsx(
+  bind_rows(zotz_needs_check,
+            zotz_no_garwood_at_all),
+            FILECHECKZOTZ)
+```
+
+```{r addzotzbci}
+
+# Adding zotz species to the BCI list
+
+bcilist <- bind_rows(
+  bcilist,
+  zotz_no_garwood_at_all %>% select(all_of(listscol), zotz_name))
+
+bcilist <- bcilist %>% mutate(
+  bci_rowid = row_number()
+)
+
+```
+
+
+In total there are `r nrow(zotz_no_garwood_at_all)` species on the Zotz list not already on the Garwood list.  
+
+---
+
+Next we match species recorded in BCI and BCNM in plot census and in Lianas lists. Many of these species are expected to be in the Forestgeo list, in that case the Forestgeo name is more up-to-date than the Garwood name. We will first detect the species that are definitely missing from the BCNM list arranged so far and add them, and then we will find the Forestgeo names for all of the species in the final list. 
+
+
+### List of tree species recorded in censuses of forest plots on BCI 
+
+Merging species from three sources of plot censuses: 
+
+```{r plotslist}
+# Preparing plotlist
+
+# Plot abundance in BCNM
+bci_plots_abund <- read_excel("splists_raw/Plots/abundance_plots_HM.xlsx")
+
+bci_plots_abund <- bci_plots_abund %>% 
+  select(sp, binomial, 
+         # plots in bci
+         bci, `bci 10 ha plot`, P11, P14,
+         
+         # plots in BCNM
+         P10, P12, P13, P18, gigante1, gigante2
+         
+         ) %>%
+  rename(
+    sp6 = sp,
+    census_name = binomial,
+    bci50ha = bci,
+    bci10ha = `bci 10 ha plot`,
+  ) 
+
+# Other BCI census
+bci_other_plots <- read.delim(
+  "splists_raw/Plots/doi_10_5061_dryad_1g1jwsvc3__v20260226/mainfile.txt"
+)
+
+# summarise
+bci_other_plots <- bci_other_plots %>%
+  group_by(sp6, plot) %>%
+  summarise(n_distinct_tag = n_distinct(tag), .groups = "drop") %>%
+  pivot_wider(
+    names_from = plot,
+    values_from = n_distinct_tag,
+    values_fill = 0
+  ) %>%
+  rename(
+    bci10ha = `10ha`,
+    bci25ha = `25ha`
+  )
+
+# Census from Gigante project
+census_gigante <- read.csv(
+  "splists_raw/Plots/gigante_census_2026-04-05.csv"
+)
+census_gigante <- census_gigante%>%select(sp6, freq) %>%
+  rename(gigante_plot = freq)
+
+
+# Join safely (keeps all census_list species)
+census_list <- bci_plots_abund %>%
+  full_join(bci_other_plots, by = "sp6") %>%
+  mutate(bci10ha = coalesce(bci10ha.x, bci10ha.y)) %>%
+  select(-bci10ha.x, -bci10ha.y) %>%
+  full_join(census_gigante, by = "sp6")
+
+# Filter safely (handle NA just in case)
+census_list <- census_list %>%
+  mutate(across(c(bci50ha, bci10ha, P14, P11, Zetek, bci25ha, AVA, Drayton, Pearson, P10, P12, P13, P18, gigante1, gigante2, gigante_plot), ~coalesce(., 0))) %>%
+  filter(
+      if_any(c(P11, P14, bci10ha, bci50ha, Zetek, bci25ha, AVA, Drayton, Pearson, P10, P12, P13, P18, gigante1, gigante2, gigante_plot),
+             ~ !is.na(.) & . > 0)
+    )
+
+
+census_list <- census_list %>% mutate(
+  BCI = (bci50ha>0 | bci10ha>0 | P14>0 | P11>0 | Zetek>0 | bci25ha>0 | 
+           AVA>0 | Drayton>0 | Pearson>0),
+  
+  # if it is in any of the plots outside of BCI that are in the BCNM
+  Other_BCNM_plots = (P10 >0 | P12>0| P13>0| P18>0| gigante1>0| gigante2>0 | gigante_plot > 0)
+)
+
+# 6. Create census_plot column safely
+census_list <- census_list %>%
+  rowwise() %>%
+  mutate(
+    census_plot = paste(
+      c(
+        if (bci50ha > 0) "bci50ha",
+        if (bci10ha > 0) "bci10ha",
+        if(bci25ha > 0) "bci25ha",
+        if (P14 > 0) "P14",
+        if (P11 > 0) "P11",
+        if(Zetek > 0) "Zetek",
+        if(AVA > 0) "AVA",
+        if(Drayton > 0) "Drayton",
+        if(Pearson > 0) "Pearson",
+        if (P10 > 0) "P10",
+        if (P12 > 0) "P12",
+        if (P13 > 0) "P13",
+        if (P18 > 0) "P18",
+        if (gigante1 > 0) "gigante1",
+        if (gigante2 > 0) "gigante2",
+        if (gigante_plot > 0) "gigante_plot"
+      ),
+      collapse = ", "
+    )
+  ) %>%
+  ungroup()
+
+# the plots files don't have wcvp accepted name, merge them by 6-letter species code in the Panama woody species list
+match21 <- match(census_list$sp6, panwoody_list$sp6)            
+nomatchview <- census_list[is.na(match21),] %>% select(sp6, census_name, census_plot) # Those that don't match are all unidentified
+
+if (nrow(nomatchview)>0){
+knitr::kable(nomatchview, caption="Warning: Species recorded in plots on BCI whose 6-letter codes do not have a match in the Panama ForestGeo woody plant species database.")
+
+}else{
+  print("All species in the plot have a match to a sp6 code in the current woody list.")
+}
+
+census_list <- census_list %>% left_join(
+  panwoody_list, by="sp6"
+) %>%
+  rename(forestgeo_current_name = orig_name)%>% 
+# leaving out species that dont have a name
+  filter(!is.na(forestgeo_current_name))
+  
+
+# Some names in the plots do not match the names in forestgeo
+datatable(
+census_list %>% 
+  filter(!is.na(census_name) & (census_name != forestgeo_current_name)) %>% 
+  select(sp6, sp4, census_name, forestgeo_current_name = forestgeo_current_name),
+caption="The name used in the plot for this species does not match the forestgeo name associated with the sp6 code used. Using the name associated with the sp6 code in forestgeo. "
+)
+
+datatable(
+census_list %>% 
+  filter(is.na(census_name)) %>% 
+  select(sp6, sp4, census_name, forestgeo_current_name = forestgeo_current_name),
+caption="Sp6 codes in the plots match to forestgeo codes, but species name is missing in the plots list. "
+)
+
+# We will use the forestgeo current name to make all the comparisons with this list
+census_list <- census_list %>% mutate(orig_name = forestgeo_current_name)
+
+# remove the row for "unidentified", if present
+census_list <- census_list %>% filter(sp6!="uniden")
+
+bcidups <- census_list %>% filter(duplicated(sp6)) %>% select(sp6, census_name, forestgeo_current_name)
+
+if (nrow(bcidups)>0)
+knitr::kable(bcidups, caption="Warning: Some 6-letter species codes are repeated in the census_list data.frame.")
+
+# create binomial first if not already
+census_list$wcvp_accepted_binomial <- paste0(
+  census_list$wcvp_accepted_genus, " ",
+  census_list$wcvp_accepted_species
+)
+
+
+census_list <- census_list %>% 
+  mutate(
+    in_census = TRUE,
+    source_list = "Plots_census",
+    census_row_id = row_number(),
+    forestgeo_current_binomial = orig_binomial,
+  )
+
+
+datatable(
+census_list %>%
+  select(sp6, sp4, census_name, forestgeo_current_name, census_plot,BCI, Other_BCNM_plots),
+caption="BCNM species recorded in plot census",
+options = list(scrollX = TRUE, pageLength = 10)
+)
+
+
+species_only_bcnm <- census_list %>% filter(!BCI)
+datatable(species_only_bcnm %>% select(sp6, forestgeo_current_name, census_plot),
+          caption="Species that have been recorded in plots in BCNM but not in BCI")
+
+
+species_only_bci <- census_list %>% filter(!Other_BCNM_plots)
+datatable(species_only_bci %>% select(sp6, forestgeo_current_name, census_plot),
+          caption="Species that have been recorded in BCI but not in the other plots in BCNM")
+
+```
+
+
+**In total there are `r nrow(census_list)` tree morphospecies recorded for forest plot censuses on BCNM.**
+
+Matching to original garwood names (direct match) or to synonyms or alternate names that match to garwood.
+
+
+#### 1. Direct match to garwood names
+
+```{r bciplotdirectmatch}
+# 1. direct name/binomial match
+bci_plots_garwood_name_match <- census_list %>%
+  filter(
+    forestgeo_current_name %in% bcilist$orig_name |
+
+    (!is.na(wcvp_matched_name) &
+       wcvp_matched_name %in% bcilist$wcvp_matched_name) |
+
+    (!is.na(wcvp_accepted_name) &
+       wcvp_accepted_name %in% bcilist$wcvp_accepted_name) |
+
+    # match binomials
+    (!is.na(orig_binomial) & (
+        orig_binomial %in% bcilist$orig_binomial 
+    )) |
+
+    (!is.na(wcvp_accepted_binomial) & (
+        wcvp_accepted_binomial %in% bcilist$wcvp_accepted_binomial 
+    ))
+  )
+
+datatable(
+  bci_plots_garwood_name_match %>% 
+  select(sp6, forestgeo_current_name, wcvp_matched_name, wcvp_accepted_name), 
+          caption="BCNM plot species matching directly to Garwood names",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+          
+**Matched `r nrow(bci_plots_garwood_name_match)` species in the plots directly to garwood.**
+
+#### 2. Alternate name match 
+```{r plotalternatematchtry}
+
+
+# 2. everything that did not match directly to garwood, match to alternate names
+bci_plots_garwood_synonym_match <- census_list %>% 
+  filter(
+      !orig_name %in% bci_plots_garwood_name_match$orig_name &
+    (
+      orig_name %in% alt_match_lookup$match_key |
+      orig_binomial %in% alt_match_lookup$match_key |
+      
+      (!is.na(wcvp_matched_name) &
+         wcvp_matched_name %in% alt_match_lookup$match_key) |
+        
+      (!is.na(wcvp_accepted_name) &
+         wcvp_accepted_name %in% alt_match_lookup$match_key)
+    )
+  )
+
+
+# 3. print the altname it matched to and why that name is in garwood
+
+bci_plots_garwood_synonym_print <- bci_plots_garwood_synonym_match %>%
+  # Join using a chain of coalesce to check the most reliable fields first
+  left_join(alt_match_lookup, by = c("orig_name" = "match_key")) %>%
+  left_join(alt_match_lookup, by = c("orig_binomial" = "match_key"), suffix = c("", "_bi")) %>%
+  left_join(alt_match_lookup, by = c("wcvp_matched_name" = "match_key"), suffix = c("", "_match")) %>%
+  left_join(alt_match_lookup, by = c("wcvp_accepted_name" = "match_key"), suffix = c("", "_acc")) %>%
+  
+  # Now, condense everything into final fields
+  mutate(
+    orig_garwood    = coalesce(garwood_orig_match, garwood_orig_match_bi, garwood_orig_match_match, garwood_orig_match_acc),
+    orig_garwood_synonym = coalesce(garwood_synonym_match, garwood_synonym_match_bi, garwood_synonym_match_match, garwood_synonym_match_acc),
+    firstmatchtype  = coalesce(firstmatchtype, firstmatchtype_bi, firstmatchtype_match, firstmatchtype_acc),
+    alternate_name  = coalesce(alt_name, alt_name_bi, alt_name_match, alt_name_acc),
+    prefrered_name   = coalesce(pref_name, pref_name_bi, pref_name_match, pref_name_acc)
+  ) %>%
+  select(-ends_with("_bi"), -ends_with("_match"), -ends_with("_acc")) # Clean up extra columns
+
+```
+
+*Matched `r nrow(bci_plots_garwood_synonym_match)` species in the plots by synonyms or alternate names to garwood.*
+
+The table below shows BCI plot species that could not be matched directly to Garwood (2009) but were linked through an alternate name. The `firstmatchtype` column indicates which name pairing produced the link:
+
+Definitions:
+
+- F=ForestGeo
+
+- G=Garwood
+
+- Fcur = ForestGeo current name from most recent list
+
+- Falt = ForestGeo alternate name from most recent list for Panama woody plants in general
+
+- Gorig = Garwood 2009 original name
+
+- Galt = Garwood 2009 alternate name
+
+- **direct synonym** — the name appears directly in the Garwood list as a synonym
+ 
+- **Fcur-Gorig** — the current ForestGeo name matches a name listed by Garwood
+
+- **Fcur-Gorigbi** — the current ForestGeo name matches the binomial of a Garwood original name.
+
+- **Falt-Gorig** — a ForestGeo alternate name matches a name originally listed by Garwood
+
+- **Falt-Gorigbi** — a ForestGeo alternate name matches the binomial of a Garwood original name.
+
+- **Fcur-Galtbi** — the current ForestGeo name matches the binomial of a Garwood synonym
+
+- **Falt-Galt** — a historical ForestGeo alternate name matches a synonym documented by Garwood
+
+- **Falt-Galtbi** — a historical ForestGeo alternate name matches the binomial of a Garwood synonym
+
+ 
+
+Note that "Garwood original name" refers to the name as it appears in the Garwood (2009) revision, not necessarily the currently accepted name.
+
+```{r printaltmatches}
+datatable(
+  bci_plots_garwood_synonym_print %>% 
+  select(sp6, forestgeo_current_name, wcvp_matched_name, wcvp_accepted_name, firstmatchtype, orig_garwood,
+         alternate_name, prefrered_name, orig_garwood_synonym), 
+          caption="BCNM plot species where an alternate name of the species matched to garwood",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+
+Printing species in the plots that are not in Garwood. 
+```{r allnomatchbciplot}
+
+# combine direct matches and matches by alternate names or synonyms
+bci_plots_garwood_match <- bind_rows(
+  bci_plots_garwood_name_match,
+  bci_plots_garwood_synonym_match
+) %>%
+  distinct(sp6, .keep_all = TRUE)
+
+# filter unmatched rows
+bci_plots_no_garwood_at_all <- census_list %>%
+  filter(!sp6 %in% bci_plots_garwood_match$sp6)
+
+kable(bci_plots_no_garwood_at_all  %>% select(sp6, census_name, forestgeo_current_name , wcvp_matched_name, 
+                                              wcvp_accepted_name, census_plot), 
+          caption="Species recorded in BCNM plots census that don't match anything in Garwood")
+
+
+
+write_xlsx(bci_plots_no_garwood_at_all, FILECHECKPLOTS)
+
+```
+
+Added `r nrow(bci_plots_no_garwood_at_all)` completely new rows to the BCI list
+
+
+```{r addplottobci}
+
+bcilist$forestgeo_current_name = NA_character_
+
+
+bcilist <- bind_rows(
+  bcilist,
+  bci_plots_no_garwood_at_all %>% 
+    mutate(source_list="Plot_census",
+           orig_name = forestgeo_current_name # the orig_name in bcilist represents the name originally listed in the source list.
+           ) %>%
+    select(all_of(c(listscol, "census_name", "in_census", "census_plot", "bci50ha", "bci10ha", "P11", "P14", "Zetek", "Pearson", "Drayton", "bci25ha", "sp6", "sp4", "forestgeo_current_name"))
+))
+
+
+```
+
+
+### Lianas BCI list
+
+
+Check whether the lianas are already in the list we have assembled so far: 
+
+```{r lianasnobcilist}
+
+lianas_list <- lianas_list %>% filter(isbci=="TRUE")
+lianas_list <- lianas_list %>% distinct(orig_name, .keep_all = TRUE)
+lianas_list <- lianas_list %>% 
+  mutate(
+    wcvp_accepted_binomial = paste(wcvp_accepted_name_genus, wcvp_accepted_name_species),
+    former_binomial = ifelse(is.na(GenusFormer),NA,paste(GenusFormer,SpeciesOnlyFormer))) %>%
+  
+  mutate(
+    former_name = paste(ifelse(is.na(SubspeciesFormer),former_binomial,
+                                    paste(former_binomial,SubspeciesFormer))))
+
+lianas_list$liana_name = lianas_list$orig_name
+lianas_list$source_list = "Lianas"
+
+datatable(
+  lianas_list %>% group_by(wcvp_accepted_name) %>% filter(n()>1 &!is.na(wcvp_accepted_name)) %>% select(liana_name, former_name, wcvp_matched_name, wcvp_accepted_name),
+  caption="Lianas with duplicated wcvp accepted name. Meaning that under WCVP they are the same species"
+)
+
+```
+
+Senegalia hayesii is in the Current Forestgeo Panama woody plant list, while Senegalia Acanthopylla is not. This needs revision. Since Senegalia Acanthopylla is not being added to the list because its already in Garwood indirectly when matching with Senegalia hayesii.
+
+Working with `r nrow(lianas_list)` liana species. 
+
+#### 1. Direct match to the species already in the BCNM list.
+
+```{r lianasdirect}
+
+# 1. direct name match
+lianas_list_directmatch <- lianas_list %>% 
+  filter(orig_name %in% bcilist$orig_name) %>% 
+  mutate(bcilist_name = orig_name)
+
+# Match by wcvp matched name (the species name is slightly different)
+lianas_list_wcvpmatch <- lianas_list %>% 
+  filter(!orig_name %in% lianas_list_directmatch$orig_name) %>%
+  left_join(bcilist %>% select(wcvp_matched_name, bcilist_name = orig_name), by="wcvp_matched_name") %>% filter(!is.na(bcilist_name))
+
+
+lianas_direct_name_match <- bind_rows(
+  lianas_list_directmatch,
+  lianas_list_wcvpmatch
+  )
+
+datatable(
+  lianas_direct_name_match %>%
+    filter(!is.na(bcilist_name))%>%
+    select(liana_name, bcilist_name, wcvp_matched_name), 
+          caption="Liana species matching directly to the names in the list assembled so far.",
+          options = list(scrollX = TRUE, pageLength = 10))  
+
+bcilist <- bcilist %>%
+  left_join(lianas_direct_name_match %>% select(liana_name, bcilist_name), by=c( "orig_name"="bcilist_name"))
+
+```
+          
+*Matched `r nrow(lianas_direct_name_match)` species in the plots directly to the current BCNM list*
+
+
+```{r lianasaltmatch}
+
+# Create a look up table of the current list
+
+bcilist_lookup <- bind_rows(
+  bcilist %>% select(match_key =orig_name , bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name,
+                     source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = orig_binomial, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name,
+                     source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% mutate(wcvp_matched_binomial = word(wcvp_matched_name,1,2)) %>%
+    select(match_key = wcvp_matched_binomial, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name,
+                     source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = wcvp_matched_name,bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name,
+                     source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = wcvp_accepted_name, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name, 
+                     source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = zotz_name, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name, source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = forestgeo_current_name, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name, source_list, garwood_name, zotz_name, forestgeo_current_name), 
+  
+  bcilist %>% select(match_key = garwood_name, bcilist_name=orig_name , bcilist_wcvp_accepted=wcvp_accepted_name, source_list, garwood_name, zotz_name, forestgeo_current_name)
+  
+) %>%
+  filter(!is.na(match_key)) %>%
+  distinct(match_key, .keep_all = TRUE)
+```
+
+#### 2. Indirect name match 
+
+Here we check if the lianas current or former name are already in the list indirectly, for example if the name matches a wcvp accepted name on the list.
+```{r lianasalter}
+
+lianas_list <- lianas_list %>% mutate(wcvp_matched_binomial = word(wcvp_matched_name,1,2)) 
+# 2. everything that did not match directly to garwood, match to alternate names
+lianas_garwood_indirect_match <- lianas_list %>% 
+  filter(
+      !liana_name %in% lianas_direct_name_match$liana_name &
+    (
+      orig_name %in% bcilist_lookup$match_key |
+      orig_binomial %in% bcilist_lookup$match_key |
+        
+      (!is.na(former_name) &
+         former_name %in% bcilist_lookup$match_key) |
+        
+      (!is.na(former_binomial) &
+         former_binomial %in% bcilist_lookup$match_key) |
+      
+      (!is.na(wcvp_matched_binomial) &
+         wcvp_matched_binomial %in% bcilist_lookup$match_key) |
+        
+      (!is.na(wcvp_matched_name) &
+         wcvp_matched_name %in% bcilist_lookup$match_key) |
+        
+      (!is.na(wcvp_accepted_name) &
+         wcvp_accepted_name %in% bcilist_lookup$match_key)
+    )
+  )
+
+
+# 3. print the altname it matched to and why that name is in garwood
+
+lianas_indirect_match_print <- lianas_garwood_indirect_match %>%
+  # Join using a chain of coalesce to check the most reliable fields first
+  left_join(bcilist_lookup, by = c("orig_name" = "match_key"), suffix = c("", "_orig")) %>%
+  
+  left_join(bcilist_lookup, by = c("orig_binomial" = "match_key"), 
+            suffix = c("", "_bi")) %>%
+  
+
+  left_join(bcilist_lookup, by = c("wcvp_matched_name" = "match_key"), 
+            suffix = c("", "_match")) %>%
+  
+  left_join(bcilist_lookup, by = c("wcvp_matched_binomial" = "match_key"), 
+            suffix = c("", "_matchbi")) %>%
+  
+  left_join(bcilist_lookup, by = c("former_name" = "match_key"), 
+            suffix = c("", "_former")) %>%
+  
+  left_join(bcilist_lookup, by = c("former_binomial" = "match_key"), 
+            suffix = c("", "_formerbi")) %>%
+  
+  left_join(bcilist_lookup, by = c("wcvp_accepted_name" = "match_key"), 
+            suffix = c("", "_acc")) %>%
+  
+  # Now, condense everything into final fields
+  mutate(
+    
+    bcilist_name    = coalesce(
+      bcilist_name,
+      bcilist_name_bi,
+      bcilist_name_match,
+      bcilist_name_matchbi,
+      bcilist_name_former,
+      bcilist_name_formerbi,
+      bcilist_name_acc),
+      
+          source_list    = coalesce(
+      source_list_orig,
+      source_list_bi,
+      source_list_match,
+      source_list_matchbi,
+      source_list_former,
+      source_list_formerbi,
+      source_list_acc),
+      
+    bcilist_wcvp_accepted    = coalesce(
+      bcilist_wcvp_accepted,
+      bcilist_wcvp_accepted_bi,
+      bcilist_wcvp_accepted_match,
+      bcilist_wcvp_accepted_matchbi,
+      bcilist_wcvp_accepted_former,
+      bcilist_wcvp_accepted_formerbi,
+      bcilist_wcvp_accepted_acc),
+      
+    garwood_name    = coalesce(
+      garwood_name,
+      garwood_name_bi,
+      garwood_name_match,
+      garwood_name_matchbi,
+      garwood_name_former,
+      garwood_name_formerbi,
+      garwood_name_acc),
+    
+      zotz_name    = coalesce(
+      zotz_name,
+      zotz_name_bi,
+      zotz_name_match,
+      zotz_name_matchbi,
+      zotz_name_former,
+      zotz_name_formerbi,
+      zotz_name_acc),
+    
+      forestgeo_current_name    = coalesce(
+      forestgeo_current_name,
+      forestgeo_current_name_bi,
+      forestgeo_current_name_match,
+      forestgeo_current_name_matchbi,
+      forestgeo_current_name_former,
+      forestgeo_current_name_formerbi,
+      forestgeo_current_name_acc),
+    
+  ) %>%
+  select(-ends_with("_orig"),-ends_with("_bi"), -ends_with("_match"), -ends_with("_matchbi"), 
+         -ends_with("_former"),-ends_with("_formerbi"),-ends_with("_acc")) # Clean up extra columns
+
+```
+
+*Matched `r nrow(lianas_garwood_indirect_match)` species in lianas by synonyms or alternate names to garwood.*
+
+
+```{r lianasprintaltmatches}
+datatable(
+  lianas_indirect_match_print %>% 
+  select(liana_name, former_name, wcvp_accepted_name, bcilist_name, source_list,  garwood_name), 
+          caption="lianas species that match indirectly to the current list (coming from Garwood)",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+
+
+#### 3. Alternate name match
+
+Next we see if the current name in the lianas list or the former name are alternate names of the species that are already in the list. 
+```{r lianaaltmatch}
+
+#4 match of former liana name to Garwood synonym
+lianas_formertosynonym_match <- lianas_list %>%
+  filter(
+    !orig_name %in% c(lianas_direct_name_match$orig_name, lianas_garwood_indirect_match$orig_name) &
+    (former_name %in% garwood_synonyms$synonym_sp |
+       former_binomial %in% garwood_synonyms$synonym_binomial))
+
+# see species that matched by a synonym 
+lianas_formertosynonym_print <- lianas_formertosynonym_match %>%  left_join(
+    garwood_synonyms %>% select(garwood_name = sp_name, synonym_sp, syn_text = SynonymTextALL) %>% distinct(),
+    by = c("former_name" = "synonym_sp")
+  ) 
+
+kable(lianas_formertosynonym_print %>% 
+            select(liana_name = orig_name, liana_former_name = former_name, garwood_name, 
+                   liana_wcvp_accepted_name =wcvp_accepted_name,
+                   garwood_synonym = syn_text), 
+          caption="Liana species whose former names matched a Garwood synonym.",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+# 5. everything that did not match directly to garwood, match to alternate names
+lianas_garwood_alternate_match <- lianas_list %>% 
+  filter(
+       !orig_name %in% c(lianas_direct_name_match$liana_name, lianas_garwood_indirect_match$orig_name) &
+    (
+      orig_name %in% alt_match_lookup$match_key |
+      orig_binomial %in% alt_match_lookup$match_key |
+      
+      (!is.na(wcvp_matched_name) &
+         wcvp_matched_name %in% alt_match_lookup$match_key) |
+        
+      (!is.na(wcvp_accepted_name) &
+         wcvp_accepted_name %in% alt_match_lookup$match_key)
+    )
+  )
+
+
+# print the altname it matched to and why that name is in garwood
+
+lianas_alternate_print <- lianas_garwood_alternate_match %>%
+  # Join using a chain of coalesce to check the most reliable fields first
+  left_join(alt_match_lookup, by = c("orig_name" = "match_key")) %>%
+  left_join(alt_match_lookup, by = c("orig_binomial" = "match_key"), suffix = c("", "_bi")) %>%
+  left_join(alt_match_lookup, by = c("wcvp_matched_name" = "match_key"), suffix = c("", "_match")) %>%
+  left_join(alt_match_lookup, by = c("wcvp_accepted_name" = "match_key"), suffix = c("", "_acc")) %>%
+  
+  # Now, condense everything into your final fields
+  mutate(
+    garwood_name    = coalesce(garwood_orig_match, garwood_orig_match_bi, garwood_orig_match_match, garwood_orig_match_acc),
+    orig_garwood_synonym = coalesce(garwood_synonym_match, garwood_synonym_match_bi, garwood_synonym_match_match, garwood_synonym_match_acc),
+    firstmatchtype  = coalesce(firstmatchtype, firstmatchtype_bi, firstmatchtype_match, firstmatchtype_acc),
+    alternate_name  = coalesce(alt_name, alt_name_bi, alt_name_match, alt_name_acc),
+    prefrered_name   = coalesce(pref_name, pref_name_bi, pref_name_match, pref_name_acc)
+  ) %>%
+  select(-ends_with("_bi"), -ends_with("_match"), -ends_with("_acc")) # Clean up extra columns
+
+```
+
+The table below shows liana species that could not be matched directly to Garwood (2009) but were linked through an alternate name. 
+
+Note that "Garwood name" refers to the name as it appears in the Garwood (2009) revision, not necessarily the currently accepted name.
+
+```{r showlianaalternate}
+datatable(
+  lianas_alternate_print %>% 
+  select(liana_name = orig_name, garwood_name, garwood_synonym = orig_garwood_synonym), 
+          caption="Liana species that matched to garwood by an alternate name",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+
+
+Add the lianas name to the BCI list for the species that matched
+```{r addlianas}
+
+lianas_garwood_match <- bind_rows(
+  lianas_indirect_match_print,
+  lianas_formertosynonym_print,
+  lianas_alternate_print
+) %>%
+  distinct(orig_name, .keep_all = TRUE) 
+
+
+# Updateand liana_name for species already in bcilist that matched by alternate name
+bcilist <- bcilist %>%
+  left_join(lianas_garwood_match %>% select(liana_name_alt =liana_name, garwood_name), by="garwood_name")%>%
+  mutate(
+    liana_name = coalesce( liana_name, liana_name_alt)
+  ) %>%
+  select(-liana_name_alt)
+
+
+```
+
+
+Printing liana species that are not in the list so far and need to be added: 
+```{r lianasnomatch}
+
+lianas_no_garwood_at_all <- lianas_list %>%
+  filter(!orig_name %in% bcilist$liana_name &
+          !orig_name %in% lianas_garwood_match$orig_name 
+           )
+
+
+# 6. Output and Display
+datatable(lianas_no_garwood_at_all %>%
+  select(liana_former_name =former_name, 
+         liana_name = orig_name, 
+         liana_wcvp_matched_name = wcvp_matched_name,
+         liana_wcvp_accepted_name = wcvp_accepted_name), 
+          caption = "Lianas species recorded in the 50-ha plot that don't have a match in Garwood",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+write_xlsx(lianas_no_garwood_at_all, FILECHECKLIANAS)
+
+```
+
+Add to BCI list
+```{r lianasbciadd}
+lianas_no_garwood_at_all$source_list = "Lianas"
+lianas_no_garwood_at_all$liana_name = lianas_no_garwood_at_all$orig_name
+
+bcilist <- bind_rows(
+  bcilist,
+  lianas_no_garwood_at_all %>% select(all_of(listscol), "liana_name")
+)
+
+
+```
+
+## Check consistency 
+```{r savebotanists}
+
+# Check consistency
+# removing rows that are not identified at species level
+kable(bcilist %>% filter(is.na(word(orig_binomial, 2))) %>% select(orig_name, wcvp_accepted_name), caption="Species to be removed from final list because they are not fully identified" )
+
+bcilist <- bcilist %>% filter(!is.na(word(orig_binomial, 2))) 
+
+bcidupnames <- bcilist %>% 
+  filter(!is.na(orig_name)) %>%
+  group_by(orig_name) %>% filter(n()> 1) 
+
+if (nrow(bcidupnames)>0) {
+  datatable(bcidupnames%>%
+          select(orig_name, wcvp_accepted_name, source_list) %>% arrange(orig_name),
+          caption="Species with duplicated original name",
+  options = list(scrollX = TRUE, pageLength = 10)
+          )
+  
+}
+
+bcidupwcvp <- bcilist %>% group_by(wcvp_accepted_name) %>% 
+            filter(n()> 1)
+
+datatable(
+  bcidupwcvp %>% 
+    filter(!is.na(wcvp_accepted_name)) %>%
+    select(orig_name, wcvp_accepted_name, source_list)%>%
+    arrange(wcvp_accepted_name), 
+  caption="Species with the same wcvp_accepted_named as another species in the list",
+  options = list(scrollX = TRUE, pageLength = 10)
+          )
+  
+
+datatable(
+  bcidupwcvp %>% 
+    filter(is.na(wcvp_accepted_name)) %>%
+    select(orig_name, wcvp_accepted_name)%>%
+    arrange(wcvp_accepted_name), 
+  caption="No accepted name found",
+  options = list(scrollX = TRUE, pageLength = 10)
+          )
+  
+
+bcilist %>%
+  count(source_list) %>%
+  arrange(desc(n)) %>%
+  kable(col.names = c("source_list", "count"),caption="Sources of morphospecies in the BCI plant species list.")
+
+datatable(
+  bcilist %>%
+    select(wcvp_accepted_name, orig_name, source_list) %>% 
+    arrange(source_list),
+    caption="Species list for BCI, with the source of each entry",
+  options = list(scrollX = TRUE, pageLength = 10))
+
+```
+
+
+# Use the Panama woody plant morphospecies list to link in current ForestGeo names and 6-letter and 4-letter species codes for all species.
+
+The forestgeo name is the most up-to-date name for these species, as they are the names used by the botanists in Panama. The ForestgeoNames come from the current panama woody list. If the name in Garwood (or any of the list used here as a source for the names) is different from the name in ForestGeo, the ForestGeo name is preferred. We add new columns **"current name"** and  **"current_name_source"** with the preferred name and whether it is Garwood, Forestgeo, Zots or the Lianas list. 
+
+
+We find the Forestgeo name that maps to the names in the list so far following the cases below. If it matches to one case, the current name is set to the ForestGeo current name and it will not be matched further to other cases. If the current ForestGeo name mapped to a species is already the current name of another species in the list, it will be ignored. Giving priority to the more direct matches.
+
+For each case, we check if we have duplicated matches, that is species mapping to two different ForestGeo current names, and handle those depending on the match. 
+
+
+- Case 0: if the species comes from the census of the plots, it already has its forestgeo name.
+ 
+- Case 1: The species name is directly in forestgeo.
+
+- Case 2: The species name is a former name to a current ForestGeo   name.
+
+- Case 3: The species former name matches a current ForestGeo  name. Only matched when a unique ForestGeo name is found.
+
+- Case 4: The species former name matches a former Forestgeo name.
+
+- Case 5: The species binomial (genus + species, without subspecies) matches a current ForestGeo name.
+
+- Case 6: The species binomial matches a former ForestGeo name.
+
+- Case 7: The binomial of the species former name matches a former ForestGeo name.
+
+- Case 8: The species WCVP accepted name or WCVP accepted binomial matches a current ForestGeo name or binomial. This handles cases where the name either in ForestGeo or our current BCI list is a synonym according to WCVP and has not been updated in one of the list, In this case we also leave the ForestGeo current name.
+
+```{r renamingsome}
+#checkpoint...
+bcilist_orig <- bcilist
+```
+
+
+```{r addforestgeocurrentname}
+bcilist <- bcilist_orig
+# For all the species in the bcilist
+# check if they are directly on the forestgeo /woody list
+# check if they have an alternate name on that list
+
+# Add a column with the forestgeo name
+# Flag when the forestgeo_current_name != orig_garwood name
+
+# 1. Create lookup table for woody species
+forestgeo_names_lookup <- bind_rows(
+  panwoody_list %>% mutate(matchby = "Fcurr") %>% select(match_key = orig_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  panwoody_list %>% mutate(matchby = "wcvpmatch") %>% select(match_key = wcvp_matched_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+    panwoody_list %>% mutate(matchby = "wcvpaccepted") %>% select(match_key = wcvp_accepted_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+) %>% 
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance if a key matched in multiple ways
+  group_by(match_key, forestgeo_current_name, sp6, sp4, wcvp_accepted_duplicated) %>%
+  summarise(
+    matchby = paste(matchby, collapse = ", "),
+    .groups = "drop"
+  )
+
+forestgeo_names_lookup <- forestgeo_names_lookup %>% mutate(row_id = row_number())
+
+### CHECKS ###
+# check if one match_key points to different forestgeo_current_name
+# This happens because the wcvp accepted name is different from the forestgeo_current_name. 
+# The botanist are confident these species are different. But to wcvp v13 they are the same. 
+duplicate_matchkey1 <- forestgeo_names_lookup %>%
+  group_by(match_key) %>%
+  filter(n_distinct(forestgeo_current_name) > 1 ) %>%
+  arrange(match_key)
+
+#datatable(duplicate_matchkey1,
+#          options = list(scrollX = TRUE, pageLength = 10),
+#  caption="The same key maps to a different current name. For this cases the current #forestgeo name is different from the wcvp accepted name. And the current forestgeo name is #believed to be the accepted name.")
+
+# In this case we remove the species were the match_key is different from the forestgeo_current_name.
+alt_names_remove <- duplicate_matchkey1 %>% filter(forestgeo_current_name != match_key)
+
+forestgeo_names_lookup <- forestgeo_names_lookup %>% filter(!row_id %in% alt_names_remove$row_id)
+
+panwoody_synonyms <- panwoody_synonyms %>% select(sp6,
+  forestgeo_current_name = orig_name, altname=SynonymTextSingle
+)
+
+
+```
+
+```{r foresgeoadddirect}
+
+# Prepare for the matches
+bcilist <- bcilist %>% mutate(row_id = row_number(),
+                           current_name = NA_character_, 
+                           source_current_name = NA_character_
+                              )
+
+```  
+
+### Case 0. The species comes from a forestgeo list
+
+```{r case0matchfg}
+# 0. The source of the names is the forestgeo list
+case0_fgsource <- bcilist %>% filter(!is.na(sp6)) %>% 
+                  mutate(current_name = forestgeo_current_name,
+                         source_current_name = "ForestGeo"
+                         )
+
+# The species that are uniquely in the plots and not in the garwood list already have their forestgeo name. 
+datatable(case0_fgsource %>%
+            select(sp6,sp4, orig_name, forestgeo_current_name, source_list, current_name, source_current_name),
+          caption="Species that are only in the plot list already have a foresgeo code",
+           options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% case0_fgsource$orig_name) %>% select(-sp6, -forestgeo_current_name)
+
+
+matched_species <- case0_fgsource
+```
+
+### Case 1. The species name is a current forestgeoname
+
+```{r case1fgname}
+
+case1_directmatch <- bcilist_fgeomatch %>% 
+  left_join(forestgeo_names_lookup, by = c("orig_name"= "match_key"), suffix = c("", "_orig")) %>%
+  
+  left_join(forestgeo_names_lookup, by = c("wcvp_matched_name"= "match_key"), suffix = c("", "_wcvpmatch")) 
+
+
+
+case1_directmatch <- case1_directmatch %>%  mutate(
+    forestgeo_current_name =     coalesce(
+      forestgeo_current_name,
+      forestgeo_current_name_wcvpmatch,
+    ),
+    sp6 = coalesce(
+      sp6,
+      sp6_wcvpmatch,
+    ),
+    sp4 = coalesce(
+      sp4,
+      sp4_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig", "_wcvpmatch"))) 
+
+  
+case1_directmatch <- case1_directmatch %>%
+  mutate(
+         current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         )  %>%
+  filter(!is.na(sp6) & 
+           !orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name) 
+
+case1_directmatch %>% group_by(forestgeo_current_name) %>% filter(n() > 1)
+
+datatable(case1_directmatch %>%
+          select(sp6, orig_name, wcvp_matched_name, wcvp_accepted_name, forestgeo_current_name, source_list, matchby),
+          caption="Species original name is a forestgeo_current_name",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name ) %>% select(-sp6)
+
+```
+
+
+### Case 2. The species original name matches to forestgeo alternate name
+
+```{r case2_1}
+
+
+case2_forestgeoalternate <- bcilist_fgeomatch %>% 
+  left_join(alternate_names %>% filter(in_panwoodycurr | in_viewtaxcurr) %>% select(altname, forestgeo_current_name= prefname , sp6), 
+            by=c("orig_name" = "altname"),suffix = c("", "_orig")) %>%
+  left_join(alternate_names %>% filter(in_panwoodycurr | in_viewtaxcurr) %>% select(altname, forestgeo_current_name = prefname , sp6), 
+            by=c("wcvp_matched_name" = "altname"),suffix = c("", "_wcvpmatch")) 
+
+
+
+```
+
+
+
+```{r case2fgname}
+datatable(case2_forestgeoalternate %>%
+            filter(!is.na(forestgeo_current_name)
+                   ) %>%
+          select(sp6, orig_name,forestgeo_current_name,forestgeo_current_name_wcvpmatch, source_list),
+          caption="Species original name is an alternate name and maps to two forestgeo names",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+case2_forestgeoalternate <- case2_forestgeoalternate %>%  mutate(
+    forestgeo_current_name =     coalesce(
+      forestgeo_current_name,
+      forestgeo_current_name_wcvpmatch
+    ),
+    sp6 = coalesce(
+      sp6,
+      sp6_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig",  "_prefmatch", "_wcvpmatch"))) 
+
+
+
+case2_forestgeoalternate <- case2_forestgeoalternate %>%
+  mutate(
+         current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         )%>%
+  filter(!is.na(sp6) & 
+           !orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+
+
+datatable(case2_forestgeoalternate %>%
+          select(sp6, orig_name,forestgeo_current_name, source_list),
+          caption="Species original name is a forestgeo alternate name",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name ) %>% select(-sp6)
+
+```
+
+
+
+### Case 3. The species alternate name matches to one forestgeo current name
+
+
+```{r case3fgname}
+
+# Here we have to be careful, a species can have multiple alt names...
+case3_forestgeoalternate <- bcilist_fgeomatch %>% 
+  left_join(alternate_names %>% 
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  %>%
+              select(altname, prefname), 
+            by=c("orig_name" = "prefname"), relationship = "many-to-many", suffix=c("","_orig")) %>%
+  left_join(alternate_names %>% 
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  
+            select(altname, prefname), 
+            by=c("wcvp_matched_name" = "prefname"), relationship = "many-to-many", suffix=c("","_wcvpmatch"))
+
+
+case3_forestgeoalternate <- case3_forestgeoalternate %>% 
+  mutate(
+    altname = coalesce(
+      altname,
+      altname_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig", "_wcvpmatch")))
+
+# Keep only the ones that have alternate names
+case3_forestgeoalternate <- case3_forestgeoalternate %>% filter(!is.na(altname)) %>%
+  distinct(orig_name, altname, .keep_all = TRUE) # clearing duplicates
+
+
+# Find the forestgeo name that matches to that alternate name
+case3_forestgeoalternate <- case3_forestgeoalternate %>%
+  left_join(panwoody_list %>% select(forestgeo_current_name = orig_name, sp6), by = c("altname" = "forestgeo_current_name"))
+
+
+datatable(case3_forestgeoalternate %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() > 1) %>%
+            select(sp6, orig_name, altname,source_list),
+          caption="Two or more alternate names for the species match a current forestgeo name.")
+
+```
+
+
+In this case,  Zanthoxylum kellermanii is in Garwood and not in Forestgeo. However Garwood notes it has two alternate names: Zanthoxylum panamense and Zanthoxylum riedelianum, both are in Forestgeo. Zanthoxylum panamense is already in the list and Zanthoxylum ridelianum gets matched by the WCVP accepted binomial later in this script.
+
+
+```{r case3_2}
+
+datatable(case3_forestgeoalternate %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+            select(sp6, orig_name, altname, source_list),
+          caption="Alternate names for the species match a current forestgeo name.")
+
+case3_forestgeoalternate <- case3_forestgeoalternate %>%
+        filter(!is.na(sp6)) %>%
+        group_by(orig_name) %>% 
+        filter(n() == 1) %>%
+        ungroup() %>%
+  mutate(current_name = altname,
+         source_current_name = "ForestGeo",
+         forestgeo_current_name = altname
+         ) %>%   
+  filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name ) %>% select(-sp6, -forestgeo_current_name)
+
+
+```
+
+
+
+### Case 4. The species alternate name matches to  one forestgeo alternate name
+```{r case4fgname}
+
+# Here we have to be careful, a species can have multiple alt names...
+case4_forestgeoalternate <- bcilist_fgeomatch %>% 
+  left_join(alternate_names %>% 
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  
+             select(altname, prefname), 
+            by=c("orig_name" = "prefname"), relationship = "many-to-many", suffix=c("","_orig")) %>%
+  left_join(alternate_names %>%
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  
+            select(altname, prefname), 
+            by=c("wcvp_matched_name" = "prefname"), relationship = "many-to-many", suffix=c("","_wcvpmatch"))
+
+
+case4_forestgeoalternate <- case4_forestgeoalternate %>% 
+  mutate(
+    altname = coalesce(
+      altname,
+      altname_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig", "_wcvpmatch")))
+
+
+# Keep only the ones that have alternate names
+case4_forestgeoalternate <- case4_forestgeoalternate %>% filter(!is.na(altname)) %>%
+  distinct(orig_name, altname, .keep_all = TRUE) # clearing duplicates
+
+```
+
+Check the different cases:
+
+```{r checkcase4}
+# Find the forestgeo alternate name that matches to that alternate name
+case4_forestgeoalternate <- case4_forestgeoalternate %>%
+  left_join(alternate_names %>%
+              filter(in_panwoodycurr | in_viewtaxcurr) %>%
+              select(forestgeo_current_name = prefname,
+                     altname,  sp6), by = "altname")
+
+
+datatable(case4_forestgeoalternate %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() > 1) %>%
+            select(sp6, orig_name, altname, forestgeo_current_name, source_list),
+          caption="Two or more alternate names for the species match an alternate forestgeo name.")
+
+# keeping distinct orig_name, forestgeo_current_name pairs
+# If the forestgeo name is the same as the orig_name also keep that option.
+case4_forestgeoalternate <- case4_forestgeoalternate %>%
+  distinct(orig_name, forestgeo_current_name, .keep_all = TRUE) %>%# clearing duplicates
+  filter(!is.na(sp6)) %>%
+  group_by(orig_name) %>% 
+  filter(n() == 1 | word(orig_name,2) == word(forestgeo_current_name,2)) %>%
+  ungroup()
+```
+
+In this case we keep the forestgeo current name if it is the same for both alternate names. For Psychotria hebeclada we keep the one were the species is the same as the orig_name (because it was only a change in genus)
+
+```{r checkcase4_1}
+datatable(case4_forestgeoalternate %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+            select(sp6, orig_name, altname, forestgeo_current_name, source_list),
+          caption="One alternate name for the species match an alternate forestgeo name.")
+
+
+case4_forestgeoalternate <- case4_forestgeoalternate %>% 
+          filter(!is.na(sp6))  %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+    mutate(current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         ) %>%   
+  filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+ 
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+
+
+```
+
+So far we have the forestgeo names of `r nrow(matched_species)` out of `r nrow(bcilist)`
+
+### Case 5. The binomial of the species matches a binomial in forestgeo current names
+```{r binomialcase}
+# Create binomial lookup
+forestgeo_binomial_lookup <- bind_rows(
+  forestgeo_names_lookup,
+  panwoody_list %>%
+    mutate(matchby = "origbinomial") %>%
+    select(match_key = orig_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  panwoody_list %>% 
+    mutate(matchby = "wcvpacceptedbinomial") %>% 
+    select(match_key = wcvp_accepted_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby)
+) %>% 
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance if a key matched in multiple ways
+  group_by(match_key, forestgeo_current_name, sp6, sp4, wcvp_accepted_duplicated) %>%
+  summarise(
+    matchby = paste(matchby, collapse = ", "),
+    .groups = "drop"
+  )
+
+case5_binomials <- bcilist_fgeomatch %>%
+  left_join(
+  forestgeo_binomial_lookup, 
+  by=c("orig_binomial" = "match_key"), 
+  relationship = "many-to-many") %>% 
+  filter(!is.na(sp6))
+
+case5_binomials <- case5_binomials %>%
+  # Calculate mapping counts for both sides
+  group_by(orig_name) %>%
+  mutate(n_orig = n()) %>%
+  group_by(forestgeo_current_name) %>%
+  mutate(n_fg = n()) %>%
+  ungroup() 
+
+datatable(case5_binomials %>%
+            filter(n_orig > 1) %>%
+            select(sp6, orig_name, forestgeo_current_name, source_list),
+          caption="Species matched to two or more different forestgeo binomials. This means forestgeo makes a distinction between two subspecies")
+
+# in this case, since both subspecies are different. Keep the one without the subspecies
+case5_binomials <- case5_binomials %>% 
+  filter(n_orig == 1 | (n_orig > 1 & is.na(word(forestgeo_current_name,3))))
+```
+
+In this case we keep the forestgeo name without the subspecies
+
+
+```{r checkcase5_2}
+datatable(case5_binomials %>%
+            filter(n_fg > 1) %>%
+            select(sp6, orig_name, forestgeo_current_name, source_list),
+          caption="The same forestgeo binomial matched to different species name. This means forestgeo does not make a distinction between two subspecies")
+
+case5_binomials <- case5_binomials %>% 
+  filter(n_fg == 1 | 
+        (n_fg > 1 & word(orig_name,2) == word(orig_name,4)) |
+         orig_name == "Clitoria javitensis var. portobellensis"
+        )
+```
+
+In this case, we keep the forestgeo name if in the original name, the subspecies is the same as the species. And in the case of Clitoria javitensis we keep the forestgeo name for Clitoria javitensis var. portobellensis
+
+```{r checkcase5}
+datatable(case5_binomials %>%
+            group_by(orig_name,forestgeo_current_name) %>% 
+            filter(n() == 1) %>%
+            select(sp6, orig_name, forestgeo_current_name, source_list),
+          caption="The species binomial found a match in forestgeo")
+
+# Keep the distinct pairs of orig_name, forestgeo name
+# If they are not distinct, keep only the ones were subspecies is the same as the species. 
+
+case5_binomials <- case5_binomials %>%
+          filter(
+            !is.na(sp6))  %>%
+            group_by(orig_name, forestgeo_current_name) %>% 
+            filter(n() == 1) %>%
+    mutate(
+      current_name = forestgeo_current_name,
+      source_current_name = "ForestGeo"
+         ) %>%   
+      filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials)
+
+
+```
+
+Now we have the forestgeo names of `r nrow(matched_species)` out of `r nrow(bcilist)`
+
+
+
+### Case 6. The species original binomial matches to a forestgeo alternate name
+
+```{r case6_1}
+
+bcilist<- bcilist %>%
+  mutate(wcvp_matched_binomial = paste0(word(wcvp_matched_name, 1), " ",word(wcvp_matched_name, 2) ))
+    
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+                                  
+                                        
+case6_binomial_forestgeoalternate <- bcilist_fgeomatch %>% 
+  left_join(alternate_names %>% filter(in_panwoodycurr | in_viewtaxcurr) %>% select(altname, forestgeo_current_name= prefname , sp6), 
+            by=c("orig_binomial" = "altname"),suffix = c("", "_orig")) %>%
+  left_join(alternate_names %>% filter(in_panwoodycurr | in_viewtaxcurr) %>% select(altname, forestgeo_current_name = prefname , sp6), 
+            by=c("wcvp_matched_binomial" = "altname"),suffix = c("", "_wcvpmatch")) 
+```
+
+
+
+```{r case6_2}
+
+case6_binomial_forestgeoalternate <- case6_binomial_forestgeoalternate %>%  mutate(
+    forestgeo_current_name =     coalesce(
+      forestgeo_current_name,
+      forestgeo_current_name_wcvpmatch
+    ),
+    sp6 = coalesce(
+      sp6,
+      sp6_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig",  "_prefmatch", "_wcvpmatch"))) 
+
+
+
+case6_binomial_forestgeoalternate <- case6_binomial_forestgeoalternate %>%
+  mutate(
+         current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         )%>%
+  filter(!is.na(sp6) & 
+           !orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+
+
+datatable(case6_binomial_forestgeoalternate %>%
+          select(sp6, orig_name,forestgeo_current_name, source_list),
+          caption="Species binomial name is a forestgeo alternate name",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+case6_binomial_forestgeoalternate <- case6_binomial_forestgeoalternate %>% select(-wcvp_matched_binomial)
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_binomial_forestgeoalternate)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+
+```
+
+
+### Case 7. The species binomial alternate names matches to a forestgeo alternate name
+
+```{r case6fgname}
+
+# Here we have to be careful, a species can have multiple alt names...
+case7_binomialalt <- bcilist_fgeomatch %>%
+  mutate(wcvp_matched_binomial = paste0(word(wcvp_matched_name, 1), " ", word(wcvp_matched_name, 2) )) %>%
+  left_join(alternate_names %>% 
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  
+             select(altname, prefname), 
+            by=c("orig_binomial" = "prefname"), relationship = "many-to-many", suffix=c("","_orig")) %>%
+  left_join(alternate_names %>%
+              #filter(!in_panwoodycurr & !in_viewtaxcurr)  
+            select(altname, prefname), 
+            by=c("wcvp_matched_binomial" = "prefname"), relationship = "many-to-many", suffix=c("","_wcvpmatch"))
+
+
+case7_binomialalt <- case7_binomialalt %>% 
+  mutate(
+    altname = coalesce(
+      altname,
+      altname_wcvpmatch
+    )) %>%   select(-ends_with(c("_orig", "_wcvpmatch")))
+
+
+# Keep only the ones that have alternate names
+case7_binomialalt <- case7_binomialalt %>% filter(!is.na(altname)) %>%
+  distinct(orig_name, altname, .keep_all = TRUE) # clearing duplicates
+
+```
+
+Check the different cases:
+
+```{r case6binomialas}
+# Find the forestgeo alternate name that matches to that alternate name
+case7_binomialalt <- case7_binomialalt %>%
+  left_join(alternate_names %>%
+              filter(in_panwoodycurr | in_viewtaxcurr) %>%
+              select(forestgeo_current_name = prefname,
+                     altname,  sp6), by = "altname")
+
+
+datatable(case7_binomialalt %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() > 1) %>%
+            select(sp6, orig_name, altname, forestgeo_current_name, source_list),
+          caption="Two or more alternate names for the species match an alternate forestgeo name.")
+```
+
+```{r case6binomialas_1}
+datatable(case7_binomialalt %>%
+            filter(!is.na(sp6)) %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+            select(sp6, orig_name, altname, forestgeo_current_name, source_list),
+          caption="One alternate name for the species match an alternate forestgeo name.")
+
+
+case7_binomialalt <- case7_binomialalt %>% 
+          filter(!is.na(sp6))  %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+    mutate(current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         ) %>%   
+  filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+ 
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_binomial_forestgeoalternate, case7_binomialalt)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+
+
+```
+
+So far we have the forestgeo names of `r nrow(matched_species)` out of `r nrow(bcilist)`
+
+
+### Case 8. The species accepted name according to WCVPv13 matches to Forestgeo.
+
+So far we have matched with the original name or the wcvp matched name (to prevent mismatches due to spelling differences). 
+
+Next we try to match the species that have not matched yet by the wcvp_accepted_name. 
+
+
+```{r case6directwcvp}
+
+case8_directwcvp <- bcilist_fgeomatch %>% 
+  left_join(forestgeo_names_lookup, by = c("wcvp_accepted_name"= "match_key"))
+
+
+case8_directwcvp <- case8_directwcvp %>%
+  filter(!is.na(sp6)) %>%
+  mutate(forestgeo_current_name = wcvp_accepted_name,
+         current_name = forestgeo_current_name,
+         source_current_name = "ForestGeo"
+         ) %>%   
+      filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+
+case8_directwcvp %>% group_by(forestgeo_current_name) %>% filter(n() > 1)
+
+datatable(case8_directwcvp %>%
+          select(sp6, orig_name, wcvp_matched_name, wcvp_accepted_name, forestgeo_current_name, source_list, matchby),
+          caption="Species wcvp accepted name matches a forestgeo name",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+
+
+
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_binomial_forestgeoalternate, case7_binomialalt, case8_directwcvp)
+
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name& !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+
+```
+
+Matching by WCVP accepted binomial
+```{r case6wcvpbinomial}
+
+case8_binomialwcvp <- bcilist_fgeomatch %>%
+  left_join(
+  forestgeo_binomial_lookup, 
+  by=c("wcvp_accepted_binomial" = "match_key"), 
+  relationship = "many-to-many") %>% 
+  filter(!is.na(sp6))
+
+datatable(case8_binomialwcvp %>%
+          select(sp6, orig_name, wcvp_matched_name, wcvp_accepted_name, forestgeo_current_name, source_list),
+          caption="Species original wcvp accepted binomial matches a forestgeo binomial",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+case8_binomialwcvp <- case8_binomialwcvp %>%
+          filter(
+            !is.na(sp6))  %>%
+            group_by(orig_name) %>% 
+            filter(n() == 1) %>%
+            group_by(forestgeo_current_name) %>% 
+            filter(n() == 1) %>%
+    mutate(
+      current_name = forestgeo_current_name,
+      source_current_name = "ForestGeo"
+         ) %>%   
+      filter(!orig_name %in% matched_species$orig_name &
+           !is.na(current_name) & !current_name %in% matched_species$current_name
+         )
+matched_species <- bind_rows(case0_fgsource, case1_directmatch, case2_forestgeoalternate, case3_forestgeoalternate, case4_forestgeoalternate, case5_binomials, case6_binomial_forestgeoalternate, case7_binomialalt, case8_directwcvp, case8_binomialwcvp)
+
+bcilist_fgeomatch <- bcilist %>% filter(!orig_name %in% matched_species$orig_name & !orig_name %in% matched_species$current_name) %>% select(-sp6, -forestgeo_current_name)
+```
+
+
+
+
+## Consolidate current_name:
+Next we do two things to the current names: 
+
+1. Add the WCVP info for the newly added ForestGeo names
+
+2. For the cases that did not find a ForestGeo name, set the original name in the source list as the current name.
+
+```{r joineverything}
+ 
+cols_to_keep <- colnames(bcilist)
+
+# Adding codes and the WCVP columns mission from the Forectgeo current source
+cols_to_replace <- c("sp4","orig_habit", "wcvp_accepted_binomial", "wcvp_matched_name", 
+                     "wcvp_matched_plant_name_id", "wcvp_matched_ipni_id", 
+                     "wcvp_matched_status", "wcvp_accepted_name", 
+                     "wcvp_accepted_family", "wcvp_accepted_authority", 
+                     "wcvp_accepted_plant_name_id", "wcvp_accepted_powo_id", 
+                     "wcvp_accepted_ipni_id", "wcvp_accepted_lifeform")
+
+matched_species <- matched_species %>%
+  # Remove existing versions of these columns
+  select(-any_of(cols_to_replace)) %>%
+  # Join and pull only those columns from the source
+  left_join(panwoody_list %>% select(sp6, all_of(cols_to_replace)), by = "sp6") %>%
+  # change name of orig_habit
+  rename(
+    forestgeo_habit = orig_habit
+    )
+
+
+bcilist_fgnames <- bind_rows(
+  matched_species %>% select(all_of(cols_to_keep), forestgeo_habit),
+  bcilist %>%
+    filter(!orig_name %in% c(matched_species$orig_name)
+           )
+)
+
+
+# check for duplicated current names
+datatable(bcilist_fgnames %>%
+          filter(!is.na(current_name)) %>%
+          group_by(current_name) %>%
+          filter(n() > 1) %>%  
+          select(sp6,sp4, orig_name,forestgeo_current_name, source_list) %>% arrange(current_name),
+          caption="Current name is duplicated",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+```
+
+
+So far we have found the best matches for forestgeo names. If a species is left unmatched to forestgeo it is because it is in no way in the current panama woody list, or because the match created a conflict with other species in the list that had a more direct match to the same forestgeoname (e.g it was a direct match of name while the other matched through a binomial or synonym)
+
+Now for the species we couldnt find a match for, we set the current name as the name they have in their original list. And check again if this could potentially create a conflict with the forestgeo names. In which case the species needs revision.
+
+```{r currentname}
+
+bcilist_fgnames <- bcilist_fgnames %>% 
+  mutate(current_name = ifelse(is.na(current_name),
+                               orig_name,
+                               current_name
+                               ),
+         source_current_name = ifelse(is.na(source_current_name),
+                               source_list,
+                               source_current_name
+                               ),
+         )
+
+datatable(bcilist_fgnames %>%
+            filter(!is.na(current_name)) %>%
+          group_by(current_name) %>%
+          filter(n() > 1) %>%  
+          select(sp6,sp4, current_name, orig_name,forestgeo_current_name, source_current_name, source_list ) %>% arrange(current_name),
+          caption="Current name is duplicated",
+          options = list(scrollX = TRUE, pageLength = 10),
+          )
+
+```
+
+
+# Save BCI Botanist list
+
+## Sanity checks
+```{r sanitycheck}
+# Sanity check species that have a forestgeo current name that is not in forestego
+bcilist_fgnames %>% filter(source_current_name == "ForestGeo" & !current_name %in% panwoody_list$orig_name)
+```
+
+
+## Add plot presence
+Now that we have the Forestgeo current names for all the species in the list, we match to the plot info:
+
+```{r addplotinof}
+
+bcilist_fgnames <- bcilist_fgnames %>%
+  # 1. Remove the existing columns so there's no conflict
+  select(-any_of(c("census_name", "census_plot", "in_census", "Other_BCNM_plots", "BCI"))) %>%
+  # 2. Join the fresh data from census_list
+  left_join(
+    census_list %>% select(sp6, census_name, census_plot, in_census, BCI, Other_BCNM_plots),
+    by = "sp6"
+  )
+
+```
+
+
+## Add woody column
+```{r addwoody field}
+
+bcilist_fgnames <- bcilist_fgnames %>%
+  mutate(
+    # If it has an sp6 code then it is woody or if the binomial is in woody too. 
+    woody_forestgeo = !is.na(sp6) |
+      orig_binomial %in% forestgeo_binomial_lookup$match_key | 
+      wcvp_accepted_binomial %in% forestgeo_binomial_lookup$match_key |
+      current_name %in% forestgeo_names_lookup$match_key |
+      !is.na(forestgeo_current_name)
+  )
+
+colnames(bcilist_fgnames)
+
+# Species in the woody list because they have sp6 code
+datatable(bcilist_fgnames %>%
+  filter(woody_forestgeo & !is.na(sp6)) %>%
+  select(sp6, sp4, current_name, 
+         wcvp_accepted_name, 
+         wcvp_accepted_lifeform), 
+  caption="BCI species that are in the woody list because their name is in Forestgeo",
+  options = list(scrollX = TRUE, pageLength = 10))
+
+
+# Species in the woody list because their binomial is in forestgeo
+datatable(bcilist_fgnames %>%
+  filter(woody_forestgeo & is.na(sp6)) %>%
+  select(current_name, source_current_name, 
+         wcvp_accepted_name, 
+         wcvp_accepted_lifeform), 
+  caption="BCI species that are in the woody list because their binomial is in forestgeo",
+  options = list(scrollX = TRUE, pageLength = 10))
+
+bcilist_fgnames <- bcilist_fgnames %>% mutate(garwood_lifeform = LF_RF)
+
+
+
+```
+
+
+## Add GBIF ID
+
+To find the GBIF id we will use the WCVP matched name (which hopefully does not have a different spelling in GBIF so we can have a perfect match)
+
+```{r addgibfid}
+
+bcilist_fgnames <- bcilist_fgnames %>%
+  mutate(row_id = row_number()) 
+  
+  
+datatable(bcilist_fgnames %>%
+  filter(is.na(wcvp_matched_name)) %>%
+  select(current_name), 
+  caption="Current name does not have WCVP match")
+
+
+# Build name input from WCVP matched name
+names_for_gbif <- bcilist_fgnames %>%
+  filter(!is.na(wcvp_matched_name)) %>%
+  distinct(wcvp_matched_name, .keep_all = TRUE) %>%
+  rename(scientificName = wcvp_matched_name)
+
+# Query GBIF backbone
+gbif_backbone_matched <- name_backbone_checklist(names_for_gbif, kingdom = "Plantae")
+
+# Check match quality
+gbif_match_summary <- gbif_backbone_matched %>% 
+  count(matchType)
+
+print(gbif_match_summary)
+
+# How many got a usable GBIF ID?
+gbif_backbone_matched %>% 
+  summarise(
+    total = n(),
+    exact_match = sum(matchType == "EXACT", na.rm = TRUE),
+    fuzzy_match = sum(matchType == "FUZZY", na.rm = TRUE),
+    no_match    = sum(matchType == "NONE", na.rm = TRUE)
+  )
+
+# See the ones that got a match by Variant or Higher rank
+datatable(gbif_backbone_matched %>% 
+            filter(!matchType %in% c("EXACT")) %>% 
+            select(verbatim_name, scientificName), 
+          caption="Species not matching exactly (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+datatable(gbif_backbone_matched %>% 
+            filter(!status %in% c("ACCEPTED")) %>%
+            select(verbatim_current_name, scientificName, matchType, verbatim_wcvp_matched_status, status,  verbatim_wcvp_accepted_name, acceptedScientificName), 
+          caption="Species current name in the list is not accepted according to GBIF (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+```
+The matched name can be a synonym, WCVP v13 also indicated that, but it is the name we will be using for current_name in the list, as the accepted name has not been reviewed by the STRI botanists in Panama.
+
+
+We add the GBIF id and the GBIF scientificName as columns to our dataset
+
+```{r addgbifmatchednames}
+bcilist_fgnames <- bcilist_fgnames %>%
+  mutate(
+    row_id = as.character(row_id)
+  ) %>%
+  left_join(
+    gbif_backbone_matched %>% 
+      select(
+        row_id = verbatim_row_id, 
+        wcvp_matched_name_gbif_id = usageKey, 
+        wcvp_matched_name_gbif_scientificName = scientificName,
+        wcvp_matched_name_gbif_matchtype = matchType,
+        wcvp_matched_name_gbif_status = status,
+        wcvp_matched_name_gbif_acceptedScientificName = acceptedScientificName
+      ),
+    by = "row_id"
+  )
+```
+
+
+We also find the GBIF id for the **accepted name.** 
+
+```{r addgibfidaccepted}
+datatable(bcilist_fgnames %>%
+  filter(is.na(wcvp_accepted_name)) %>%
+  select(current_name), 
+  caption="Current name does not have WCVP accepted name")
+
+
+# Build name input from WCVP matched name
+names_for_gbif <- bcilist_fgnames %>%
+  filter(!is.na(wcvp_accepted_name)) %>%
+  distinct(wcvp_accepted_name, .keep_all = TRUE) %>%
+  rename(scientificName = wcvp_accepted_name)
+
+# Query GBIF backbone
+gbif_backbone_accepted <- name_backbone_checklist(names_for_gbif, kingdom = "Plantae")
+
+# Check match quality
+gbif_match_summary <- gbif_backbone_accepted %>% 
+  count(matchType)
+
+print(gbif_match_summary)
+
+# How many got a usable GBIF ID?
+gbif_backbone_accepted %>% 
+  summarise(
+    total = n(),
+    exact_match = sum(matchType == "EXACT", na.rm = TRUE),
+    fuzzy_match = sum(matchType == "FUZZY", na.rm = TRUE),
+    no_match    = sum(matchType == "NONE", na.rm = TRUE)
+  )
+
+
+# See the ones that got a match by Variant or Higher rank
+datatable(gbif_backbone_accepted %>% 
+            filter(!matchType %in% c("EXACT")) %>% 
+            select(verbatim_name, scientificName), 
+          caption="Species not matching exactly (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+datatable(gbif_backbone_accepted %>% 
+            filter(!status %in% c("ACCEPTED")) %>%
+            select(verbatim_current_name, verbatim_wcvp_matched_status, status, verbatim_wcvp_accepted_name=verbatim_name, acceptedScientificName), 
+          caption="Species WCVP accepted name in the list is not accepted according to GBIF (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+Surprisingly, the wcvp_accepted name can also be a Synonym according to GBIF, this can happen because GBIF gets the accepted names from different sources. We will add the GBIF accepted name to the list as an additional column.
+
+
+We add the GBIF id and the GBIF scientificName as columns to our dataset
+
+```{r addgbifacceptednames}
+bcilist_fgnames <- bcilist_fgnames %>%
+  left_join(
+    gbif_backbone_accepted %>% 
+      select(
+        row_id = verbatim_row_id, 
+        wcvp_accepted_name_gbif_id = usageKey, 
+        wcvp_accepted_name_gbif_scientificName = scientificName,
+        wcvp_accepted_name_gbif_matchtype = matchType,
+        wcvp_accepted_name_gbif_status = status,
+        wcvp_accepted_name_gbif_acceptedScientificName = acceptedScientificName
+      ),
+    by = "row_id"
+  )
+```
+
+## Create dictionary of the columns and add metadata
+
+In the final excel file, there will be one sheet with the dictionary of the columns, and another with metadata of the source files of this list. 
+
+```{r columns_description}
+
+bcilist_fgnames <- bcilist_fgnames %>% 
+  arrange(current_name) %>%
+  mutate(
+    BCI = ifelse(
+      (!is.na(BCI) & BCI) |
+      (source_list %in% c("Zotz", "Lianas")) |
+      (is.na(garwood_Other_BCNM_plots) |!garwood_Other_BCNM_plots) , TRUE, FALSE)
+  ) 
+
+column_descriptions <- list(
+  current_name               = "Current name for the species",
+  source_current_name        = "Source of the current name",
+    
+  # BCI plot presence
+  sp6                        = "Current Sp6 code of the species in Forestgeo",
+  sp4                        = "Current Sp4 code of the species in Forestgeo",
+  
+  # WCVP matched fields
+  wcvp_matched_name          = "Species name as matched in the World Checklist of Vascular Plants (WCVP)",
+  wcvp_matched_plant_name_id = "WCVP internal plant name ID for the matched name",
+  wcvp_matched_ipni_id       = "IPNI identifier for the matched name in WCVP",
+  wcvp_matched_status        = "Taxonomic status of the matched name in WCVP (e.g. accepted, synonym)",
+  
+  # WCVP accepted fields
+  wcvp_accepted_name         = "Currently accepted species name according to WCVP",
+  wcvp_accepted_binomial     = "Accepted genus + species binomial according to WCVP",
+  wcvp_accepted_family       = "Accepted family according to WCVP",
+  wcvp_accepted_authority    = "Taxonomic authority for the accepted name in WCVP",
+  wcvp_accepted_plant_name_id = "WCVP internal plant name ID for the accepted name",
+  wcvp_accepted_powo_id      = "Plants of the World Online (POWO) identifier for the accepted name",
+  wcvp_accepted_ipni_id      = "IPNI identifier for the accepted name in WCVP",
+  wcvp_accepted_lifeform     = "Life form classification of the species according to WCVP",
+  
+  # Source and Garwood
+  garwood_name               = "Species name as it appears in Garwood (2009)",
+  garwood_synonyms           = "Synonyms listed for this species in Garwood (2009)",
+  garwood_lifeform           = "Life form of the species as classified in Garwood (2009)",
+  
+  # Zotz
+  zotz_name                  = "Species name as it appears in the Zotz epiphyte list",
+
+  # Census plot list
+  census_plot                = "Census plot(s) in which this species has been recorded",
+  
+  BCI = "Species was recorded in one of the BCI plots (bci50ha, bci10ha, P14, P11, Zetek, bci25ha, AVA, Drayton, Pearson) or they are in BCI according to the Lianas list, Garwood or Zotz",
+  
+  garwood_Other_BCNM_plots = "It is not in BCI but in other BCNM plots according to Garwood",
+
+  
+  # Lianas
+  liana_name                = "Species name as it appears in the lianas",
+  
+
+  woody_forestgeo            = "Whether the species is classified as woody according to presence in Forestgeo or binomial presence in Forestgeo",
+  forestgeo_habit = "Habit coming from the forestgeo list",
+  
+  source_list = "Original source from where this species originates to create the list",
+  
+  
+  # GBIF columns
+  wcvp_matched_name_gbif_id = "GBIF id of the wcvp_matched_name derived from the usageKey", 
+  wcvp_matched_name_gbif_scientificName = "Scientific name of wcvp_matched_name according to GBIF",
+  wcvp_matched_name_gbif_matchtype = "Matched type of GBIF scientific name and wcvp_matched_name",
+  wcvp_matched_name_gbif_status = "Status of wcvp_matched_name according to GBIF",
+  wcvp_matched_name_gbif_acceptedScientificName = "Accepted scientific name of the wcvp_matched_name according to GBIF. Is NA if the gbif scientific name is accepted",
+  
+  wcvp_accepted_name_gbif_id = "GBIF id of the wcvp_accepted_name derived from the usageKey", 
+  wcvp_accepted_name_gbif_scientificName = "Scientific name of wcvp_accepted_name according to GBIF",
+  wcvp_accepted_name_gbif_matchtype = "Matched type of GBIF scientific name and wcvp_accepted_name",
+  wcvp_accepted_name_gbif_status = "Status of wcvp_accepted_name according to GBIF",
+  wcvp_accepted_name_gbif_acceptedScientificName = "Accepted scientific name of the wcvp_accepted_name according to GBIF. Is NA if the gbif scientific name is accepted"
+)
+
+dict_columns <- data.frame(
+  column      = names(column_descriptions),
+  description = unlist(column_descriptions),
+  row.names   = NULL
+)
+
+
+# Metadata sheet
+metadata_df <- data.frame(
+  item        = c(
+    "Report",
+    "Date created",
+    "Garwood list (+ WCVP v13)",
+    "Garwood synonyms",
+    "Zotz epiphytes list (+ WCVP v13)",
+    "Lianas list (+ WCVP v13)",
+    "Panama Biota list (+ WCVP v13)",
+    "Panama woody species list (+ WCVP v13)",
+    "Panama woody synonyms",
+    "Alternate names",
+    "Alternate names (Garwood subset)"
+  ),
+  description = c(
+    "A detailed report of the creation of this list can be found at: https://github.com/PanamaForestGEO/Panama_plant_species_lists/tree/master/reports",
+    format(Sys.Date(), "%Y-%m-%d"),
+    FILE_GARWOOD,
+    FILE_GARWOOD_SYN,
+    FILE_ZOTZ,
+    FILE_LIANAS,
+    FILE_PBIOTA,
+    FILE_PANWOODY,
+    FILE_PANWOODY_SYN,
+    FILE_ALTNAMES,
+    FILE_ALTNAMES_GARWOOD
+  )
+)
+
+write_xlsx(
+  list(
+    "BCNM List"   = bcilist_fgnames %>% select(all_of(dict_columns$column)),
+    "Dictionary" = dict_columns,
+    "Metadata"   = metadata_df
+  ),
+  FILECOMBINEDLIST
+)
+
+datatable(bcilist_fgnames %>% 
+             select(all_of(dict_columns$column)), 
+  caption="BCNM BOTANISTS SPECIES LIST",
+  options = list(scrollX = TRUE, pageLength = 10))
+
+```
+
+
+```{r posibblywoody}
+wcvp_lifeform_woody_list = c(
+  "tree",
+  "shrub",
+  "liana",
+  "climbing shrub",
+  "shrub or tree",
+  "climbing shrub or tree",
+  "scrambling shrub or tree",
+  "subshrub or shrub",
+  "subshrub, shrub or tree",
+  "scrambling shrub",
+  "perennial or shrub",
+  "scrambling subshrub or shrub",
+  "epiphytic shrub",
+  "scrambling tree",
+  "climbing shrub or liana",
+  "scrambling shrub or liana",
+  "tuberous shrub or tree",
+  "herbaceous tree",
+  "climbing herbaceous tree",
+  "climbing herbaceous tree or liana",
+  "climbing perennial or herbaceous tree",
+  "subshrub or climbing shrub",
+  "tuberous subshrub",
+  "hemiparasitic shrub",
+  "hemiepiphytic shrub or tree",
+  "annual or shrub",
+  "annual, subshrub or shrub"
+)
+
+# List of target abbreviations for filtering
+#L Liana (to canopy)
+#M Medium-sized tree: 10-30 m
+#S Shrub: 1-5 m
+#T Tree: >30 m
+#U Treelet: 5-10 m
+  
+  
+target_codes <- "[LMSTU]"
+garwoodlf <- unique(bcilist_fgnames$garwood_lifeform)
+garwood_woody_lifeforms <- garwoodlf[grepl(target_codes, garwoodlf) & !grepl("a", garwoodlf, ignore.case = TRUE)]
+
+print(garwood_woody_lifeforms)
+
+
+
+bcilist_possibly_woody <- bcilist_fgnames %>%
+  filter(!woody_forestgeo & is.na(`BCI cult`) &
+          (wcvp_accepted_lifeform %in% wcvp_lifeform_woody_list |
+           garwood_lifeform %in% garwood_woody_lifeforms 
+             )  ) 
+
+datatable(bcilist_possibly_woody %>%
+  select(orig_name, wcvp_matched_name, wcvp_accepted_name, wcvp_accepted_family, 
+         wcvp_accepted_lifeform, garwood_lifeform), 
+          caption="BCI species that might be woody according to the wcvp lifeform",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+# Save list
+write_xlsx(
+  list(
+    "BCNM possibly woody"   = bcilist_possibly_woody %>% select(all_of(dict_columns$column)),
+    "Dictionary" = dict_columns,
+    "Metadata"   = metadata_df
+  ),
+  FILEBCIWOODY
+)
+
+
+```
+
+
+# Wright revision: Using the BCNM Botanist list to find Wright species that need revision.
+
+Here we check what Wright species are not in the panama woody_forestgeo list but might be woody_forestgeo.
+
+```{r sp4missing}
+# Lookup table for woody_forestgeo species
+woody_names_lookup <- bind_rows(
+  panwoody_list %>% mutate(matchby = "Fcurr") %>% 
+    select(match_key = orig_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_list %>% mutate(matchby = "wcvpmatch") %>% 
+    select(match_key = wcvp_matched_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+    panwoody_list %>% mutate(matchby = "wcvpaccepted") %>% 
+    select(match_key = wcvp_accepted_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+    panwoody_list %>%
+    mutate(matchby = "origbinomial") %>%
+    select(match_key = orig_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_list %>% 
+    mutate(matchby = "wcvpacceptedbinomial") %>% 
+    select(match_key = wcvp_accepted_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_synonyms %>% 
+    mutate(matchby = "altname") %>% 
+    select(match_key = altname, forestgeo_current_name , matchby)
+) %>% 
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance if a key matched in multiple ways
+  group_by(match_key, forestgeo_current_name, sp6, sp4, wcvp_accepted_duplicated) %>%
+  summarise(
+    matchby = paste(matchby, collapse = ", "),
+    .groups = "drop"
+  )
+
+# Look up table for BCI species
+bcilist_lookup <- bind_rows(
+  # 1. Match by Original Name
+  bcilist_fgnames %>% 
+    mutate(matchby = "orig_name") %>% 
+    select(match_key = orig_name, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 2. Match by Original Binomial
+  bcilist_fgnames %>% 
+    mutate(matchby = "orig_binomial") %>% 
+    select(match_key = orig_binomial, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 3. Match by WCVP Matched Name
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpmatch") %>% 
+    select(match_key = wcvp_matched_name, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 4. Match by WCVP Accepted Name
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpaccepted") %>% 
+    select(match_key = wcvp_accepted_name, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 5. Match by WCVP Accepted Binomial
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpacceptedbinomial") %>% 
+    select(match_key = wcvp_accepted_binomial, sp6, sp4, woody_forestgeo, matchby),
+    
+  # 6. Match by Current Name (from your specific BCI columns)
+  bcilist_fgnames %>% 
+    mutate(matchby = "current_name") %>% 
+    select(match_key = current_name, sp6, sp4, woody_forestgeo, matchby)
+) %>% 
+  # Drop NAs and apply your regex cleaning from before
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance
+  group_by(match_key, sp6, sp4, woody_forestgeo) %>%
+  summarise(
+    matchby = paste(unique(matchby), collapse = ", "),
+    .groups = "drop"
+  )
+
+bcilist_lookup_woody <- bcilist_lookup %>% filter(woody_forestgeo)
+
+wright_woody_match <- allwrighttaxa %>%
+  mutate(
+    # field if there is a match with the woody_forestgeo list
+    panwoody_match = (
+      sp6 %in% na.omit(woody_names_lookup$sp6) |
+      sp4 %in% na.omit(woody_names_lookup$sp4) |
+      orig_name %in% woody_names_lookup$match_key |
+      orig_binomial %in% woody_names_lookup$match_key |
+      wcvp_accepted_name %in% woody_names_lookup$match_key |
+      wcvp_matched_name %in% woody_names_lookup$match_key 
+    ),
+    
+    # if there is a match with a species in the BCNM list
+    bcnm_match = (
+      sp6 %in% na.omit(bcilist_lookup_woody$sp6) |
+      sp4 %in% na.omit(bcilist_lookup_woody$sp4) |
+      orig_name %in% bcilist_lookup_woody$match_key |
+      orig_binomial %in% bcilist_lookup_woody$match_key |
+      wcvp_accepted_name %in% bcilist_lookup_woody$match_key |
+      wcvp_matched_name %in% bcilist_lookup_woody$match_key 
+    ),
+
+    # if there is a match with the woody species in the BCNM list (according to if they are woody in forestgeo)
+    bcnm_woody_match = (
+      sp6 %in% na.omit(bcilist_lookup_woody$sp6) |
+      sp4 %in% na.omit(bcilist_lookup_woody$sp4) |
+      orig_name %in% bcilist_lookup_woody$match_key |
+      orig_binomial %in% bcilist_lookup_woody$match_key |
+      wcvp_accepted_name %in% bcilist_lookup_woody$match_key |
+      wcvp_matched_name %in% bcilist_lookup_woody$match_key 
+    ),
+      
+    lifeform_wright_is_woody = str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA"),
+    
+    congeners_woody = (word(orig_binomial,1) %in% word(woody_names_lookup$match_key,1)),
+    
+    climber = str_detect(lifeform_wright, "CLIMBER"),
+
+    # check first by s6 code
+    lifeform_garwood = bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp6,bcilist_fgnames$sp6)],
+    # if still NA check by sp4 code
+    lifeform_garwood = ifelse(
+             is.na(lifeform_garwood),
+             bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp4,bcilist_fgnames$sp4)],
+             lifeform_garwood
+            ),
+    
+    lifeform_garwood_is_woody =  lifeform_garwood %in% garwood_woody_lifeforms,
+    
+    lifeform_wcvp_is_woody = wcvp_lifeform_description %in% wcvp_lifeform_woody_list,
+    
+    might_be_woody = lifeform_wright_is_woody | congeners_woody | lifeform_garwood_is_woody | lifeform_wcvp_is_woody
+           )
+
+
+# Table of Wright unmatched species
+datatable(wright_woody_match %>% 
+            filter(!panwoody_match & Idlevel != "unidentified" &
+                     might_be_woody) %>%
+            select(sp4, sp6, orig_name,
+                   lifeform_wright, lifeform_garwood, wcvp_lifeform_description, bcnm_match
+                   ) %>%
+            arrange(orig_name),
+          caption = "Wright morphospecies missing from the woody_forestgeo list, that might be woody based on the wright lifeform",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+# Table of Wright unmatched species
+datatable(wright_woody_match %>% 
+            filter(!panwoody_match & Idlevel != "unidentified" &
+                     !might_be_woody) %>%
+            select(sp4, sp6, orig_name,
+                   lifeform_wright, lifeform_garwood, wcvp_lifeform_description, bcnm_match
+                   ) %>%
+            arrange(orig_name),
+          caption = "Wright morphospecies missing from the woody_forestgeo list, that are probably NOT woody based on the wright lifeform",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+
+
+
+```{r savewright}
+
+column_descriptions <- list(
+  orig_family = "Family of the current name",
+  orig_name               = "Current name in the Wright list",
+
+  sp6                        = "Sp6 code in Wright",
+  sp4                        = "Sp4 code in Wright",
+  
+  Idlevel = "Id level",
+  
+  
+  # WCVP matched fields
+  wcvp_matched_name          = "Species name as matched in the World Checklist of Vascular Plants (WCVP)",
+  wcvp_matched_status        = "Taxonomic status of the matched name in WCVP (e.g. accepted, synonym)",
+  
+  # WCVP accepted fields
+  wcvp_accepted_name         = "Currently accepted species name according to WCVP",
+  wcvp_accepted_family       = "Accepted family according to WCVP",
+  wcvp_accepted_authority    = "Taxonomic authority for the accepted name in WCVP",
+
+  might_be_woody = "TRUE if the lifeform is woody or if it has woody congeners",
+  
+  climber = "TRUE if the species has climber in the Wright lifeform",
+  
+  wcvp_lifeform_description     = "Life form classification of the species according to WCVP",
+
+ lifeform_wright = "liferorm according to Wright",
+ lifeform_garwood = "Lifeform according to Garwood",
+ 
+ lifeform_wright_is_woody = "True if the Wright lifeform is one of the following: TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA",
+ 
+ lifeform_garwood_is_woody = paste0("True if the Garwood lifeform is one of the following ", paste(garwood_woody_lifeforms, collapse = ", ")),
+                                    
+lifeform_wcvp_is_woody = paste0("True if the WCVP lifeform is one of the following: ", paste(wcvp_lifeform_woody_list, collapse=", ")),
+
+congeners_woody = "True if it has congeners in the Current Panama Woody list"
+                                    
+)
+
+dict_columns <- data.frame(
+  column      = names(column_descriptions),
+  description = unlist(column_descriptions),
+  row.names   = NULL
+)
+
+# Dictionary for garwood lifeforms
+lifeform_metadata <- data.frame(
+  Lifeform_garwood = c("a", "E", "H", "L", "M", "P", "S", "T", "U", "V", "w"),
+  Meaning = c("Aquatic", "Epiphyte", "Herb (< 1 m, ; including +- woody subshrubs)", 
+              "Liana (to canopy)", "Medium-sized tree: 10-30 m", "Parasite/saprophyte", 
+              "Shrub: 1-5 m", "Tree: >30 m", "Treelet: 5-10 m", "Vine (understory)", "Weedy")
+)
+
+
+write_xlsx(
+  list(
+    "Wright_revision" = wright_woody_match %>%
+                          filter(!panwoody_match) %>%
+                          select(all_of(dict_columns$column)),
+    "Dictionary" = dict_columns,
+    "lifeform_garwood" = lifeform_metadata  
+  ),
+  FILECHECKWRIGHT
+)
+
+```
+
+# Panama biota revision
+this needs revision...
+```{r panamabiotarevision}
+pbiota_list$wcvp_accepted_binomial <- paste0(
+  pbiota_list$wcvp_accepted_name_genus, " ",
+  pbiota_list$wcvp_accepted_name_species
+)
+
+# 1. direct name/binomial match
+pbiota_garwood_name_match <- pbiota_list %>%
+  filter(
+
+    orig_name %in% bcilist_fgnames$orig_name |
+
+    (!is.na(wcvp_matched_name) &
+       wcvp_matched_name %in% bcilist_fgnames$wcvp_matched_name) |
+
+    (!is.na(wcvp_accepted_name) &
+       wcvp_accepted_name %in% bcilist_fgnames$wcvp_accepted_name) |
+
+    (!is.na(orig_binomial) & (
+        orig_binomial %in% bcilist_fgnames$orig_binomial 
+    )) |
+
+    (!is.na(wcvp_accepted_binomial) & (
+        wcvp_accepted_binomial %in% bcilist_fgnames$wcvp_accepted_binomial 
+    )) |
+      
+    (!is.na(orig_name) & (
+        orig_name %in% bcilist_fgnames$current_name 
+    ))
+  )
+
+# 2. synonym_sp for remaining
+pbiota_garwood_synonym_match <- pbiota_list %>%
+  filter(
+    !orig_name %in% pbiota_garwood_name_match$orig_name &
+    (
+      orig_name %in% garwood_synonyms$synonym_sp |
+      (!is.na(wcvp_matched_name) &
+         wcvp_matched_name %in% garwood_synonyms$synonym_sp) |
+      (!is.na(wcvp_accepted_name) &
+         wcvp_accepted_name %in% garwood_synonyms$synonym_sp) |
+      (!is.na(orig_binomial) & orig_binomial %in% garwood_synonyms$synonym_binomial) |
+      (!is.na(wcvp_accepted_binomial) & wcvp_accepted_binomial %in% garwood_synonyms$synonym_binomial)
+    )
+  )
+
+pbiota_garwood_synonym_match$matched_garwood_synonym <- TRUE
+
+
+# see species that matched by a synonym 
+pbiota_garwood_synonym_match_print <- pbiota_garwood_synonym_match %>%  left_join(
+    garwood_synonyms %>% select(sp_orig = sp_name, synonym_sp, syn_orig = SynonymTextALL) %>% distinct(),
+    by = c("orig_name" = "synonym_sp")
+  ) %>%
+  left_join(
+    garwood_synonyms %>% select(sp_match = sp_name, synonym_sp, syn_match = SynonymTextALL) %>% distinct(),
+    by = c("wcvp_matched_name" = "synonym_sp"), relationship = "many-to-many"
+  ) %>%
+  left_join(
+    garwood_synonyms %>% select(sp_wcvp = sp_name, synonym_sp, syn_wcvp = SynonymTextALL) %>% distinct(),
+    by = c("wcvp_accepted_name" = "synonym_sp"),  relationship = "many-to-many") %>%
+  mutate(
+    SynonymMatchAll = coalesce(syn_orig, syn_match, syn_wcvp),
+    orig_garwood = coalesce(sp_orig, sp_match, sp_wcvp),
+  ) %>%
+  select(-syn_orig, -syn_match, -syn_wcvp,  -sp_orig, -sp_match, -sp_wcvp) %>%
+  distinct(orig_name, .keep_all = TRUE)
+  
+
+datatable(pbiota_garwood_synonym_match_print %>% 
+            select(orig_name, wcvp_matched_name, wcvp_accepted_name, SynonymMatchAll, orig_garwood), 
+          caption="Panamabiota species that matched Garwood by synonym",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+

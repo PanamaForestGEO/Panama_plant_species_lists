@@ -79,8 +79,10 @@ out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date()
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= TRUE
+redoWCVP= FALSE
 ```
+
+
 
 ## Prepare datasets
 
@@ -509,20 +511,4 @@ print(paste(colnames(processlist), collapse=", "))
 ```
 
 Saved `r nrow(processlist)` species with their names verified with WCVP. 
-
-
-## Save output of all changes
-output the taxa that have any differences between accepted name and orig_name as a separate file of changes.  
-```{r saveoutput_changes}
-
-list_wcvp_changes <- processlist %>% filter(orig_name != wcvp_accepted_name)
-  
-# Save species list with wcvp columns
-write_xlsx(list_wcvp_changes, out_wcvp_changes_list)
-
-
-```
-
-Saved `r nrow(list_wcvp_changes)` species where the original name is different from the wcvp accepted name. 
-
 
