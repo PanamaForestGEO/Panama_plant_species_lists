@@ -120,7 +120,7 @@ A consolidation of woody plant species across Panama. This dataset integrates or
 
 ---
 
-Same as described in the BCI list:
+Same as described in the BCNM list:
 
 ### WCVP Matched Name
 
@@ -131,3 +131,7 @@ Same as described in the BCI list:
 
 ### GBIF — Accepted Name Lookup
 
+
+# AllTaxa
+
+Work in progress... Is created using an old code and needs revision, the main problem is that in some cases the same genus points to two different families. 
