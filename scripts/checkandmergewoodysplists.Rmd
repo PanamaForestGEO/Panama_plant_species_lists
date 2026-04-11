@@ -71,6 +71,7 @@ suppressPackageStartupMessages({
 })
 library(knitr)
 library(DT)
+library(rgbif)
 
 ```
 
@@ -92,7 +93,7 @@ DIROUTSP <- "splists_out/"
 DIRCHECK <- "tocheck/"
 
 # input files # all in directory DIRINSP
-FNWRIGHTSPLISTIN <- "splists_out/wright_nomenclature_R_20210224_WCVP_2026-03-26.xlsx"
+FNWRIGHTSPLISTIN <- "splists_out/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-04-08.xlsx"
 FNFGEOSPLISTIN <- "Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx"
 FNPANAMASPLISTIN <- "PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx" 
 
@@ -451,6 +452,10 @@ matchwcvp_accepted_names <- function(matcheswcvp, wcvp_backbone){
       wcvp_accepted_infrarank = infraspecific_rank,
       wcvp_accepted_infraspecies = infraspecies
     )
+}
+
+if(redoWCVP){
+  wcvp_names <- rWCVPdata::wcvp_names 
 }
 
 # --- 1. Run or Load Match ---
@@ -1066,23 +1071,6 @@ allpanwoodtaxa <- allpanwoodtaxa %>%
 ```
 
 
-# Save files
-
-Saving combined panama woody
-
-```{r finaloutput}
-
-
-write_xlsx(allpanwoodtaxa, PANAMA_COMBINED_OUT_PATH)
-
-# View the result
-datatable(allpanwoodtaxa %>% select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), 
-             caption = "Final current panama list",
-          options = list(scrollX = TRUE, pageLength = 10))
-
-
-```
-
 # Alternate names file
 
 ```{r alternates}
@@ -1129,6 +1117,369 @@ write_xlsx(alternate_synonym_table, FNSYNONYMS)
 
 
 ```
+
+
+
+
+# Add GBIF ID
+
+To find the GBIF id we will use the WCVP matched name (which hopefully does not have a different spelling in GBIF so we can have a perfect match)
+
+```{r addgibfid}
+
+allpanwoodtaxa <- allpanwoodtaxa %>%
+  mutate(row_id = row_number()) 
+  
+  
+datatable(allpanwoodtaxa %>%
+  filter(is.na(wcvp_matched_name)) %>%
+  select(orig_name), 
+  caption="Current name does not have WCVP match")
+
+
+# Build name input from WCVP matched name
+names_for_gbif <- allpanwoodtaxa %>%
+  filter(!is.na(wcvp_matched_name)) %>%
+  distinct(wcvp_matched_name, .keep_all = TRUE) %>%
+  rename(scientificName = wcvp_matched_name)
+
+# some names might be not be recognized by GBIF making the API timeout
+#weird_names_df <- names_for_gbif %>% 
+    #filter(str_detect(scientificName, "[^ -~]"))
+
+names_for_gbif_filter <- names_for_gbif #%>% filter(!scientificName %in% weird_names_df$scientificName)   
+
+library(purrr)
+
+
+gbif_backbone_matched <- name_backbone_checklist(
+    names_for_gbif_filter,
+    kingdom = "Plantae",
+    verbose = TRUE
+  )
+
+# Check match quality
+gbif_match_summary <- gbif_backbone_matched %>% 
+  count(matchType)
+
+print(gbif_match_summary)
+
+# How many got a usable GBIF ID?
+gbif_backbone_matched %>% 
+  summarise(
+    total = n(),
+    exact_match = sum(matchType == "EXACT", na.rm = TRUE),
+    fuzzy_match = sum(matchType == "FUZZY", na.rm = TRUE),
+    no_match    = sum(matchType == "NONE", na.rm = TRUE)
+  )
+
+gbif_backbone_matched <- gbif_backbone_matched %>%
+  group_by(verbatim_name) %>%
+  mutate(
+    match_priority = case_when(
+      matchType == "EXACT" ~ 1,
+      matchType == "HIGHERRANK" ~ 2,
+      matchType == "VARIANT" ~ 3,
+      TRUE ~ 4
+    )
+  ) %>%
+  arrange(match_priority, desc(confidence)) %>%
+  slice(1) %>%
+  ungroup()
+
+
+# See the ones that got a match by Variant or Higher rank
+datatable(gbif_backbone_matched %>% 
+            filter(!matchType %in% c("EXACT")) %>% 
+            select(verbatim_name, scientificName), 
+          caption="Species not matching exactly (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+datatable(gbif_backbone_matched %>% 
+            filter(!status %in% c("ACCEPTED")) %>%
+            select(usageKey, verbatim_orig_name, scientificName, matchType, verbatim_wcvp_matched_status, status,  verbatim_wcvp_accepted_name, acceptedScientificName), 
+          caption="Species current name in the list is not accepted according to GBIF (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+The matched name can be a synonym, WCVP v13 also indicated that, but it is the name we will be using for current_name in the list, as the accepted name has not been reviewed by the STRI botanists in Panama.
+
+
+We add the GBIF id and the GBIF scientificName as columns to our dataset
+
+```{r addgbifmatchednames}
+allpanwoodtaxa <- allpanwoodtaxa %>%
+  mutate(
+    row_id = as.character(row_id)
+  ) %>%
+  left_join(
+    gbif_backbone_matched %>% 
+      select(
+        row_id = verbatim_row_id, 
+        wcvp_matched_name_gbif_id = usageKey, 
+        wcvp_matched_name_gbif_scientificName = scientificName,
+        wcvp_matched_name_gbif_matchtype = matchType,
+        wcvp_matched_name_gbif_status = status,
+        wcvp_matched_name_gbif_acceptedScientificName = acceptedScientificName
+      ),
+    by = "row_id"
+  )
+
+
+# See the ones that dont have a gbif id yet
+datatable(allpanwoodtaxa %>% filter(is.na(wcvp_matched_name_gbif_id)) %>% select(orig_name, wcvp_matched_name))
+
+```
+
+
+
+We also find the GBIF id for the **accepted name.** 
+
+```{r addgibfidaccepted}
+datatable(allpanwoodtaxa %>%
+  filter(is.na(wcvp_accepted_name)) %>%
+  select(orig_name), 
+  caption="Current name does not have WCVP accepted name")
+
+
+# Build name input from WCVP matched name
+names_for_gbif <- allpanwoodtaxa %>%
+  filter(!is.na(wcvp_accepted_name)) %>%
+  distinct(wcvp_accepted_name, .keep_all = TRUE) %>%
+  rename(scientificName = wcvp_accepted_name)
+
+# Query GBIF backbone
+gbif_backbone_accepted <- name_backbone_checklist(names_for_gbif, kingdom = "Plantae")
+
+# Check match quality
+gbif_match_summary <- gbif_backbone_accepted %>% 
+  count(matchType)
+
+print(gbif_match_summary)
+
+# How many got a usable GBIF ID?
+gbif_backbone_accepted %>% 
+  summarise(
+    total = n(),
+    exact_match = sum(matchType == "EXACT", na.rm = TRUE),
+    fuzzy_match = sum(matchType == "FUZZY", na.rm = TRUE),
+    no_match    = sum(matchType == "NONE", na.rm = TRUE)
+  )
+
+
+gbif_backbone_accepted <- gbif_backbone_accepted %>%
+  group_by(verbatim_name) %>%
+  mutate(
+    match_priority = case_when(
+      matchType == "EXACT" ~ 1,
+      matchType == "HIGHERRANK" ~ 2,
+      matchType == "VARIANT" ~ 3,
+      TRUE ~ 4
+    )
+  ) %>%
+  arrange(match_priority, desc(confidence)) %>%
+  slice(1) %>%
+  ungroup()
+
+# See the ones that got a match by Variant or Higher rank
+datatable(gbif_backbone_accepted %>% 
+            filter(!matchType %in% c("EXACT")) %>% 
+            select(verbatim_name, scientificName), 
+          caption="Species not matching exactly (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+datatable(gbif_backbone_accepted %>% 
+            filter(!status %in% c("ACCEPTED")) %>%
+            select(verbatim_orig_name, verbatim_wcvp_matched_status, status, verbatim_wcvp_accepted_name=verbatim_name, acceptedScientificName), 
+          caption="Species WCVP accepted name in the list is not accepted according to GBIF (verbatim refers to the fileds in the BCNM list)",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+Surprisingly, the wcvp_accepted name can also be a Synonym according to GBIF, this can happen because GBIF gets the accepted names from different sources. We will add the GBIF accepted name to the list as an additional column.
+
+
+We add the GBIF id and the GBIF scientificName as columns to our dataset
+
+```{r addgbifacceptednames}
+allpanwoodtaxa <- allpanwoodtaxa %>%
+  left_join(
+    gbif_backbone_accepted %>% 
+      select(
+        row_id = verbatim_row_id, 
+        wcvp_accepted_name_gbif_id = usageKey, 
+        wcvp_accepted_name_gbif_scientificName = scientificName,
+        wcvp_accepted_name_gbif_matchtype = matchType,
+        wcvp_accepted_name_gbif_status = status,
+        wcvp_accepted_name_gbif_acceptedScientificName = acceptedScientificName
+      ),
+    by = "row_id"
+  )
+```
+
+
+Now for the ones that do not have gbif id
+```{r}
+
+datatable(allpanwoodtaxa %>%
+            filter(is.na(wcvp_matched_name_gbif_id) & is.na(wcvp_accepted_name_gbif_id)) %>%
+            select(orig_name, wcvp_matched_name, wcvp_accepted_name),
+          caption="Species withouth a GBIF id"
+            )
+
+names_for_gbif <- allpanwoodtaxa %>%
+  filter(orig_name == "Witheringia knappiae") %>%
+  rename(scientificName = orig_name)
+
+# Query GBIF backbone
+gbif_backbone_extra <- name_backbone_checklist(names_for_gbif, kingdom = "Plantae")
+
+# There is one case where we could find an id with the orig_name
+gbif_backbone_extra %>% select(scientificName, rank, status, matchType)
+```
+
+For "Witheringia knappiae" we couldnt find a GBIF id
+
+# Create dictionary of the columns and add metadata
+
+In the final excel file, there will be one sheet with the dictionary of the columns
+
+```{r columns_description}
+
+allpanwoodtaxa <- allpanwoodtaxa %>% arrange(orig_name)
+
+
+column_descriptions <- list(
+  # Original taxonomy (STRI)
+  taxorder                = "Taxonomic order of the species",
+  orig_family             = "Original family assignment according to STRI list",
+  orig_genus              = "Original genus according to STRI list",
+  orig_species            = "Original species epithet according to STRI list",
+  orig_infraspecies       = "Original infraspecific name (if present)",
+  orig_infraspecies_rank  = "Rank of the infraspecific taxon (e.g. subspecies, variety)",
+  orig_authority          = "Taxonomic authority for the original name",
+  orig_binomial           = "Original genus + species binomial",
+  orig_name               = "Full original scientific name as used by STRI botanists",
+  orig_synonyms           = "Synonyms associated with the original name",
+  orig_habit              = "Growth habit assigned in the original dataset",
+  
+  # Identifiers / metadata
+  vouchers                = "Voucher specimen information for the species",
+  IDLevel                 = "Taxonomic identification level (e.g. species, genus)",
+  names_notes             = "Notes related to taxonomic matching or naming issues",
+  origmatches             = "Indicates whether original name spelling is the same as WCVP",
+  
+  # ForestGEO / plot codes
+  sp6                     = "Species code (SP6) used in ForestGEO plots",
+  sp6prior                = "Previous SP6 code used in ForestGEO",
+  sp4                     = "Species code (SP4) used in ForestGEO",
+  lifeform_wright         = "Life form classification based on Wright dataset",
+  
+  # Matching diagnostics
+  match_similarity        = "Similarity score between original name and WCVP match",
+  wcvp_accepted_duplicated = "Indicates if multiple original names map to the same accepted WCVP name",
+  
+  # WCVP matched fields
+  wcvp_matched_name          = "Species name matched in the World Checklist of Vascular Plants (WCVP)",
+  wcvp_matched_authors       = "Authors associated with the matched WCVP name",
+  wcvp_matched_rank          = "Taxonomic rank of the matched WCVP name",
+  wcvp_matched_status        = "Status of the matched name in WCVP (accepted, synonym, etc.)",
+  wcvp_matched_plant_name_id = "Unique identifier for the matched name in WCVP",
+  wcvp_matched_ipni_id       = "IPNI identifier linked to the matched WCVP name",
+  
+  # WCVP accepted fields
+  wcvp_accepted_name           = "Accepted scientific name according to WCVP",
+  wcvp_accepted_binomial       = "Accepted genus + species binomial",
+  wcvp_accepted_authority      = "Authority for the accepted WCVP name",
+  wcvp_accepted_family         = "Accepted family according to WCVP",
+  wcvp_accepted_genus          = "Accepted genus according to WCVP",
+  wcvp_accepted_species        = "Accepted species epithet",
+  wcvp_accepted_infrarank      = "Rank of accepted infraspecific taxon",
+  wcvp_accepted_infraspecies   = "Accepted infraspecific name",
+  wcvp_accepted_rank           = "Taxonomic rank of the accepted name",
+  wcvp_accepted_plant_name_id  = "Unique identifier for the accepted name in WCVP",
+  wcvp_accepted_powo_id        = "Plants of the World Online (POWO) identifier",
+  wcvp_accepted_ipni_id        = "IPNI identifier for the accepted name",
+  wcvp_accepted_lifeform       = "Life form classification according to WCVP",
+  
+  # GBIF matched (based on WCVP matched name)
+  wcvp_matched_name_gbif_id = "GBIF taxon identifier (usageKey or acceptedUsageKey) derived from the WCVP matched name",
+  wcvp_matched_name_gbif_scientificName = "Scientific name returned by GBIF for the matched name",
+  wcvp_matched_name_gbif_matchtype = "Type of match in GBIF (EXACT, FUZZY, etc.)",
+  wcvp_matched_name_gbif_status = "Taxonomic status in GBIF (ACCEPTED, SYNONYM, etc.)",
+  wcvp_matched_name_gbif_acceptedScientificName = "Accepted name in GBIF corresponding to the matched name (if synonym)",
+  
+  # GBIF matched (based on WCVP accepted name)
+  wcvp_accepted_name_gbif_id = "GBIF taxon identifier derived from the WCVP accepted name",
+  wcvp_accepted_name_gbif_scientificName = "Scientific name returned by GBIF for the accepted name",
+  wcvp_accepted_name_gbif_matchtype = "Type of match in GBIF for the accepted name",
+  wcvp_accepted_name_gbif_status = "Taxonomic status in GBIF for the accepted name",
+  wcvp_accepted_name_gbif_acceptedScientificName = "Accepted name in GBIF corresponding to the accepted name (if synonym)"
+)
+
+dict_columns <- data.frame(
+  column      = names(column_descriptions),
+  description = unlist(column_descriptions),
+  row.names   = NULL
+)
+
+metadata_df <- data.frame(
+  item = c(
+    "Report",
+    "Date created",
+    "WCVP Version",
+    "WCVP checkpoint matching",
+    "Input file - Wright list",
+    "Input file - ForestGEO list",
+    "Input file - Panama flora list",
+    "Output file - This list",
+    "Output file - All taxa",
+    "Output file - Synonyms",
+    "Notes"
+  ),
+  description = c(
+    "A detailed report of the creation of this list can be found at: https://github.com/PanamaForestGEO/Panama_plant_species_lists/tree/master/reports",
+    format(Sys.Date(), "%Y-%m-%d"),
+    paste(format(citation("rWCVPdata")), collapse="\n"),
+    FNPANAMASPLISTWCVP,
+    FNWRIGHTSPLISTIN,
+    FNFGEOSPLISTIN,
+    FNPANAMASPLISTIN,
+    PANAMA_COMBINED_OUT_PATH,
+    FNPANAMATAXA,
+    FNSYNONYMS,
+    "GBIF backbone matching applied to WCVP matched and accepted names; IDs correspond to usageKey or acceptedUsageKey"
+  ),
+  stringsAsFactors = FALSE
+)
+
+
+
+```
+
+
+# Save files
+
+Saving combined panama woody
+
+```{r finaloutput}
+
+write_xlsx(
+  list(
+    "List"   = allpanwoodtaxa %>% select(all_of(dict_columns$column)),
+    "Dictionary" = dict_columns,
+    "Metadata"   = metadata_df
+  ),
+  PANAMA_COMBINED_OUT_PATH
+)
+
+# View the result
+datatable(allpanwoodtaxa %>% select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), 
+             caption = "Final current panama list",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+```
+
 
 
 # Some checks on consistency of codes for higher level taxa:
@@ -1322,4 +1673,6 @@ if(FIX_SPECIES){
   write_xlsx(outtaxa,FNPANAMATAXA)
 }
 ```
+
+
 

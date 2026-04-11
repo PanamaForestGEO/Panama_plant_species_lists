@@ -62,7 +62,7 @@ FILE_PANWOODY         <- "splists_out/species_list_WCVP/CurrentPanamaWoody_2026-
 FILE_PANWOODY_SYN     <- "splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx"
 FILE_ALTNAMES         <- "splists_out/alternates_and_synonyms/AltNames_2026-03-31.xlsx"
 FILE_ALTNAMES_GARWOOD <- "splists_out/alternates_and_synonyms/alternate_names_garwood_2026-03-31.xlsx"
-FILE_WRIGHT           <- "splists_out/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-03-26.xlsx"
+FILE_WRIGHT           <- "splists_out/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-04-08.xlsx"
 
 # --- Load data ---
 
@@ -2742,12 +2742,20 @@ wright_woody_match <- allwrighttaxa %>%
       wcvp_matched_name %in% bcilist_lookup_woody$match_key 
     ),
       
-    lifeform_wright_is_woody = str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA"),
+    lifeform_wright_is_woody = if_else(
+      is.na(lifeform_wright),
+      NA,
+      str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA")
+    ),
     
     congeners_woody = (word(orig_binomial,1) %in% word(woody_names_lookup$match_key,1)),
     
-    climber = str_detect(lifeform_wright, "CLIMBER"),
-
+    climber = case_when(
+      is.na(lifeform_wright) ~ NA,
+      str_detect(lifeform_wright, "CLIMBER") ~ TRUE,
+      str_detect(lifeform_wright, "FREE") ~ FALSE,
+      TRUE ~ NA
+    ),
     # check first by s6 code
     lifeform_garwood = bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp6,bcilist_fgnames$sp6)],
     # if still NA check by sp4 code
@@ -2757,12 +2765,32 @@ wright_woody_match <- allwrighttaxa %>%
              lifeform_garwood
             ),
     
-    lifeform_garwood_is_woody =  lifeform_garwood %in% garwood_woody_lifeforms,
+    lifeform_garwood_is_woody = if_else(
+      is.na(lifeform_garwood),
+      NA,
+      lifeform_garwood %in% garwood_woody_lifeforms
+    ),
+        
+    lifeform_wcvp_is_woody = if_else(
+      is.na(wcvp_lifeform_description),
+      NA,
+      wcvp_lifeform_description %in% wcvp_lifeform_woody_list
+    ),
     
-    lifeform_wcvp_is_woody = wcvp_lifeform_description %in% wcvp_lifeform_woody_list,
-    
-    might_be_woody = lifeform_wright_is_woody | congeners_woody | lifeform_garwood_is_woody | lifeform_wcvp_is_woody
-           )
+    might_be_woody = case_when(
+          lifeform_wright_is_woody %in% TRUE |
+          congeners_woody %in% TRUE |
+          lifeform_garwood_is_woody %in% TRUE |
+          lifeform_wcvp_is_woody %in% TRUE ~ TRUE,
+          
+          is.na(lifeform_wright_is_woody) &
+          is.na(congeners_woody) &
+          is.na(lifeform_garwood_is_woody) &
+          is.na(lifeform_wcvp_is_woody) ~ NA,
+          
+          TRUE ~ FALSE
+        )
+   )
 
 
 # Table of Wright unmatched species

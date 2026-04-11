@@ -71,11 +71,14 @@ matches_mid_path <- paste0("splists_mid/", original_list_name, "_mid_match.rds")
 matches_mid_path2 <- paste0("splists_mid/", original_list_name, "_mid_match2.rds")
 
 # OUTPUT PATHS 
-out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date(), ".xlsx")
+out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP13_", Sys.Date(), ".xlsx")
 out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
 
 
-redoWCVP= TRUE
+redoWCVP <- FALSE
+
+FILECHECKWRIGHT <- paste0("splists_out/needs_check/Wright_not_CurrentPanamaWoody_", Sys.Date(), ".xlsx")
+
 ```
 
 ## Prepare datasets
@@ -669,6 +672,8 @@ processlist <- processlist %>%
 
 Showing columns saved in the final dataset:
 ```{r saveoutput}
+processlist <- processlist %>%
+  mutate(across(everything(), ~ifelse(. %in% c("NA", "na", "", " "), NA, .)))
 
 processlist <- processlist %>% mutate(
 # adding a column to make the lifeform easier to read
@@ -750,4 +755,242 @@ datatable(processlist %>%
     filter(n() > 1) %>%
     select(sp6, sp4, orig_name, wcvp_matched_name, wcvp_accepted_name), caption="Species with a duplicated sp4 code in the wright list")
 ```
+
+
+
+
+# Wright revision: Using the BCNM Botanist list to find Wright species that need revision.
+
+Here we check what Wright species are not in the panama woody_forestgeo list but might be woody_forestgeo.
+
+```{r sp4missing}
+FILE_PANWOODY         <- "splists_out/species_list_WCVP/CurrentPanamaWoody_2026-03-26.xlsx"
+panwoody_list <- read_excel(FILE_PANWOODY, col_types = "text")
+
+FILE_PANWOODY_SYN     <- "splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx"
+panwoody_synonyms <- read_excel(FILE_PANWOODY_SYN, col_types = "text")
+
+panwoody_synonyms <- panwoody_synonyms %>% select(sp6,
+  forestgeo_current_name = orig_name, altname=SynonymTextSingle
+)
+
+BCILIST <- "splists_out/Plantnet/BCNM_SPECIES_BOTANISTS_LIST_2026-04-07.xlsx"
+bcilist_fgnames <- read_excel(BCILIST)
+
+
+
+# Lookup table for woody_forestgeo species
+woody_names_lookup <- bind_rows(
+  panwoody_list %>% mutate(matchby = "Fcurr") %>% 
+    select(match_key = orig_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_list %>% mutate(matchby = "wcvpmatch") %>% 
+    select(match_key = wcvp_matched_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+    panwoody_list %>% mutate(matchby = "wcvpaccepted") %>% 
+    select(match_key = wcvp_accepted_name, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+    panwoody_list %>%
+    mutate(matchby = "origbinomial") %>%
+    select(match_key = orig_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_list %>% 
+    mutate(matchby = "wcvpacceptedbinomial") %>% 
+    select(match_key = wcvp_accepted_binomial, forestgeo_current_name = orig_name, sp6, sp4, wcvp_accepted_duplicated, matchby),
+  
+  panwoody_synonyms %>% 
+    mutate(matchby = "altname") %>% 
+    select(match_key = altname, forestgeo_current_name , matchby)
+) %>% 
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance if a key matched in multiple ways
+  group_by(match_key, forestgeo_current_name, sp6, sp4, wcvp_accepted_duplicated) %>%
+  summarise(
+    matchby = paste(matchby, collapse = ", "),
+    .groups = "drop"
+  )
+
+# Look up table for BCI species
+bcilist_lookup <- bind_rows(
+
+  # 3. Match by WCVP Matched Name
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpmatch") %>% 
+    select(match_key = wcvp_matched_name, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 4. Match by WCVP Accepted Name
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpaccepted") %>% 
+    select(match_key = wcvp_accepted_name, sp6, sp4, woody_forestgeo, matchby),
+  
+  # 5. Match by WCVP Accepted Binomial
+  bcilist_fgnames %>% 
+    mutate(matchby = "wcvpacceptedbinomial") %>% 
+    select(match_key = wcvp_accepted_binomial, sp6, sp4, woody_forestgeo, matchby),
+    
+  # 6. Match by Current Name (from your specific BCI columns)
+  bcilist_fgnames %>% 
+    mutate(matchby = "current_name") %>% 
+    select(match_key = current_name, sp6, sp4, woody_forestgeo, matchby)
+) %>% 
+  # Drop NAs and apply your regex cleaning from before
+  filter(!is.na(match_key)) %>%
+  # Group and collapse to keep provenance
+  group_by(match_key, sp6, sp4, woody_forestgeo) %>%
+  summarise(
+    matchby = paste(unique(matchby), collapse = ", "),
+    .groups = "drop"
+  )
+
+bcilist_lookup_woody <- bcilist_lookup %>% filter(woody_forestgeo)
+
+wright_woody_match <- allwrighttaxa %>%
+  mutate(
+    # field if there is a match with the woody_forestgeo list
+    panwoody_match = (
+      sp6 %in% na.omit(woody_names_lookup$sp6) |
+      sp4 %in% na.omit(woody_names_lookup$sp4) |
+      orig_name %in% woody_names_lookup$match_key |
+      orig_binomial %in% woody_names_lookup$match_key |
+      wcvp_accepted_name %in% woody_names_lookup$match_key |
+      wcvp_matched_name %in% woody_names_lookup$match_key 
+    ),
+    
+    # if there is a match with a species in the BCNM list
+    bcnm_match = (
+      sp6 %in% na.omit(bcilist_lookup_woody$sp6) |
+      sp4 %in% na.omit(bcilist_lookup_woody$sp4) |
+      orig_name %in% bcilist_lookup_woody$match_key |
+      orig_binomial %in% bcilist_lookup_woody$match_key |
+      wcvp_accepted_name %in% bcilist_lookup_woody$match_key |
+      wcvp_matched_name %in% bcilist_lookup_woody$match_key 
+    ),
+
+    # if there is a match with the woody species in the BCNM list (according to if they are woody in forestgeo)
+    bcnm_woody_match = (
+      sp6 %in% na.omit(bcilist_lookup_woody$sp6) |
+      sp4 %in% na.omit(bcilist_lookup_woody$sp4) |
+      orig_name %in% bcilist_lookup_woody$match_key |
+      orig_binomial %in% bcilist_lookup_woody$match_key |
+      wcvp_accepted_name %in% bcilist_lookup_woody$match_key |
+      wcvp_matched_name %in% bcilist_lookup_woody$match_key 
+    ),
+      
+    lifeform_wright_is_woody = str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA"),
+    
+    congeners_woody = (word(orig_binomial,1) %in% word(woody_names_lookup$match_key,1)),
+    
+    climber = str_detect(lifeform_wright, "CLIMBER"),
+
+    # check first by s6 code
+    lifeform_garwood = bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp6,bcilist_fgnames$sp6)],
+    # if still NA check by sp4 code
+    lifeform_garwood = ifelse(
+             is.na(lifeform_garwood),
+             bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp4,bcilist_fgnames$sp4)],
+             lifeform_garwood
+            ),
+    
+    lifeform_garwood_is_woody =  lifeform_garwood %in% garwood_woody_lifeforms,
+    
+    lifeform_wcvp_is_woody = wcvp_lifeform_description %in% wcvp_lifeform_woody_list,
+    
+    might_be_woody = lifeform_wright_is_woody | congeners_woody | lifeform_garwood_is_woody | lifeform_wcvp_is_woody
+           )
+
+
+# Table of Wright unmatched species
+datatable(wright_woody_match %>% 
+            filter(!panwoody_match & Idlevel != "unidentified" &
+                     might_be_woody) %>%
+            select(sp4, sp6, orig_name,
+                   lifeform_wright, lifeform_garwood, wcvp_lifeform_description, bcnm_match
+                   ) %>%
+            arrange(orig_name),
+          caption = "Wright morphospecies missing from the woody_forestgeo list, that might be woody based on the wright lifeform",
+          options = list(scrollX = TRUE, pageLength = 10))
+
+
+# Table of Wright unmatched species
+datatable(wright_woody_match %>% 
+            filter(!panwoody_match & Idlevel != "unidentified" &
+                     !might_be_woody) %>%
+            select(sp4, sp6, orig_name,
+                   lifeform_wright, lifeform_garwood, wcvp_lifeform_description, bcnm_match
+                   ) %>%
+            arrange(orig_name),
+          caption = "Wright morphospecies missing from the woody_forestgeo list, that are probably NOT woody based on the wright lifeform",
+          options = list(scrollX = TRUE, pageLength = 10))
+```
+
+
+
+```{r savewright}
+
+column_descriptions <- list(
+  orig_family = "Family of the current name",
+  orig_name               = "Current name in the Wright list",
+
+  sp6                        = "Sp6 code in Wright",
+  sp4                        = "Sp4 code in Wright",
+  
+  Idlevel = "Id level",
+  
+  
+  # WCVP matched fields
+  wcvp_matched_name          = "Species name as matched in the World Checklist of Vascular Plants (WCVP)",
+  wcvp_matched_status        = "Taxonomic status of the matched name in WCVP (e.g. accepted, synonym)",
+  
+  # WCVP accepted fields
+  wcvp_accepted_name         = "Currently accepted species name according to WCVP",
+  wcvp_accepted_family       = "Accepted family according to WCVP",
+  wcvp_accepted_authority    = "Taxonomic authority for the accepted name in WCVP",
+
+  might_be_woody = "TRUE if the lifeform is woody or if it has woody congeners",
+  
+  climber = "TRUE if the species has climber in the Wright lifeform",
+  
+  wcvp_lifeform_description     = "Life form classification of the species according to WCVP",
+
+ lifeform_wright = "liferorm according to Wright",
+ lifeform_garwood = "Lifeform according to Garwood",
+ 
+ lifeform_wright_is_woody = "True if the Wright lifeform is one of the following: TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA",
+ 
+ lifeform_garwood_is_woody = paste0("True if the Garwood lifeform is one of the following ", paste(garwood_woody_lifeforms, collapse = ", ")),
+                                    
+lifeform_wcvp_is_woody = paste0("True if the WCVP lifeform is one of the following: ", paste(wcvp_lifeform_woody_list, collapse=", ")),
+
+congeners_woody = "True if it has congeners in the Current Panama Woody list"
+                                    
+)
+
+dict_columns <- data.frame(
+  column      = names(column_descriptions),
+  description = unlist(column_descriptions),
+  row.names   = NULL
+)
+
+# Dictionary for garwood lifeforms
+lifeform_metadata <- data.frame(
+  Lifeform_garwood = c("a", "E", "H", "L", "M", "P", "S", "T", "U", "V", "w"),
+  Meaning = c("Aquatic", "Epiphyte", "Herb (< 1 m, ; including +- woody subshrubs)", 
+              "Liana (to canopy)", "Medium-sized tree: 10-30 m", "Parasite/saprophyte", 
+              "Shrub: 1-5 m", "Tree: >30 m", "Treelet: 5-10 m", "Vine (understory)", "Weedy")
+)
+
+
+write_xlsx(
+  list(
+    "Wright_revision" = wright_woody_match %>%
+                          filter(!panwoody_match) %>%
+                          select(all_of(dict_columns$column)),
+    "Dictionary" = dict_columns,
+    "lifeform_garwood" = lifeform_metadata  
+  ),
+  FILECHECKWRIGHT
+)
+
+```
+
 
