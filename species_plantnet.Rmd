@@ -53,16 +53,16 @@ library(rgbif)
 
 ```{r readprepdata, echo=TRUE, results="hide"}
 # --- File paths ---
-FILE_GARWOOD          <- "splists_out/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-03-30.xlsx"
+FILE_GARWOOD          <- "splists_mid/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-03-30.xlsx"
 FILE_GARWOOD_SYN      <- "splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx"
-FILE_ZOTZ             <- "splists_out/species_list_WCVP/83_Zotz_Epiphytes_TableS1_WCVP13_2026-03-25.xlsx"
-FILE_LIANAS           <- "splists_out/species_list_WCVP/Lianas_Species_complete_list_WCVP13_2026-03-16.xlsx"
-FILE_PBIOTA           <- "splists_out/species_list_WCVP/PanamaBiotaBCI_WCVP13_2026-02-26.xlsx"
-FILE_PANWOODY         <- "splists_out/species_list_WCVP/CurrentPanamaWoody_2026-03-26.xlsx"
-FILE_PANWOODY_SYN     <- "splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx"
-FILE_ALTNAMES         <- "splists_out/alternates_and_synonyms/AltNames_2026-03-31.xlsx"
-FILE_ALTNAMES_GARWOOD <- "splists_out/alternates_and_synonyms/alternate_names_garwood_2026-03-31.xlsx"
-FILE_WRIGHT           <- "splists_out/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-03-26.xlsx"
+FILE_ZOTZ             <- "splists_mid/species_list_WCVP/83_Zotz_Epiphytes_TableS1_WCVP13_2026-03-25.xlsx"
+FILE_LIANAS           <- "splists_mid/species_list_WCVP/Lianas_Species_complete_list_WCVP13_2026-03-16.xlsx"
+FILE_PBIOTA           <- "splists_mid/species_list_WCVP/PanamaBiotaBCI_WCVP13_2026-02-26.xlsx"
+FILE_PANWOODY         <- "splists_mid/species_list_WCVP/CurrentPanamaWoody_2026-03-26.xlsx"
+FILE_PANWOODY_SYN     <- "splists_mid/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx"
+FILE_ALTNAMES         <- "splists_mid/alternates_and_synonyms/AltNames_2026-03-31.xlsx"
+FILE_ALTNAMES_GARWOOD <- "splists_mid/alternates_and_synonyms/alternate_names_garwood_2026-03-31.xlsx"
+FILE_WRIGHT           <- "splists_mid/species_list_WCVP/wright_nomenclature_R_20210224_WCVP13_2026-04-08.xlsx"
 
 # --- Load data ---
 
@@ -88,6 +88,12 @@ pbiota_list <- read_excel(FILE_PBIOTA, col_types = "text")
 # Current Panama woody species list + WCVP v13 names
 # This list has the names used in ForestGeo in the column "orig_name"
 panwoody_list <- read_excel(FILE_PANWOODY, col_types = "text")
+
+#changing one column to make it match easier
+panwoody_list <- panwoody_list %>% rename(
+  orig_author = orig_authority
+)
+
 panwoody_synonyms <- read_excel(FILE_PANWOODY_SYN, col_types = "text")
 
 # Alternate names of species in Garwood and Panama woody
@@ -195,19 +201,19 @@ ADDITIONAL OUTPUTS OF FILES TO CHECK:
 
 current_date <- Sys.Date()
 
-FILECOMBINEDLIST <- paste0("splists_out/Plantnet/BCNM_SPECIES_BOTANISTS_LIST_",current_date,".xlsx")
+FILECOMBINEDLIST <- paste0("splists_out/BCNM_SPECIES_BOTANISTS_LIST_",current_date,".xlsx")
 
-FILEBCIWOODY <- paste0("splists_out/needs_check/BCNM_SPECIES_POSSIBLY_WOODY_",current_date,".xlsx")
+FILEBCIWOODY <- paste0("tocheck/BCNM_SPECIES_POSSIBLY_WOODY_",current_date,".xlsx")
 
-FILECHECKPLOTS <- paste0("splists_out/needs_check/plotsbci_not_garwood_", current_date, ".xlsx")
+FILECHECKPLOTS <- paste0("tocheck/plotsbci_not_garwood_", current_date, ".xlsx")
 
-FILECHECKLIANAS <- paste0("splists_out/needs_check/lianasbci_not_garwood_", current_date, ".xlsx")
+FILECHECKLIANAS <- paste0("tocheck/lianasbci_not_garwood_", current_date, ".xlsx")
 
-FILECHECKPANAMABIOTA <- paste0("splists_out/needs_check/panamabiota_not_garwood_", current_date, ".xlsx")
+FILECHECKPANAMABIOTA <- paste0("tocheck/panamabiota_not_garwood_", current_date, ".xlsx")
 
-FILECHECKWRIGHT <- paste0("splists_out/needs_check/Wright_not_CurrentPanamaWoody_", current_date, ".xlsx")
+FILECHECKWRIGHT <- paste0("tocheck/Wright_not_CurrentPanamaWoody_", current_date, ".xlsx")
 
-FILECHECKZOTZ <- paste0("splists_out/needs_check/zotz_garwood_check_", current_date, ".xlsx")
+FILECHECKZOTZ <- paste0("tocheck/zotz_garwood_check_", current_date, ".xlsx")
 ```
 
 ## Assembling a combined BCI high-quality botanist-determined plant species list
@@ -216,8 +222,10 @@ FILECHECKZOTZ <- paste0("splists_out/needs_check/zotz_garwood_check_", current_d
 # Initializing the columns that all of the species added should have
 listscol <- c("orig_name",
               "orig_binomial",
+              "orig_author",
               "wcvp_accepted_binomial",
               "wcvp_matched_name",
+              "wcvp_matched_authors",
               "wcvp_matched_plant_name_id",
               "wcvp_matched_ipni_id",
               "wcvp_matched_status",
@@ -1451,6 +1459,8 @@ For each case, we check if we have duplicated matches, that is species mapping t
 ```{r renamingsome}
 #checkpoint...
 bcilist_orig <- bcilist
+
+
 ```
 
 
@@ -2143,8 +2153,10 @@ Next we do two things to the current names:
  
 cols_to_keep <- colnames(bcilist)
 
-# Adding codes and the WCVP columns mission from the Forectgeo current source
-cols_to_replace <- c("sp4","orig_habit", "wcvp_accepted_binomial", "wcvp_matched_name", 
+# Adding codes and the WCVP columns mission from the Forestgeo current source
+cols_to_replace <- c("sp4","orig_habit", 
+                     "orig_author", "wcvp_matched_authors",
+                     "wcvp_accepted_binomial", "wcvp_matched_name", 
                      "wcvp_matched_plant_name_id", "wcvp_matched_ipni_id", 
                      "wcvp_matched_status", "wcvp_accepted_name", 
                      "wcvp_accepted_family", "wcvp_accepted_authority", 
@@ -2431,24 +2443,41 @@ In the final excel file, there will be one sheet with the dictionary of the colu
 
 ```{r columns_description}
 
-bcilist_fgnames <- bcilist_fgnames %>% 
+plot_pattern <- "bci50ha|bci10ha|P14|P11|Zetek|bci25ha|AVA|Drayton|Pearson"
+
+bcilist_fgnames <- bcilist_fgnames %>%
   arrange(current_name) %>%
   mutate(
-    BCI = ifelse(
-      (!is.na(BCI) & BCI) |
-      (source_list %in% c("Zotz", "Lianas")) |
-      (is.na(garwood_Other_BCNM_plots) |!garwood_Other_BCNM_plots) , TRUE, FALSE)
-  ) 
+    BCI = case_when(
+      # If it is in Zotz or Lianas then it is in BCI
+      source_list %in% c("Zotz", "Lianas") ~ TRUE,
+      
+      # If it is in Garwood and the column Other_BCM_plots is false its in BCI
+      (!is.na(garwood_name) & !is.na(garwood_Other_BCNM_plots) & !garwood_Other_BCNM_plots) ~ TRUE,
+      
+      # If it is in any of the BCI plots
+      str_detect(census_plot, plot_pattern) ~ TRUE,
+      
+      # Default to FALSE if none of the above match
+      TRUE ~ FALSE
+    )
+  ) %>%
+  rename(
+    current_authority = orig_author
+  )
 
 column_descriptions <- list(
   current_name               = "Current name for the species",
   source_current_name        = "Source of the current name",
+  current_authority = "Authority of the current name from the source list",
     
+  
   # BCI plot presence
   sp6                        = "Current Sp6 code of the species in Forestgeo",
   sp4                        = "Current Sp4 code of the species in Forestgeo",
   
   # WCVP matched fields
+  wcvp_matched_authors = "Authority of the matched name in WCVP",
   wcvp_matched_name          = "Species name as matched in the World Checklist of Vascular Plants (WCVP)",
   wcvp_matched_plant_name_id = "WCVP internal plant name ID for the matched name",
   wcvp_matched_ipni_id       = "IPNI identifier for the matched name in WCVP",
@@ -2742,12 +2771,20 @@ wright_woody_match <- allwrighttaxa %>%
       wcvp_matched_name %in% bcilist_lookup_woody$match_key 
     ),
       
-    lifeform_wright_is_woody = str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA"),
+    lifeform_wright_is_woody = if_else(
+      is.na(lifeform_wright),
+      NA,
+      str_detect(lifeform_wright, "TREE|MIDSTORY|UNDERSTORY|SHRUB|LIANA")
+    ),
     
     congeners_woody = (word(orig_binomial,1) %in% word(woody_names_lookup$match_key,1)),
     
-    climber = str_detect(lifeform_wright, "CLIMBER"),
-
+    climber = case_when(
+      is.na(lifeform_wright) ~ NA,
+      str_detect(lifeform_wright, "CLIMBER") ~ TRUE,
+      str_detect(lifeform_wright, "FREE") ~ FALSE,
+      TRUE ~ NA
+    ),
     # check first by s6 code
     lifeform_garwood = bcilist_fgnames$garwood_lifeform[match(allwrighttaxa$sp6,bcilist_fgnames$sp6)],
     # if still NA check by sp4 code
@@ -2757,12 +2794,32 @@ wright_woody_match <- allwrighttaxa %>%
              lifeform_garwood
             ),
     
-    lifeform_garwood_is_woody =  lifeform_garwood %in% garwood_woody_lifeforms,
+    lifeform_garwood_is_woody = if_else(
+      is.na(lifeform_garwood),
+      NA,
+      lifeform_garwood %in% garwood_woody_lifeforms
+    ),
+        
+    lifeform_wcvp_is_woody = if_else(
+      is.na(wcvp_lifeform_description),
+      NA,
+      wcvp_lifeform_description %in% wcvp_lifeform_woody_list
+    ),
     
-    lifeform_wcvp_is_woody = wcvp_lifeform_description %in% wcvp_lifeform_woody_list,
-    
-    might_be_woody = lifeform_wright_is_woody | congeners_woody | lifeform_garwood_is_woody | lifeform_wcvp_is_woody
-           )
+    might_be_woody = case_when(
+          lifeform_wright_is_woody %in% TRUE |
+          congeners_woody %in% TRUE |
+          lifeform_garwood_is_woody %in% TRUE |
+          lifeform_wcvp_is_woody %in% TRUE ~ TRUE,
+          
+          is.na(lifeform_wright_is_woody) &
+          is.na(congeners_woody) &
+          is.na(lifeform_garwood_is_woody) &
+          is.na(lifeform_wcvp_is_woody) ~ NA,
+          
+          TRUE ~ FALSE
+        )
+   )
 
 
 # Table of Wright unmatched species
