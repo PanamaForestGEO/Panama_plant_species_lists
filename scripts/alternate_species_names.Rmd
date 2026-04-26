@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ##  Create a combined alternate name file
 
 ```{r cars}
-rm(list=ls())
+#rm(list=ls())
 
 library(readxl)
 library(writexl)
@@ -26,7 +26,7 @@ panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-26.xlsx")
 
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
-woody_synonyms <- read_excel("splists_out/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx")
+woody_synonyms <- read_excel("splists_mid/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -42,7 +42,7 @@ garwood_synonyms <- garwood_synonyms %>% mutate(
 # note that synonym_sp and synonym_binomial are identical; retaining for clarity of completeness
 
 
-garwood_list  <- read_excel("splists_out/Garwood_2009_Appendix1HM2_WCVP_2026-03-15.xlsx", col_types = "text")
+garwood_list  <- read_excel("splists_mid/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-03-30.xlsx", col_types = "text")
 
 garwood_list <- garwood_list %>%
   mutate(wcvp_accepted_binomial = 
@@ -51,11 +51,11 @@ garwood_list <- garwood_list %>%
   rename(wcvp_accepted_lifeform = wcvp_lifeform_description)
 
 
-FILEVIEWTAXSYN <- "splists_out/alternates_and_synonyms/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
+FILEVIEWTAXSYN <- "splists_mid/alternates_and_synonyms/ViewTaxonomy_dec4_25_SYNONYMS.xlsx"
 
-FILEALLSYN <- paste0("splists_out/alternates_and_synonyms/AltNames_",Sys.Date(), ".xlsx")
+FILEALLSYN <- paste0("splists_mid/alternates_and_synonyms/AltNames_",Sys.Date(), ".xlsx")
 
-FILEALLSYNGARWOOD = paste0("./splists_out/alternates_and_synonyms/alternate_names_garwood_",Sys.Date(),".xlsx")
+FILEALLSYNGARWOOD = paste0("./splists_mid/alternates_and_synonyms/alternate_names_garwood_",Sys.Date(),".xlsx")
 
 ```
 
@@ -440,6 +440,9 @@ altnames %>% filter(prefname_fg & altname_fg) %>%
 caption="Prefname and altname are both in forestgeo",
  options = list(scrollX = TRUE, pageLength = 10))
 
+write_xlsx(altnames %>% filter(prefname_fg & altname_fg) %>%
+  select(altname, prefname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes),
+  "tocheck/alternate_names_check.xlsx")
 
 ```
 

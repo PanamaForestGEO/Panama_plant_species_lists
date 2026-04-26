@@ -75,8 +75,8 @@ matches_mid_path2 <- paste0("splists_mid/", original_list_name, "_mid_match2.rds
 
 
 # OUTPUT PATHS 
-out_wcvp_list <- paste0("splists_out/", original_list_name, "_WCVP_", Sys.Date(), ".xlsx")
-out_wcvp_changes_list <- paste0("splists_out/", original_list_name, "_WCVP_CHANGES_", Sys.Date(), ".xlsx")
+out_wcvp_list <- paste0("splists_mid/species_list_WCVP/", original_list_name, "_WCVP13_", Sys.Date(), ".xlsx")
+out_wcvp_changes_list <- paste0("tocheck/", original_list_name, "_WCVP13_CHANGES_", Sys.Date(), ".xlsx")
 
 
 redoWCVP= FALSE
@@ -266,10 +266,13 @@ matchresult2_clean <- matchresult2 %>%
 
 ```{r spot_mismatch}
 
+#joinining the binomial wcvp in another column
+matchresult_clean <- matchresult_clean %>% 
+  left_join(matchresult2_clean %>% select(-orig_binomial) %>% rename_with(~paste0(., "_binomial"), -orig_name),
+            by = "orig_name") 
+
 mismatches <- matchresult_clean %>% 
   filter(orig_name != wcvp_name | is.na(wcvp_name) | is.na(wcvp_accepted_name)) %>%
-  left_join(matchresult2_clean %>% select(-orig_binomial) %>% rename_with(~paste0(., "_binomial"), -orig_name),
-            by = "orig_name") %>%
   mutate(
     # Extract wcvp genus, species, infraspecies rank and infraspecies
     wcvp_genus = word(wcvp_name, 1),
@@ -470,11 +473,25 @@ if (any(inc, na.rm = TRUE)) {
                                    by = "orig_name")
 }
 
+
+# joins the corrected mismatches back to the original wcvp matched list
+inc <- with(matchresult_clean, orig_name %in% mismatches$orig_name)
+if (any(inc, na.rm = TRUE)) {
+  corrections <- mismatches %>%
+    select(all_of(c("orig_name", wcvp_columns)))
+  
+  matchresult_clean <- rows_update(matchresult_clean, corrections, 
+                                   by = "orig_name")
+}
+
+
+wcvp_columns_binomial <- paste0(wcvp_columns, "_binomial")
+
 # --- 5. Final Join and Rename ---
 # This merges the WCVP column with the original columns of the list
 processlist <- origlist %>%
   left_join(matchresult_clean %>% 
-              select(all_of(c("orig_name", wcvp_columns))),
+              select(all_of(c("orig_name", wcvp_columns, wcvp_columns_binomial))),
             by = "orig_name") %>%
   rename(
     # rename matched columns
@@ -486,10 +503,26 @@ processlist <- origlist %>%
     wcvp_matched_ipni_id = wcvp_ipni_id,
     
     wcvp_accepted_plant_name_id =  wcvp_accepted_id,
+    
+    
+    
+    # --- Binomial Specific Columns ---
+    # Renaming the binomial versions to keep the "id_binomial" style
+    wcvp_matched_name_binomial  = wcvp_name_binomial,
+    
+    wcvp_matched_rank_binomial = wcvp_rank_binomial,
+    wcvp_matched_status_binomial=wcvp_status_binomial,
+    wcvp_matched_plant_name_id_binomial = wcvp_id_binomial,
+    wcvp_matched_ipni_id_binomial = wcvp_ipni_id_binomial,
+    wcvp_accepted_plant_name_id_binomial =  wcvp_accepted_id_binomial,
+    
+    
+    # rename the binomials the same way
   ) %>%
   mutate(
   origmatches = orig_name == wcvp_matched_name
   )
+
 
 # Review Results
 knitr::kable(processlist %>% count(wcvp_matched_status))
