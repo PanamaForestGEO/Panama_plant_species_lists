@@ -2654,7 +2654,6 @@ datatable(bcilist_fgnames %>%
 # Build name input from WCVP matched name
 names_for_gbif <- bcilist_fgnames %>%
   filter(!is.na(wcvp_accepted_name)) %>%
-  distinct(wcvp_accepted_name, .keep_all = TRUE) %>%
   mutate(full_name_auth = paste(wcvp_accepted_name, coalesce(wcvp_accepted_authority, ""))) %>% 
   rename(scientificName = full_name_auth)
 
@@ -2694,6 +2693,14 @@ datatable(gbif_backbone_accepted %>%
 ```
 Surprisingly, the wcvp_accepted name can also be a Synonym according to GBIF, this can happen because GBIF gets the accepted names from different sources. We will add the GBIF accepted name to the list as an additional column.
 
+See the ids that are not EXCAT or missing
+```{r}
+datatable(
+  gbif_backbone_accepted %>% filter(is.na(usageKey) | matchType != "EXACT") %>% 
+    select(verbatim_current_name, verbatim_wcvp_accepted_name)
+)
+```
+
 
 We add the GBIF id and the GBIF scientificName as columns to our dataset
 
@@ -2721,7 +2728,7 @@ datatable(bcilist_fgnames %>% filter(is.na(wcvp_matched_name_gbif_matchtype) |
 ```
 
 
-```{r noexact}
+```{r noexact2}
 datatable(bcilist_fgnames %>% filter(is.na(wcvp_matched_name_gbif_matchtype) |
                              wcvp_accepted_name_gbif_matchtype != "EXACT") %>% select(current_name, wcvp_matched_name_gbif_matchtype, wcvp_matched_name_gbif_scientificName, wcvp_accepted_name_gbif_matchtype, wcvp_accepted_name_gbif_scientificName),
           caption="Names that dont have an exact match to GBIF id")
