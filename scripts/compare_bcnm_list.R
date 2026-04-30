@@ -12,9 +12,14 @@ library(DT)
 library(rgbif)
 
 
-herbarium_list <- read_excel("../Documentos/PROYECTOS/STRI/BCI-PlantList-20111025.xls", sheet = 2)
 
-botanists_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/BCNM_SPECIES_BOTANISTS_LIST_2026-04-20.xlsx", sheet=1)
+botanists_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/BCNM_SPECIES_BOTANISTS_LIST_2026-04-27.xlsx", sheet=1)
+
+
+
+################ QUICK COMPARISON WITH HERBARIUM LIST ###################################################
+
+herbarium_list <- read_excel("../Documentos/PROYECTOS/STRI/BCI-PlantList-20111025.xls", sheet = 2)
 
 
 herbarium_list <- herbarium_list %>% mutate(
@@ -83,7 +88,7 @@ nrow(herbarium_list)
 
 
 
-##################################### CENSUS CHECK #####################################
+##################################### QUICK COMPARISON WITH CENSUS CHECK #####################################
 # Plot abundance in BCNM
 bci_plots_abund_orig <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/abundance_plots_HM.xlsx")
 
@@ -354,114 +359,21 @@ species_to_fix <- botanists_list_binomials %>% filter(
 )
 
 datatable(species_to_fix %>% select(current_name, current_binomial, wcvp_matched_name))
-############ match species with the wcvp #########################################################################
 
-suppressPackageStartupMessages({
-  library(rWCVP)
-  library(rWCVPdata)
-})
-wcvp_names <- rWCVPdata::wcvp_names 
+################################## COMPARE PIPER SPECIES IN REVISION #######################################
 
-### Match WCVP names
-# Helper function to merge and format accepted names from WCVP backbone
-matchwcvp_accepted_names <- function(matcheswcvp, wcvp_backbone){
-  matcheswcvp %>% 
-    left_join(
-      wcvp_backbone %>% 
-        select(
-          plant_name_id,
-          # rename immediately
-          wcvp_accepted_ipni_id  = ipni_id,
-          wcvp_accepted_powo_id  = powo_id,
-          wcvp_accepted_family   = family,
-          wcvp_accepted_rank = taxon_rank,
-          wcvp_accepted_status = taxon_status,
-          wcvp_accepted_lifeform = lifeform_description,
-          
-          # rename after the mutate for readability 
-          genus, species, infraspecific_rank, infraspecies,
-          parenthetical_author, primary_author
-        ),
-      by = c("wcvp_accepted_id" = "plant_name_id")
-    ) %>% 
-    mutate( 
-      wcvp_accepted_binomial = ifelse(is.na(species) | species == "",
-                                      genus, paste(genus, species)),
-      wcvp_accepted_authority =
-        paste0(
-          ifelse(!is.na(parenthetical_author), paste0("(", parenthetical_author, ") "),""),
-          coalesce(primary_author, "")
-        )) %>%
-    select(-parenthetical_author,-primary_author) %>%
-    mutate(wcvp_accepted_name = ifelse(!is.na(infraspecies) & infraspecies != "",
-                                       paste(wcvp_accepted_binomial,infraspecific_rank,infraspecies), 
-                                       wcvp_accepted_binomial)) %>% 
-    rename(
-      wcvp_accepted_genus = genus,
-      wcvp_accepted_species = species,
-      wcvp_accepted_infrarank = infraspecific_rank,
-      wcvp_accepted_infraspecies = infraspecies
-    )
-}
-
-# Run the matching process
-matchresult <- wcvp_match_names(panwoodtaxafull, wcvp_names, name_col = "orig_name")
-
-# do the same for the orig_binomial in cases where this is not equal to orig_name
-if(file.exists(FNPANAMASPLISTWCVP2) & !redoWCVP){
-  matchresult2 <- readRDS(FNPANAMASPLISTWCVP2)
-} else {
-  matchresult2 <- wcvp_match_names(subset(panwoodtaxafull,orig_name!=orig_binomial), wcvp_names, 
-                                   name_col = "orig_binomial")
-  
-  # Save as RDS for speed
-  saveRDS(matchresult2, FNPANAMASPLISTWCVP2)
-}
+piper_revision <- read_xlsx("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Piper_revision/piper_revision_list.xlsx")
 
 
-# --- 2. Sanity Checks & Duplicate Resolution ---
+piper_now <- botanists_list %>% filter(word(current_name,1) == "Piper")
 
-# Identify names that mapped to multiple 'Accepted' records
-manyaccepted <- matchresult %>%
-  group_by(orig_name) %>%
-  filter(sum(wcvp_status == "Accepted", na.rm = TRUE) > 1) %>%
-  ungroup()
-
-# If duplicates exist, force use of the original ID to avoid grouping explosion
-if (nrow(manyaccepted) > 0) {
-  matchresult <- matchresult %>%
-    mutate(wcvp_accepted_id = ifelse(orig_name %in% manyaccepted$orig_name, wcvp_id, wcvp_accepted_id))
-}
-
-# --- 3. Clean Match Results (1 row per species) ---
-matchresult_clean <- matchresult %>%
-  mutate(
-    status_priority = case_when(
-      wcvp_status == "Accepted"     ~ 1,
-      wcvp_status == "Synonym"      ~ 2,
-      wcvp_status == "Illegitimate" ~ 3,
-      wcvp_status == "Unplaced"     ~ 4,
-      TRUE                          ~ 5
-    )
-  ) %>%
-  group_by(orig_name) %>%
-  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  matchwcvp_accepted_names(wcvp_names)
-
-matchresult2_clean <- matchresult2 %>%
-  mutate(
-    status_priority = case_when(
-      wcvp_status == "Accepted"     ~ 1,
-      wcvp_status == "Synonym"      ~ 2,
-      wcvp_status == "Illegitimate" ~ 3,
-      wcvp_status == "Unplaced"     ~ 4,
-      TRUE                          ~ 5
-    )
-  ) %>%
-  group_by(orig_name) %>%
-  slice_min(status_priority, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  matchwcvp_accepted_names(wcvp_names)
+piper_now
 
 
+# we have 22 species of piper, all coming form Garwood except for 
+piper_now %>% filter(is.na(garwood_name))
+
+# Now see species in the current list that are not in the revision
+piper_now %>% filter(!current_name %in% piper_revision$Current_name)
+
+piper_revision %>% filter(!Current_name %in% piper_now$current_name)

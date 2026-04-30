@@ -857,13 +857,23 @@ datatable(species_only_bci %>% select(sp6, forestgeo_current_name, census_plot),
 ```
 
 
-Some of the species in the census were not identified correctly, and after revision with the botanists they are removed: 
+Some of the species in the census were not identified correctly:
+
+After revision with the STRI botanists (2026-04-21):
+
+- Guarea glabra, Miconia poeppigii, Heisteria costaricensis: these are older names from misidentification, looks like the codes were not updated while doing the census. They are actually: 
+Guarea guidonia, Miconia minutiflora and Heisteria macrophylla. 
+
+After verification on the field (2026-04-27): 
+
+- Jupunba idiopoda, Myrciaria floribunda, Unonopsis panamensis were also misidentifications. The correct names are: Jupunba barbouriana, Calycolpus warszewiczianus, Unonopsis pittieri, which are already in the list.  
+
+
 ```{r remove_census_species}
 
-species_remove_census <- c("Guarea glabra", "Miconia poeppigii", "Heisteria costaricensis")
+species_remove_census <- c("Guarea glabra", "Miconia poeppigii", "Heisteria costaricensis","Jupunba idiopoda","Myrciaria floribunda","Unonopsis panamensis")
 
 # These species are currently under revision in the field but wont be left out for now. 
-
 species_remove_census2 <- 
   c(
     "Blighia sapida",
