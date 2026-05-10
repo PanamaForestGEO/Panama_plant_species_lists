@@ -1,0 +1,81 @@
+---
+title: "CheckForestgeoSpListChanges"
+author: "Helene Muller-Landau"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Overview
+
+This document is intended to run checks of changes in the Panama woody species lists assembled by ForestGEO, including species codes and species names.  
+
+## How to run
+
+Put this document in the main folder to run it.
+
+When running this following changes, save the html output with the name and date in the reports folder.
+
+```{r libraries}
+library(readxl)
+library(writexl)
+library(dplyr)
+library(tidyr)
+library(knitr)
+```
+
+Read in the old and new species lists, and align the column names.
+```{r readfiles}
+FNOLD <- "splists_raw/PanamaWoodySpLists/2025-08-28FromSuzanne/FloraPanama_28Aug25.xlsx"
+FNNEW <- "splists_raw/PanamaWoodySpLists/2025-12-04FromSuzanne/FloradePanama_dec4_2025_HM.xlsx"
+
+oldlist <- read_xlsx(FNOLD,guess_max=5000) %>%
+  rename_with(tolower)%>%
+  rename(taxorder=order,
+         mnemonic=spcode,
+         speciesname=species) %>%
+  mutate(binomial=paste(genus,speciesname)) %>%
+  mutate(fullname=ifelse(is.na(subspecies),binomial,paste(binomial,subspecies)))
+newlist <- read_xlsx(FNNEW,guess_max=5000)  %>%
+  rename_with(tolower) %>%
+  mutate(binomial=paste(genus,speciesname))  %>%
+  mutate(fullname=ifelse(is.na(subspecies),binomial,paste(binomial,subspecies)))
+```
+
+Check for differences in species names included.  
+```{r aligncolnames}
+droppedcases <- oldlist %>%
+  filter(!mnemonic %in% newlist$mnemonic & !fullname %in% newlist$fullname) %>%
+  select(mnemonic,fullname,authority,synonyms)
+kable(droppedcases,caption="Dropped cases:  Species name and code are on old list and are not on new list.")
+
+droppedcases <- newlist %>%
+  filter(!mnemonic %in% oldlist$mnemonic & !fullname %in% oldlist$fullname) %>%
+  select(mnemonic,fullname,authority,synonyms)
+kable(droppedcases,caption="Added cases:  Species name and code are on new list and are not on old.")
+
+changedcodes <- oldlist %>%
+  filter(!mnemonic %in% newlist$mnemonic & fullname %in% newlist$fullname) %>%
+  rename(oldcode = mnemonic) %>%
+  mutate(newcode = newlist$mnemonic[match(fullname,newlist$fullname)]) %>%
+  select(oldcode,newcode,fullname,authority,synonyms)
+
+kable(changedcodes,caption = "Species that changed codes from the old list to the new list")
+
+changednames <- oldlist %>%
+  filter(mnemonic %in% newlist$mnemonic & !fullname %in% newlist$fullname) %>%
+  rename(oldname = fullname,
+         oldauthority=authority) %>%
+  mutate(newname = newlist$fullname[match(mnemonic,newlist$mnemonic)],
+         newauthority = newlist$authority[match(mnemonic,newlist$mnemonic)]) %>%
+  select(mnemonic,oldname,oldauthority,newname,newauthority)
+
+kable(changednames,caption = "Codes with name changes from the old list to the new list")
+
+```
+
+
