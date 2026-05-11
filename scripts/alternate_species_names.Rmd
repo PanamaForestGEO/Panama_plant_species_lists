@@ -9,7 +9,19 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-##  Create a combined alternate name file
+#  Combined list of alternate names provided by the ForestGEO team in the Panama woody plant species list and ViewTaxonomy files, as well as in Garwood 2009
+
+Species in the lists used to create a BCNM list might have had names in the past that changed due to a misidentification, the species is new or the accepted name for the species changed. 
+
+Some of the list have a "synonym" or "former name" column that can help find those cases and create a comprehensive list of "prefered names" and "alternate names". This helps us know what names across lists even though they are different, they refer to the same morphospecies, this is especially useful when the species do not have codes. 
+
+Here we combine three lists that have a "former" or "alternate" name column:
+
+- Current Panama Woody list: this list is the current woody species list with sp6 codes and names for the woody species across Panama. 
+
+- View taxa: this list also contains some woody species across Panama. 
+
+- Garwood list: this list is one of the latest published list of BCI revised by botanists. 
 
 ```{r cars}
 #rm(list=ls())
@@ -22,11 +34,11 @@ library(stringi)
 library(stringr)
 library(DT)
 
-panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-03-26.xlsx")
+panwoody_list <- read_excel("splists_out/CurrentPanamaWoody_2026-04-11.xlsx")
 
 viewtaxonomy <-  read_excel("splists_raw/Forestgeo/2026-02-25FromSuzanne/ViewTaxonomy_dec4_25_HM2.xlsx")
 
-woody_synonyms <- read_excel("splists_mid/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-03-26.xlsx")
+woody_synonyms <- read_excel("splists_mid/alternates_and_synonyms/CurrentPanamaWoody_SYNONYMS_2026-04-11.xlsx")
 garwood_synonyms <- read_excel("splists_raw/Garwood/Garwood_2009_Appendix1_Synonyms.xlsx") 
 
 
@@ -42,7 +54,7 @@ garwood_synonyms <- garwood_synonyms %>% mutate(
 # note that synonym_sp and synonym_binomial are identical; retaining for clarity of completeness
 
 
-garwood_list  <- read_excel("splists_mid/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-03-30.xlsx", col_types = "text")
+garwood_list  <- read_excel("splists_mid/species_list_WCVP/Garwood_2009_Appendix1HM2_WCVP13_2026-04-24.xlsx", col_types = "text")
 
 garwood_list <- garwood_list %>%
   mutate(wcvp_accepted_binomial = 
@@ -60,6 +72,8 @@ FILEALLSYNGARWOOD = paste0("./splists_mid/alternates_and_synonyms/alternate_name
 ```
 
 ## Create alternate name list for view taxonomy
+
+First we extract all the alternate names from the ViewTaxonomy list and write a file with them
 
 ```{r synonyms}
 
@@ -131,6 +145,8 @@ Writing the synonyms from the ViewTaxonomy file to `r FILEVIEWTAXSYN`
 
 ## Combine these into a single table of synonyms and alternate names
 
+Now we comnine the three lists:
+
 ```{r combinedsyn}
 
 v_tax <- viewtaxonomy_synonyms %>%
@@ -158,7 +174,12 @@ datatable(altnames,
 
 ```
 
-Find and examine problematic entries.  
+### Checking problems with the combined list: 
+
+Find and examine problematic entries:
+
+
+#### 1. Redundant entries the former name is the same as the prefered name: 
 
 ```{r checkaltnames}
 
@@ -166,7 +187,7 @@ Find and examine problematic entries.
 identnames <- altnames %>% filter(altname==prefname)
 
 # show these cases
-datatable(identnames,caption="Altname and prefname are the same",
+datatable(identnames,caption="Alternate name  and Prefered name are the same - We will remove this because it's redundant",
           options = list(scrollX = TRUE, pageLength = 10))
 
 # remove them
@@ -174,7 +195,10 @@ altnames <- altnames %>%
   filter(altname!=prefname)
 
 nrow(altnames)
+```
 
+#### 2. Consolidate uplicates 
+```{r checkaltnames2}
 # find cases in which two rows have the same altname and prefname
 dup_altpref <- altnames %>%
   arrange(prefname,altname,GarwoodNotes) %>%
@@ -183,7 +207,7 @@ dup_altpref <- altnames %>%
   ungroup()
 
 # check these cases
-datatable(dup_altpref,caption="Cases with the same combination of altname and prefname binomials (likely different full names including subspecies)",
+datatable(dup_altpref,caption="Cases with the same combination of altname and prefname binomials - This is also redundant, we will consolidate the duplicates as long as they have the same sp6 code",
           options = list(scrollX = TRUE, pageLength = 10))
 
 # find cases in which two rows have conflicting sp6 codes
@@ -217,6 +241,13 @@ altnames <- altnames %>%
 
 nrow(altnames)
 
+
+```
+
+
+#### 3. Problematic cases: the same combination of names appears both directions:
+```{r problematic}
+
 # detect cases where the same combination of names appears both directions:
 recipnames <- altnames %>%
   rowwise() %>%
@@ -233,7 +264,6 @@ recipnames <- altnames %>%
 
 # check these cases
 datatable(recipnames,caption="Cases in which the same pair of names appears in opposite positions.",options = list(scrollX = TRUE, pageLength = 10))
-
 
 ```
 
@@ -325,11 +355,7 @@ Writing all remaining sets of alternate names to the file `r FILEALLSYN`
 
 These need revision. 
 
-We can have a preferred name pointing to many different alternate names. That is okay, a current name could have multiple synonyms/alternate names in the past. 
-
-However to have an alternate name point to many preferred names is a problem. If we find a species with that name in an old list, we wouldn't know  to what name it should have currently. 
-
-I think that this is a problem that needs to be resolved depending on where is the alternate names list being used. 
+We can have a preferred name pointing to many different alternate names. That is okay, a current name could have multiple synonyms/alternate names in the past:
 ```{r altnamesduplicates}
 
 # Species pointing to the same prefname. 
@@ -342,8 +368,12 @@ datatable(altnames %>% # Count how many times each altname appears in the whole 
   caption= "Species prefered name that have multiple alternate names",
   options = list(scrollX = TRUE, pageLength = 10)
   )
+```
 
+However to have an alternate name point to many preferred names is a problem. If we find a species with that name in an old list, we wouldn't know  to what name it should have currently. 
 
+I think that this is a problem that needs to be resolved depending on where is the alternate names list being used
+```{r problematiccases}
 # Problematic: if the same alternate name points to two different prefered name
 # Adding this also as a column
 altnames <- altnames %>%
@@ -351,16 +381,16 @@ altnames <- altnames %>%
     mutate(prefnames_pairs = n_distinct(prefname)) %>%
     ungroup()
 
-datatable(
-    altnames %>%
+problematuc_cases <-  altnames %>%
         filter(prefnames_pairs > 1) %>%
-        select(altname, prefname) %>%
-        arrange(altname),
-    caption = "Conflict Report: The same altnames mapping to different prefnames",
-          options = list(scrollX = TRUE, pageLength = 10)
-)
+        select(altname, prefname, in_panwoodycurr, in_viewtaxcurr, in_garwood2009, GarwoodNotes) %>%
+        arrange(altname)
+
 
 ```
+
+We have `r nrow(problematuc_cases)` such cases.
+
 
 Next we breakdown where this is coming from to try to figure out what is happening:
 ```{r breakingdown}
@@ -788,4 +818,169 @@ alternate_names_garwood <- alternate_names_garwood %>%
 write_xlsx(alternate_names_garwood, FILEALLSYNGARWOOD)
 
 ```
+
+# Checking for possible missing alternate names in the current Panama Woody list: 
+
+Here we check for cases where there should be alternate names listed but there aren’t. This happens when the code clearly does not match the species name and there is no alternate name.
+
+Cases where the 6-letter code does not match the current species name or an alternate name:
+
+
+```{r check_possible_missing}
+
+diffsp6_name <- panwoody_list %>% 
+  filter(
+      # Exclude species that follow the pattern -> Genus sp.number
+      !(
+      grepl("^sp\\.[0-9]+$", tolower(orig_species)) &
+      grepl("^[A-Za-z]+[0-9]$", sp6) &
+      
+      substr(tolower(sp6), 1, nchar(sp6)-1) ==
+        substr(tolower(word(orig_name,1)), 1, nchar(sp6)-1) &
+      
+      substr(sp6, nchar(sp6), nchar(sp6)) ==
+        sub("sp\\.", "", tolower(orig_species))
+      ) 
+        
+      ) %>%
+  filter(
+    
+    # ---- genus rules for the code: 
+    
+    #the 6-letter code starts with 4 letters, those 4 letters should match the first 4 letters of the genus.
+    (grepl("^[A-Za-z]{4}", sp6) & 
+       substr(sp6, 1, 4) != substr(tolower(word(orig_name,1)), 1, 4)) |
+    
+    #If it is 3 letters and a number, then the first 3 letters should match the genus
+    (grepl("^[A-Za-z]{3}[0-9]", sp6) & 
+       substr(sp6, 1, 3) != substr(tolower(word(orig_name,1)), 1, 3)) |
+ 
+  # ------ species rules
+    # final 2 letters of the code are both letters, then those 2 letters should match the first 2 letters of the species.
+    (
+      grepl("[A-Za-z]{2}$", sp6) &
+      substr(sp6, nchar(sp6)-1, nchar(sp6)) != substr(tolower(orig_species), 1, 2)
+    ) |
+      
+    #If 1 letter and a number, then the first letter should match the 1st letter of the species. 
+    (
+      grepl("[A-Za-z][0-9]$", sp6) &
+      substr(sp6, nchar(sp6)-1, nchar(sp6)-1) != substr(tolower(orig_species), 1, 1)
+    )
+  
+ 
+)
+
+
+# see the ones that have an alternate name
+diffsp6_name <- diffsp6_name %>% left_join(
+  altnames %>%
+    filter(in_panwoodycurr | in_viewtaxcurr) %>% select(prefname, altname, in_panwoodycurr, in_viewtaxcurr, sp6), by="sp6"
+) 
+
+datatable(diffsp6_name %>% select(sp6, sp6prior, orig_name, altname, in_panwoodycurr, in_viewtaxcurr),
+          caption="All mismatched codes with their alternate names")
+
+sp6_13_match <- diffsp6_name %>%
+  mutate(
+    alt_genus = word(altname, 1),
+    alt_species = word(altname,2)
+  ) %>%
+  filter(
+      # Species where the 4 letters of the genus match and then they have the first and third letter of the species        
+      (
+       (grepl("^[A-Za-z]{4}", sp6) & 
+        substr(sp6, 1, 4) == substr(tolower(word(orig_name,1)), 1, 4))   &
+        (grepl("[A-Za-z]{2}$", sp6) &
+        substr(sp6, nchar(sp6)-1, nchar(sp6)-1) == substr(tolower(orig_species), 1, 1) &
+        substr(sp6, nchar(sp6), nchar(sp6)) == substr(tolower(orig_species), 3, 3)
+      )) |
+     (
+       !is.na(altname) &
+       (grepl("^[A-Za-z]{4}", sp6) & 
+        substr(sp6, 1, 4) == substr(tolower(word(alt_genus,1)), 1, 4))   &
+        (grepl("[A-Za-z]{2}$", sp6) &
+        substr(sp6, nchar(sp6)-1, nchar(sp6)-1) == substr(tolower(alt_species), 1, 1) &
+        substr(sp6, nchar(sp6), nchar(sp6)) == substr(tolower(alt_species), 3, 3)
+      ))   
+  )
+
+#diffsp6_name %>% filter(!is.na(altname)) %>% select(sp6, sp6prior, orig_name, altname, in_panwoodycurr, in_viewtaxcurr)
+
+# see the ones that match but when the species is the first and third letter of the code
+datatable(
+  sp6_13_match %>% select(sp6, sp6prior, orig_name, altname, in_panwoodycurr, in_viewtaxcurr),
+  caption="Additional code rule: first and third letter of the species name"
+)
+
+# see the ones where even the alternate name does not match the code. 
+
+diffsp6_name_altmatch <- diffsp6_name %>%
+  filter(!is.na(altname) & !sp6 %in% sp6_13_match$sp6) %>%
+  mutate(
+    alt_genus = word(altname, 1),
+    alt_species = word(altname,2)
+  ) %>%
+  filter(
+    # ---- genus rules for the code: 
+    
+    #the 6-letter code starts with 4 letters, those 4 letters should match the first 4 letters of the genus.
+    (grepl("^[A-Za-z]{4}", sp6) & 
+       substr(sp6, 1, 4) == substr(tolower(alt_genus), 1, 4)) |
+    
+    #If it is 3 letters and a number, then the first 3 letters should match the genus
+    (grepl("^[A-Za-z]{3}[0-9]", sp6) & 
+       substr(sp6, 1, 3) == substr(tolower(alt_genus), 1, 3)) |
+ 
+  # ------ species rules
+    # final 2 letters of the code are both letters, then those 2 letters should match the first 2 letters of the species.
+    (
+      grepl("[A-Za-z]{2}$", sp6) &
+      substr(sp6, nchar(sp6)-1, nchar(sp6)) == substr(tolower(alt_species), 1, 2)
+    ) |
+      
+    #If 1 letter and a number, then the first letter should match the 1st letter of the species. 
+    (
+      grepl("[A-Za-z][0-9]$", sp6) &
+      substr(sp6, nchar(sp6)-1, nchar(sp6)-1) == substr(tolower(alt_species), 1, 1)
+    )
+  ) 
+
+diffsp6_name_altnomatch <- diffsp6_name %>% filter(!sp6 %in% diffsp6_name_altmatch$sp6 & !is.na(altname) & !sp6 %in% sp6_13_match$sp6)
+
+datatable(
+  diffsp6_name_altnomatch  %>% select(sp6, orig_name, altname, in_panwoodycurr, in_viewtaxcurr),
+  caption="Code does not match current name or alternate name")
+
+
+diffsp6_name_no_match <-  diffsp6_name %>% filter(is.na(altname) & !sp6 %in% sp6_13_match$sp6)
+
+# see the ones that dont even have a match to alternate names: 
+datatable(
+diffsp6_name_no_match %>% select(sp6, orig_name),
+caption="Code does not match current name and does not have an alternate name"
+)
+
+
+write_xlsx(
+  list(
+    "Name_and_Altname_nomatch" = diffsp6_name_altnomatch %>% 
+      select(sp6, orig_name, altname, in_panwoodycurr, in_viewtaxcurr),
+
+    "Name_no_match" = diffsp6_name_no_match %>% 
+      select(sp6, orig_name),
+    
+    "Additional_code_rule"= sp6_13_match %>% 
+      select(sp6, orig_name, altname, in_panwoodycurr, in_viewtaxcurr)
+  ),
+  
+  path = "tocheck/diffsp6_name_checks2.xlsx"
+)
+
+```
+
+
+
+
+
 
