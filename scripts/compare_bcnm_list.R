@@ -13,7 +13,10 @@ library(rgbif)
 
 
 
-botanists_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/BCNM_SPECIES_BOTANISTS_LIST_2026-04-27.xlsx", sheet=1)
+botanists_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/BCNM_SPECIES_BOTANISTS_LIST_2026-04-30.xlsx", sheet=1)
+panwoody_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/CurrentPanamaWoody_2026-04-11.xlsx")
+
+currpanama_woody <- read_xlsx("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/CurrentPanamaWoody_2026-04-11.xlsx")
 
 
 
@@ -188,7 +191,6 @@ census_list <- census_list %>%
   ) %>%
   ungroup()
 
-panwoody_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/CurrentPanamaWoody_2026-04-11.xlsx")
 
 
 census_list <- census_list %>% left_join(
@@ -363,7 +365,7 @@ datatable(species_to_fix %>% select(current_name, current_binomial, wcvp_matched
 ################################## COMPARE PIPER SPECIES IN REVISION #######################################
 
 piper_revision <- read_xlsx("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Piper_revision/piper_revision_list.xlsx")
-
+currpanama_woody <- read_xlsx("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_out/CurrentPanamaWoody_2026-04-11.xlsx")
 
 piper_now <- botanists_list %>% filter(word(current_name,1) == "Piper")
 
@@ -377,3 +379,125 @@ piper_now %>% filter(is.na(garwood_name))
 piper_now %>% filter(!current_name %in% piper_revision$Current_name)
 
 piper_revision %>% filter(!Current_name %in% piper_now$current_name)
+
+piper_revision <- piper_revision %>% left_join(currpanama_woody %>% select(sp6, sp4, orig_name, orig_authority), by=c("Current_name" = "orig_name"))
+
+piper_revision <- piper_revision %>% mutate(
+  is_in_garwood = Current_name %in% piper_now$garwood_name,
+  is_in_current_list = Current_name %in% piper_now$current_name
+)
+
+piper_now <- piper_now %>% mutate(
+  is_in_revision = current_name %in% piper_revision$Current_name
+)
+
+write_xlsx(
+  list(
+  "REVISION" = piper_revision,
+  "CURRENT_LIST" = piper_now %>% select(current_binomial, sp6, sp4, source_current_name, is_in_revision, current_authority, census_plot, wcvp_matched_name, wcvp_accepted_name, garwood_name, garwood_synonyms)),
+  path = "../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Piper_revision/piper_revision_list2.xlsx"
+  )
+
+
+
+######################## REMOVING SPECIES FROM THE ABUNDANCE PLOTS ACCORDING TO MOISES ####################################
+
+abun_plot <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/abundance_plots_HM.xlsx")
+abun_plot2 <- read.delim("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/doi_10_5061_dryad_1g1jwsvc3__v20260226/mainfile.txt")
+census_gigante <- read.csv(
+  "../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/gigante_census_2026-04-05.csv"
+)
+
+# "unonpa" = "unonpi"
+
+# UNONOPSIS PANAMENSIS
+codigosp6 <-  c("unonpa")
+abun_plot %>% filter(sp %in% codigosp6) %>% select(sp, binomial, bci, `bci 10 ha plot`, P11, P14,P10, P12, P13, P18, gigante1, gigante2) 
+abun_plot2 %>% filter(sp6 %in% codigosp6)
+# since it is dead i will let it be
+census_gigante %>% filter(sp6 %in% codigosp6)
+
+
+# Myrciaria floribunda
+codigosp6 <-  c("myr2fl", "cal1wa")
+abun_plot %>% filter(sp %in% codigosp6) %>% select(sp, binomial, bci, `bci 10 ha plot`, P11, P14,P10, P12, P13, P18, gigante1, gigante2) 
+# transfer the abundance in the selected plots to cal1wa since it was a misidentification 
+abun_plot <- abun_plot %>% mutate(
+  gigante1 = ifelse(sp == "cal1wa", gigante1 + 1, gigante1),
+  gigante1 = ifelse(sp == "myr2fl", 0, gigante1)
+)
+
+abun_plot2 %>% filter(sp6 %in% codigosp6)
+# change the code to cal1wa
+abun_plot2 <- abun_plot2 %>% mutate(
+  sp6 = ifelse(sp6 == "myr2fl", "cal1wa", sp6)
+) 
+
+census_gigante %>% filter(sp6 %in% codigosp6)
+# change the code to cal1wa
+census_gigante <- census_gigante %>% mutate(
+  sp6 = ifelse(sp6 == "myr2fl", "cal1wa", sp6)
+) 
+
+
+
+
+# Jupunba idiopoda
+codigosp6 <-  c("abarid", "pit1ba")
+abun_plot %>% filter(sp %in% codigosp6) %>% select(sp, binomial, bci, `bci 10 ha plot`, P11, P14,P10, P12, P13, P18, gigante1, gigante2) 
+abun_plot2 %>% filter(sp6 %in% codigosp6)
+# change the code to cal1wa
+abun_plot2 <- abun_plot2 %>% mutate(
+  sp6 = ifelse(sp6 == "abarid", "pit1ba", sp6)
+) 
+
+census_gigante %>% filter(sp6 %in% codigosp6)
+census_gigante <- census_gigante %>% mutate(
+  sp6 = ifelse(sp6 == "abarid", "pit1ba", sp6)
+) 
+
+
+# save the lists again 
+
+write_xlsx(abun_plot, "../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/abundance_plots_HM_MOD.xlsx")
+write_xlsx(abun_plot2, "../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/doi_10_5061_dryad_1g1jwsvc3__v20260226/mainfile_MOD.xlsx")
+write_xlsx(census_gigante,
+  "../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Plots/gigante_census_2026-04-05_MOD.xlsx"
+)
+
+
+
+################ check the sp4 codes steve paton sent ###########################
+
+steve <- read.csv("../Documentos/PROYECTOS/STRI/check_sp4_steve.csv")
+
+currpanama_woody
+wright_list <- read_excel("../Documentos/PROYECTOS/STRI/Panama_plant_species_lists/splists_raw/Wright/nomenclature_R_20210224_Rready_fixed.xlsx")
+
+botanists_list<- botanists_list %>% mutate(
+  current_genus = word(current_binomial,1)
+) 
+
+steve_check <-  steve %>% mutate(
+  sp4_currwoody = !is.na(Code) & Code %in% currpanama_woody$sp4,
+  genus_currwoody = word(Name,1) %in% currpanama_woody$orig_genus,
+  name_currwoody = Name %in% currpanama_woody$orig_binomial,
+  
+  sp4_bcnm = !is.na(Code) & Code %in% botanists_list$sp4,
+  genus_bcnm = word(Name,1) %in% botanists_list$current_genus,
+  name_bcnm = Name %in% botanists_list$current_binomial,
+  
+  SP4_wright = !is.na(Code) & Code %in% wright_list$sp4
+  )
+
+steve_check %>% filter(!sp4_bcnm & name_bcnm)
+
+steve_check %>% filter(!sp4_currwoody & name_currwoody)
+
+
+# see cases were code match but name doesnt (?)
+
+write_xlsx(
+  steve_check,
+  "../Documentos/PROYECTOS/STRI/check_sp4_steve.xlsx"
+)

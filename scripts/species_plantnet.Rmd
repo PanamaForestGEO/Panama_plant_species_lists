@@ -679,7 +679,7 @@ Merging species from three sources of plot censuses:
 # Preparing plotlist
 
 # Plot abundance in BCNM
-bci_plots_abund <- read_excel("splists_raw/Plots/abundance_plots_HM.xlsx")
+bci_plots_abund <- read_excel("splists_raw/Plots/abundance_plots_HM_MOD.xlsx")
 
 bci_plots_abund <- bci_plots_abund %>% 
   select(sp, binomial, 
@@ -698,8 +698,8 @@ bci_plots_abund <- bci_plots_abund %>%
   ) 
 
 # Other BCI census
-bci_other_plots <- read.delim(
-  "splists_raw/Plots/doi_10_5061_dryad_1g1jwsvc3__v20260226/mainfile.txt"
+bci_other_plots <- read_excel(
+  "splists_raw/Plots/doi_10_5061_dryad_1g1jwsvc3__v20260226/mainfile_MOD.xlsx"
 )
 
 # summarise
@@ -717,8 +717,8 @@ bci_other_plots <- bci_other_plots %>%
   )
 
 # Census from Gigante project
-census_gigante <- read.csv(
-  "splists_raw/Plots/gigante_census_2026-04-05.csv"
+census_gigante <- read_excel(
+  "splists_raw/Plots/gigante_census_2026-04-05_MOD.xlsx"
 )
 census_gigante <- census_gigante%>%select(sp6, freq) %>%
   rename(gigante_plot = freq)
@@ -866,30 +866,12 @@ Guarea guidonia, Miconia minutiflora and Heisteria macrophylla.
 
 After verification on the field (2026-04-27): 
 
-- Jupunba idiopoda, Myrciaria floribunda, Unonopsis panamensis were also misidentifications. The correct names are: Jupunba barbouriana, Calycolpus warszewiczianus, Unonopsis pittieri, which are already in the list.  
+- Jupunba idiopoda, Myrciaria floribunda, Unonopsis panamensis were also misidentifications. The correct names are: Jupunba barbouriana, Calycolpus warszewiczianus, Unonopsis pittieri. The abundance in the census files was modified accordingly. 
 
 
 ```{r remove_census_species}
-
-species_remove_census <- c("Guarea glabra", "Miconia poeppigii", "Heisteria costaricensis","Jupunba idiopoda","Myrciaria floribunda","Unonopsis panamensis")
-
-# These species are currently under revision in the field but wont be left out for now. 
-species_remove_census2 <- 
-  c(
-    "Blighia sapida",
-    "Coccoloba padiformis",
-    "Croton schiedeanus",
-    "Geonoma congesta",
-    "Herrania nycterodendron",
-    "Hevea brasiliensis",
-    "Ixora miquelii",
-    "Jupunba idiopoda",
-    "Miconia simplex",
-    "Myrciaria floribunda",
-    "Protium trifoliolatum",
-    "Unonopsis panamensis",
-    "Virola elongata")
-
+#,"Jupunba idiopoda","Myrciaria floribunda","Unonopsis panamensis"
+species_remove_census <- c("Guarea glabra", "Miconia poeppigii", "Heisteria costaricensis")
 
 census_list <- census_list %>% filter(!forestgeo_current_name %in% species_remove_census)
                                       #&!forestgeo_current_name %in% species_remove_census2)
