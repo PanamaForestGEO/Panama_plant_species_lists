@@ -1,0 +1,57 @@
+CITATION: R. Condit, S. Aguilar, R. Pérez. S. Lao, S. P. Hubbell, R. B. Foster. 2017. BCI 50-ha Plot Taxonomy as of 2017. DOI https://doi.org/10.25570/stri/10088/32990.
+https://repository.si.edu/items/38854d10-c7a8-4e1a-b51c-9811c6e735d4
+
+[Dataset:] Barro Colorado 50-ha Plot Taxonomy 2017
+No Thumbnail Available
+Files
+Condit_FullBCITaxa.tab (92.3 KB)
+Condit_ValidBCITaxa.tab (46.56 KB)
+Condit_TaxaHistoryBCI.tab (54.56 KB)
+Date
+2017
+Authors
+Condit, Richard S.
+Aguilar, Salomon
+Perez, Rolando
+Lao, Suzanne
+Hubbell, Stephen P.
+Foster, Robin B.
+Publisher
+Smithsonian Research Online
+Abstract
+
+
+The 50-ha plot at Barro Colorado Island was initially demarcated and fully censused in 1982. Over 200,000 individual tropical trees were measured and mapped, but most demanding was the taxonomic component. Much collecting and sorting was done so that every individual could be matched to a previously described species from Croat's Flora of Barro Colorado (Stanford Univeristy, 1978). Over 300 taxa were separated and all but eight of those identified to species. After the 8th census in 2015, a total of 328 tree taxa have been documented in the plot, though the number alive in any one census has been less, always 296-303.
+
+
+Taxonomy of tropical plants, however, is still in a state of flux because many of the groups have not been studied in detail for decades, and new treatments, especially those using DNA phylogenies, invariably lead to revision and reidentification. To maintain the 50-ha plot up-to-date with recent taxonomy, we have had to make numerous changes to the original list of 300 species. In a 1996 paper (Journal of Tropical Ecology, v. 12, pp. 231-256), we listed every species and added an Appendix documenting revisions done up until that date. In a 2004 paper (Journal of Tropical Ecology, v. 20, pp. 51-72), another species list was provided, but with no list of revisions. Many other papers mention some species, but none since list all species.
+
+
+Here we provide a complete list after 20 years of further changes, plus a list of all obsolete names ever used with a link to the current valid name. We acknowledge, of course, that taxonomy continues and further revisions will be inevitable.
+
+
+Included here are three tables of species names assigned to tree taxa from the 50-ha plot at Barro Colorado. The first table has all 471 Latin names every used for the 328 plot species, including names appearing in Croat (1978) and Condit et al. (1996, 2004). For each name, the currently accepted name is provided. This table allows users to search for any name and determine its current status. The second table gives only the 328 currently accepted Latin names, with all prior names for each included. This second table is how results on tree species from the 50-ha plot should be presented in publications. The third table gives the naming history of those 328 taxa in the three papers, at the start of the work in 1982, and the current name in 2017.
+
+
+This Smithsonian Archive is permanent and will always have the same object identifier (DOI). It was frozen as of 31 December 2017, so users will always be able to consult the 2017 version. The same taxonomic tables also appear online in a searchable and sortable format designed to let users explore the data easily (http://conditdatacenter.org/taxonomy/BCI/BCIPlotFullTaxonomy.php). That web site, however, is maintained by one of the PIs and is not guaranteed to be permanent, that is, after he retires from the project it may not persist.
+Description
+Table 1: Condit_FullBCITaxa.tab, is in tab-delimited ascii format and includes all 455 species names used in the BCI 50 ha plot through 2017. It has 6 columns:
+...... Column 1: [Latin]: Latin name
+...... Column 2: [Status] Status of the given Latin name, either Obsolete or Accepted
+...... Column 3: [Current] The currently accepted Latin name for the given taxon, always diffing from Latin if Status=Obsolete but matching Latin if Status=Accepted
+...... Column 4: [Mnemonic] The six-letter abbreviation used for the taxon in field notes
+...... Column 5: [Family] The taxonomic family, following the Angiosperm Phylogeny Group in 2017
+...... Column 6: [Authority] Taxonomic Authority
+...... Column 7: [Notes] Notes about the taxon, mostly for species whose names has changed
+Table 2. Condit_ValidBCITaxa.tab, is in tab-delimited ascii format and includes the 328 species names currently in use in the BCI 50-ha plot (2017). It has 6 columns:
+...... Column 1: [Latin]: Latin name; all are Accepted so not status is listed
+...... Column 2: [Mnemonic] The six-letter abbreviation used for the taxon in field notes
+...... Column 3: [Family] The taxonomic family, following the Angiosperm Phylogeny Group in 2017
+...... Column 4: [Authority] Taxonomic Authority
+...... Column 5: [Notes] Notes about the taxon, mostly for species whose names has changed
+...... Column 6: [aka] Previous names for the taxon
+...... Column 7: [Notes] Old abbreviations for the taxon
+Table 3. Taxonomic naming history of the 328 taxa in the Barro Colorado Island 50-ha plot through 8 censuses. The column Current gives the Latin name accepted as of December 2017. Subsequent columns indicate how the same species were designated in Croat's 1978 Flora of Barro Colorado Island, our original name in the 1982 census, our 1996 and 2004 papers in the Journal of Tropical Ecology, plus any additional name used.
+URI
+https://hdl.handle.net/10088/32990
+
