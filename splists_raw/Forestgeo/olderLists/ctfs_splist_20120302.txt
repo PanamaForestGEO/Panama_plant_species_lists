@@ -1,0 +1,1782 @@
+SPCODE	GENUS	SPECIES	FAMILY	LIANA
+ANA1	(anacardiaceae)	sp.1	Anacardiaceae	
+ANN1	(annonaceae)	sp.1	Annonaceae	
+ANN2	(annonaceae)	sp.2	Annonaceae	
+BIG2	(bignoniaceae)	'clitoria'	Bignoniaceae	l
+BIG1	(bignoniaceae)	sp.1	Bignoniaceae	l
+CEL1	(celastraceae)	sp.1	Celastraceae	
+CUC1	(cucurbitaceae)	sp.1	Cucurbitaceae	l
+EUP2	(euphorbiaceae)	sp.2	Euphorbiaceae	
+LAU12	(lauraceae)	'pubescente'	Lauraceae	
+LAU11	(lauraceae)	sp.11	Lauraceae	
+LAU13	(lauraceae)	sp.13	Lauraceae	
+LAU14	(lauraceae)	sp.14	Lauraceae	
+LAU15	(lauraceae)	sp.15	Lauraceae	
+LAU16	(lauraceae)	sp.16	Lauraceae	
+LAU17	(lauraceae)	sp.17	Lauraceae	
+LAU18	(lauraceae)	sp.18	Lauraceae	
+LAU19	(lauraceae)	sp.19	Lauraceae	
+LAU4	(lauraceae)	sp.4	Lauraceae	
+LAU5	(lauraceae)	sp.5	Lauraceae	
+LAU8	(lauraceae)	sp.8	Lauraceae	
+MAL1	(malpighiaceae)	sp. 1	Malpighiaceae	l
+MAL1	(malvaceae)	sp.1	Malvaceae	
+MEL4	(melastomataceae)	sp.4	Melastomataceae	
+MEL5	(melastomataceae)	sp.5	Melastomataceae	
+MYT11	(myrtaceae)	sp.11	Myrtaceae	
+MYT13	(myrtaceae)	sp.13	Myrtaceae	
+MYT15	(myrtaceae)	sp.15	Myrtaceae	
+MYT16	(myrtaceae)	sp.16	Myrtaceae	
+MYT17	(myrtaceae)	sp.17	Myrtaceae	
+MYT18	(myrtaceae)	sp.18	Myrtaceae	
+MYT19	(myrtaceae)	sp.19	Myrtaceae	
+MYT20	(myrtaceae)	sp.20	Myrtaceae	
+MYT21	(myrtaceae)	sp.21	Myrtaceae	
+NYC2	(nyctaginaceae)	sp.2	Nyctaginaceae	
+PAS1	(passifloraceae)	sp.1	Passifloraceae	l
+RUB6	(rubiaceae)	sp.6	Rubiaceae	
+RUB7	(rubiaceae)	sp.7	Rubiaceae	
+RUB8	(rubiaceae)	sp.8	Rubiaceae	
+SAP1	(sapindaceae)	sp. 1	Sapindaceae	l
+SAP3	(sapindaceae)	sp. 3	Sapindaceae	l
+SAP2	(sapotaceae)	sp.2	Sapotaceae	
+SAP3	(sapotaceae)	sp.3	Sapotaceae	
+SAP4	(sapotaceae)	sp.4	Sapotaceae	
+SAP5	(sapotaceae)	sp.5	Sapotaceae	
+SAP6	(sapotaceae)	sp.6	Sapotaceae	
+SAP7	(sapotaceae)	sp.7	Sapotaceae	
+SAP8	(sapotaceae)	sp.8	Sapotaceae	
+PIT1BA	Abarema	barbouriana	Fabaceae:Mimos.	
+PIT1MA	Abarema	macradenia	Fabaceae:Mimos.	
+ABUTPA	Abuta	panamensis	Menispermaceae	l
+ABUTRA	Abuta	racemosa	Menispermaceae	l
+ACACCO	Acacia	collinsii	Fabaceae:Mimos.	
+ACACAC	Acacia	hayesii	Fabaceae	l
+ACACHA	Acacia	hayesii	Fabaceae	l
+ACACMA	Acacia	mangium	Fabaceae:Mimos.	
+ACACME	Acacia	melanoceras	Fabaceae:Mimos.	
+ACACRI	Acacia	riparia	Fabaceae:Mimos.	
+ACACRI	Acacia	riparia	Fabaceae	l
+ACAC1	Acacia	sp.1	Fabaceae:Mimos.	
+ACALDI	Acalypha	diversifolia	Euphorbiaceae	
+ACALMA	Acalypha	macrostachya	Euphorbiaceae	
+ACANTE	Acanthocereus	tetragonus	Cactaceae	
+ACIDNI	Acidoton	nicaraguensis	Euphorbiaceae	
+ACOSPA	Acosmium	panamense	Fabaceae:Papil.	
+ACROPA	Acrocomia	aculeata	Arecaceae	
+ADE1TR	Adelia	triloba	Euphorbiaceae	
+ADELAD	Adelobotrys	adscendens	Melastomataceae	l
+ADELPA	Adelobotrys	panamensis	Melastomataceae	
+ADE2PA	Adenanthera	pavonina	Fabaceae:Mimos.	
+ADENFL	Adenaria	floribunda	Lythraceae	
+ADE3AR	Adenocalymma	arthropetiolatum	Bignoniaceae	l
+ADE3IN	Adenocalymma	inundatum	Bignoniaceae	l
+AEGIAN	Aegiphila	anomala	Verbenaceae	
+AEGICE	Aegiphila	cephalophora	Verbenaceae	l
+AEGIEL	Aegiphila	elata	Verbenaceae	l
+AEGIOD	Aegiphila	odontophylla	Verbenaceae	
+AEGIPA	Aegiphila	panamensis	Verbenaceae	
+AGONBR	Agonandra	brasiliensis	Opiliaceae	
+GENICU	Agouticarpa	curviflora	Rubiaceae	
+GENIWI	Agouticarpa	williamsii	Rubiaceae	
+AIOUVE	Aiouea	vexatrix	Lauraceae	
+AIPHHI	Aiphanes	hirsuta	Arecaceae	
+ALBIAD	Albizia	adinocephala	Fabaceae:Mimos.	
+ALBINI	Albizia	niopoides	Fabaceae:Mimos.	
+ALBIPR	Albizia	procera	Fabaceae:Mimos.	
+ALCHCO	Alchornea	costaricensis	Euphorbiaceae	
+ALCHGR	Alchornea	grandis	Euphorbiaceae	
+ALCHLA	Alchornea	latifolia	Euphorbiaceae	
+ALCH3	Alchornea	sp.3	Euphorbiaceae	
+ALCH4	Alchornea	sp.4	Euphorbiaceae	
+ALCH5	Alchornea	sp.5	Euphorbiaceae	
+ALIBED	Alibertia	edulis	Rubiaceae	
+ALIBGA	Alibertia	garapatica	Rubiaceae	
+ALLACA	Allamanda	cathartica	Apocynaceae	l
+ALLEER	Allenanthus	erythrocarpus	Rubiaceae	
+ALLOGE	Allophylus	gentryi	Sapindaceae	
+ALLOPS	Allophylus	psilospermus	Sapindaceae	
+ALLOOC	Allophylus	racemosus	Sapindaceae	
+ALLO2	Allophylus	sp.2	Sapindaceae	
+ALNUAC	Alnus	acuminata	Betulaceae	
+ALSEBL	Alseis	blackiana	Rubiaceae	
+AMAICO	Amaioua	corymbosa	Rubiaceae	
+AMAIMA	Amaioua	magnicarpa	Rubiaceae	
+AMAIPE	Amaioua	pedicellata	Rubiaceae	
+AMAI1	Amaioua	sp.1	Rubiaceae	
+AMAI2	Amaioua	sp.2	Rubiaceae	
+AMANGU	Amanoa	guianensis	Euphorbiaceae	
+AMPEED	Ampelocera	edentula	Ulmaceae	
+AMPEMA	Ampelocera	macphersonii	Ulmaceae	
+AMPHPA	Amphilophium	paniculatum	Bignoniaceae	l
+AMP1IS	Amphitecna	isthmica	Bignoniaceae	
+AMP1LA	Amphitecna	latifolia	Bignoniaceae	
+AMP1SP	Amphitecna	spathicalyx	Bignoniaceae	
+AMYRBA	Amyris	balsamifera	Rutaceae	
+ANACEX	Anacardium	excelsum	Anacardiaceae	
+ANACOC	Anacardium	occidentale	Anacardiaceae	
+ANAXAL	Anaxagorea	allenii	Annonaceae	
+ANAXCR	Anaxagorea	crassipetala	Annonaceae	
+ANAXPA	Anaxagorea	panamensis	Annonaceae	
+ANDIIN	Andira	inermis	Fabaceae:Papil.	
+ANEMCH	Anemopaegma	chrysoleucum	Bignoniaceae	l
+ANIBHO	Aniba	hostmanniana	Lauraceae	
+ANIB1	Aniba	sp.1	Lauraceae	
+ANIB2	Aniba	sp.2	Lauraceae	
+ANNOAC	Annona	acuminata	Annonaceae	
+ANNOCH	Annona	cherimola	Annonaceae	
+ANNOGL	Annona	glabra	Annonaceae	
+ANNOHA	Annona	hayesii	Annonaceae	
+ANNOMO	Annona	montana	Annonaceae	
+ANNOMU	Annona	muricata	Annonaceae	
+ANNOPI	Annona	pittieri	Annonaceae	
+ANNOPU	Annona	purpurea	Annonaceae	
+ANNORE	Annona	reticulata	Annonaceae	
+ANNOSP	Annona	spraguei	Annonaceae	
+ANNOSQ	Annona	squamosa	Annonaceae	
+ANTHCH	Anthodiscus	chocoensis	Caryocaraceae	
+ANTHPA	Anthodon	panamense	Hippocrateaceae	l
+APEIHY	Apeiba	'hybrid'	Tiliaceae	
+APEIME	Apeiba	membranacea	Tiliaceae	
+APEITI	Apeiba	tibourbou	Tiliaceae	
+APHECA	Aphelandra	campanensis	Acanthaceae	
+APHEGR	Aphelandra	gracilis	Acanthaceae	
+APHEDE	Aphelandra	scabra	Acanthaceae	
+APHESI	Aphelandra	sinclairiana	Acanthaceae	
+APPUSE	Appunia	seibertii	Rubiaceae	
+RONDBE	Arachnothryx	bertieroides	Rubiaceae	
+RONDBU	Arachnothryx	buddleioides	Rubiaceae	
+RONDHA	Arachnothryx	hameliifolia	Rubiaceae	
+ARDIBA	Ardisia	bartlettii	Myrsinaceae	
+ARDIDU	Ardisia	dukei	Myrsinaceae	
+ARDIGL	Ardisia	glomerata	Myrsinaceae	
+ARDIGU	Ardisia	guianensis	Myrsinaceae	
+ARDIOP	Ardisia	opaca	Myrsinaceae	
+ARDIO1	Ardisia	opegrapha	Myrsinaceae	
+ARDIRE	Ardisia	revoluta	Myrsinaceae	
+ARDISO	Ardisia	solanacea	Myrsinaceae	
+ARDI11	Ardisia	sp.11	Myrsinaceae	
+ARDI15	Ardisia	sp.15	Myrsinaceae	
+ARDI5	Ardisia	sp.5	Myrsinaceae	
+ARDI6	Ardisia	sp.6	Myrsinaceae	
+ARDI7	Ardisia	sp.7	Myrsinaceae	
+ARDI9	Ardisia	sp.9	Myrsinaceae	
+ARDIFE	Ardisia	standleyana	Myrsinaceae	
+ARISCO	Aristolochia	cordiflora	Aristolochiaceae	l
+ARISGI	Aristolochia	gigantea	Aristolochiaceae	l
+ARISPI	Aristolochia	pilosa	Aristolochiaceae	l
+ARISTO	Aristolochia	tonduzii	Aristolochiaceae	l
+ARRACA	Arrabidaea	candicans	Bignoniaceae	l
+ARRACH	Arrabidaea	chica	Bignoniaceae	l
+ARRACO	Arrabidaea	corallina	Bignoniaceae	l
+ARRAFL	Arrabidaea	florida	Bignoniaceae	l
+ARRAPA	Arrabidaea	patellifera	Bignoniaceae	l
+ARRAVE	Arrabidaea	verrucosa	Bignoniaceae	l
+ARTOAL	Artocarpus	altilis	Moraceae	
+ASPIME	Aspidosperma	megalocarpon	Apocynaceae	
+ASPICR	Aspidosperma	spruceanum	Apocynaceae	
+AST1AL	Astrocaryum	alatum	Arecaceae	
+AST1ST	Astrocaryum	standleyanum	Arecaceae	
+AST2GR	Astronium	graveolens	Anacardiaceae	
+SCH1ZO	Attalea	butyracea	Arecaceae	
+MYRCZE	Aulomyrcia	zetekiana	Myrtaceae	
+AVICBI	Avicennia	bicolor	Verbenaceae	
+AVICGE	Avicennia	germinans	Verbenaceae	
+BACTBA	Bactris	barronis	Arecaceae	
+BACTC1	Bactris	coloniata	Arecaceae	
+BACTC2	Bactris	coloradonis	Arecaceae	
+BACTGA	Bactris	gasipaes	Arecaceae	
+BACTMA	Bactris	major	Arecaceae	
+BACTM1	Bactris	maraja	Arecaceae	
+BACTPA	Bactris	panamensis	Arecaceae	
+BALIEL	Balizia	elegans	Fabaceae:Mimos.	
+BANAGU	Banara	guianensis	Flacourtiaceae	
+BANICO	Banisteriopsis	cornifolia	Malpighiaceae	l
+BATOCO	Batocarpus	costaricensis	Moraceae	
+BAUHAC	Bauhinia	aculeata	Fabaceae:Caesal.	
+BAUHGU	Bauhinia	guianensis	Fabaceae	l
+BAUHRE	Bauhinia	reflexa	Fabaceae	l
+BAUH1	Bauhinia	sp.1	Fabaceae:Caesal.	
+BAUH1	Bauhinia	spp.	Fabaceae	l
+BAUHUN	Bauhinia	ungulata	Fabaceae:Caesal.	
+BEILTI	Beilschmiedia	aff.tilaranensis	Lauraceae	
+BEILPE	Beilschmiedia	pendula	Lauraceae	
+BEILSU	Beilschmiedia	sulcata	Lauraceae	
+BELLPE	Bellucia	pentamera	Melastomataceae	
+BERTGU	Bertiera	guianensis	Rubiaceae	
+BESLFO	Besleria	formicaria	Gesneriaceae	
+BESLRO	Besleria	robusta	Gesneriaceae	
+BIGNSP	Bignoniaceae	sp.	Bignoniaceae	l
+BILLCO	Billia	rosea	Hippocastanaceae	
+BIXAOR	Bixa	orellana	Bixaceae	
+BLEPMU	Blepharodon	mucronatum	Asclepiadaceae	l
+BLIGSA	Blighia	sapida	Sapindaceae	
+BOCCFR	Bocconia	frutescens	Papaveraceae	
+BONATR	Bonamia	trichantha	Convulvaceae	l
+JACQMA	Bonellia	macrocarpa	Theophrastaceae	
+BOROPA	Borojoa	panamensis	Rubiaceae	
+BORO1	Borojoa	sp.1	Rubiaceae	
+BOURCO	Bourreria	costaricensis	Boraginaceae	
+BRAVIN	Bravaisia	integerrima	Acanthaceae	
+BROSAL	Brosimum	alicastrum	Moraceae	
+BROSCO	Brosimum	costaricanum	Moraceae	
+BROSGU	Brosimum	guianense	Moraceae	
+BROSLA	Brosimum	lactescens	Moraceae	
+BROSRU	Brosimum	rubescens	Moraceae	
+BROSUT	Brosimum	utile	Moraceae	
+BROWMA	Brownea	macrophylla	Fabaceae:Caesal.	
+BRUNDW	Brunfelsia	dwyeri	Solanaceae	
+BUCHCA	Buchenavia	tetraphylla	Combretaceae	
+BUCIBU	Bucida	buceras	Combretaceae	
+BUDDAM	Buddleja	americana	Loganiaceae	
+BUNCDW	Bunchosia	dwyeri	Malpighiaceae	
+BUNCMA	Bunchosia	macrophylla	Malpighiaceae	
+BUNCCO	Bunchosia	nitida	Malpighiaceae	
+BUNCOD	Bunchosia	odorata	Malpighiaceae	
+BUNC1	Bunchosia	sp.1	Malpighiaceae	
+BURSSI	Bursera	simaruba	Burseraceae	
+BURSTO	Bursera	tomentosa	Burseraceae	
+BYRSCR	Byrsonima	crassifolia	Malpighiaceae	
+BYRSC1	Byrsonima	crispa	Malpighiaceae	
+BYRSNE	Byrsonima	dressleri	Malpighiaceae	
+BYRSSP	Byrsonima	spicata	Malpighiaceae	
+BYTTAC	Byttneria	aculeata	Sterculiaceae	l
+CAESCO	Caesalpinia	coriaria	Fabaceae:Mimos.	
+CAESER	Caesalpinia	eriostachys	Fabaceae:Mimos.	
+CALACO	Calatola	costaricensis	Icacinaceae	
+CALLGR	Calliandra	aff.grandifolia	Fabaceae:Mimos.	
+CALLST	Calliandra	laxa_var.stipulacea	Fabaceae:Mimos.	
+CALLMA	Calliandra	magdalenae	Fabaceae:Mimos.	
+CAL4AC	Callicarpa	acuminata	Verbenaceae	
+CALLLA	Callichlamys	latifolia	Bignoniaceae	l
+CALOBR	Calophyllum	brasiliense	Clusiaceae	
+CALOIN	Calophyllum	inophyllum	Clusiaceae	
+CALOLO	Calophyllum	longifolium	Clusiaceae	
+CALONU	Calophyllum	nubicola	Clusiaceae	
+CAL11	Calycolpus	sp.1	Myrtaceae	
+CAL1WA	Calycolpus	warszewiczianus	Myrtaceae	
+CAL2CA	Calycophyllum	candidissimum	Rubiaceae	
+CALYCH	Calyptranthes	chytraculia	Myrtaceae	
+CALYCO	Calyptranthes	pallens	Myrtaceae	
+CALYPU	Calyptranthes	pulchella	Myrtaceae	
+CALYTU	Calyptranthes	tumidonodia	Myrtaceae	
+CAL3CO	Calyptrogyne	costatifrons	Arecaceae	
+CAMPPA	Campnosperma	panamense	Anacardiaceae	
+CANAOD	Cananga	odorata	Annonaceae	
+CAPPOS	Capparis	aff.osmantha	Capparaceae	
+CAPPAN	Capparis	antonensis	Capparaceae	
+CAPPCY	Capparis	cynophallophora	Capparaceae	
+CAPPDI	Capparis	discolor	Capparaceae	
+CAPPFL	Capparis	flexuosa	Capparaceae	
+CAPPFR	Capparis	frondosa	Capparaceae	
+CAPPIN	Capparis	indica	Capparaceae	
+CAPPPA	Capparis	panamensis	Capparaceae	
+CAPPPI	Capparis	pittieri	Capparaceae	
+CAPPVE	Capparis	verrucosa	Capparaceae	
+CARAGU	Carapa	guianensis	Meliaceae	
+CARIPA	Carica	papaya	Caricaceae	
+CARPPL	Carpotroche	platyptera	Flacourtiaceae	
+CARYBU	Caryodaphnopsis	burgeri	Lauraceae	
+CARYTO	Caryodaphnopsis	tomentosa	Lauraceae	
+CASEAC	Casearia	aculeata	Flacourtiaceae	
+CASEAR	Casearia	arborea	Flacourtiaceae	
+CASEA1	Casearia	arguta	Flacourtiaceae	
+CASECO	Casearia	commersoniana	Flacourtiaceae	
+CASEC1	Casearia	coronata	Flacourtiaceae	
+CASEC2	Casearia	corymbosa	Flacourtiaceae	
+CASEGU	Casearia	guianensis	Flacourtiaceae	
+CASENI	Casearia	nigricans	Flacourtiaceae	
+CASE1	Casearia	sp.1	Flacourtiaceae	
+CASE3	Casearia	sp.3	Flacourtiaceae	
+CASE4	Casearia	sp.4	Flacourtiaceae	
+CASE5	Casearia	sp.5	Flacourtiaceae	
+CASE6	Casearia	sp.6	Flacourtiaceae	
+CASESY	Casearia	sylvestris	Flacourtiaceae	
+CAS1GR	Cassia	grandis	Fabaceae:Caesal.	
+CAS1MO	Cassia	moschata	Fabaceae:Caesal.	
+CASS2	Cassipourea	'enana'	Rhizophoraceae	
+CASS1	Cassipourea	'hoja_grande'	Rhizophoraceae	
+CASSEL	Cassipourea	elliptica	Rhizophoraceae	
+CASTEL	Castilla	elastica	Moraceae	
+CAVAPL	Cavanillesia	platanifolia	Bombacaceae	
+CAVEBR	Cavendishia	bracteata	Ericaceae	
+CAYADE	Cayaponia	denticulata	Cucurbitaceae	l
+CAYAGR	Cayaponia	granatensis	Cucurbitaceae	l
+CECRGA	Cecropia	garciae	Cecropiaceae	
+CECRHE	Cecropia	heterochroma	Cecropiaceae	
+CECRHI	Cecropia	hispidissima	Cecropiaceae	
+CECRIN	Cecropia	insignis	Cecropiaceae	
+CECRLO	Cecropia	longipes	Cecropiaceae	
+CECROB	Cecropia	obtusifolia	Cecropiaceae	
+CECRPE	Cecropia	peltata	Cecropiaceae	
+CEDRFI	Cedrela	fissilis	Meliaceae	
+CEDROD	Cedrela	odorata	Meliaceae	
+CEIBPE	Ceiba	pentandra	Bombacaceae	
+CELTIG	Celtis	iguanaeus	Ulmaceae	l
+CELTSC	Celtis	schippii	Ulmaceae	
+CENTTO	Centropogon	tortilis	Campanulaceae	
+CERATE	Ceratophytum	tetragonolobum	Bignoniaceae	l
+CESPMA	Cespedesia	spathulata	Ochnaceae	
+CESTLA	Cestrum	latifolium	Solanaceae	
+CESTME	Cestrum	megalophyllum	Solanaceae	
+CESTRA	Cestrum	racemosum	Solanaceae	
+CHA1PI	Chamaedorea	pinnatifrons	Arecaceae	
+CHA1TE	Chamaedorea	tepejilote	Arecaceae	
+CHA2SC	Chamguava	schippii	Myrtaceae	
+CHEIBE	Cheiloclinium	belizense	Hippocrateaceae	
+CHEICO	Cheiloclinium	cognatum	Hippocrateaceae	
+CHIMLA	Chimarrhis	latifolia	Rubiaceae	
+CHIMPA	Chimarrhis	parviflora	Rubiaceae	
+CHIOAL	Chiococca	alba	Rubiaceae	l
+CHI1PA	Chionanthus	panamensis	Oleaceae	
+CHIOVE	Chione	venosa	Rubiaceae	
+CHLOMA	Chloroleucon	mangense	Fabaceae:Mimos.	
+CHOMPS	Chomelia	psilocarpa	Rubiaceae	l
+CHOMSP	Chomelia	spinosa	Rubiaceae	
+CHONTO	Chondrodendron	tomentosum	Menispermaceae	l
+CHRORU	Chromolucuma	aff.rubriflora	Sapotaceae	
+CHR3IC	Chrysobalanus	icaco	Chrysobalanaceae	
+CHR1EC	Chrysochlamys	eclipes	Clusiaceae	
+CHR1GL	Chrysochlamys	glauca	Clusiaceae	
+CHR1GR	Chrysochlamys	grandifolia	Clusiaceae	
+CHR1NI	Chrysochlamys	nicaraguensis	Clusiaceae	
+CHR2AR	Chrysophyllum	argenteum	Sapotaceae	
+CHR2BR	Chrysophyllum	brenesii	Sapotaceae	
+CHR2CA	Chrysophyllum	cainito	Sapotaceae	
+CHR2CO	Chrysophyllum	colombianum	Sapotaceae	
+CHR2HI	Chrysophyllum	hirsutum	Sapotaceae	
+CHR21	Chrysophyllum	sp.1	Sapotaceae	
+CHR22	Chrysophyllum	sp.2	Sapotaceae	
+CHR2VE	Chrysophyllum	venezuelanense	Sapotaceae	
+CHUSSI	Chusquea	simpliciflora	Poaceae	l
+CINNPA	Cinnamomum	paratriplinerve	Lauraceae	
+PHOECI	Cinnamomum	triplinerve	Lauraceae	
+CISSRH	Cissus	alata	Vitaceae	l
+CISSER	Cissus	erosa	Vitaceae	l
+CISSPS	Cissus	fuliginea	Vitaceae	l
+CISSMI	Cissus	microcarpa	Vitaceae	l
+CISS1	Cissus	sp.1	Vitaceae	l
+CISSSI	Cissus	verticillata	Vitaceae	l
+CITHCA	Citharexylum	caudatum	Verbenaceae	
+CITH1	Citharexylum	sp.1	Verbenaceae	
+CITRLI	Citrus	limon	Rutaceae	
+CITRSI	Citrus	sinensis	Rutaceae	
+CLARBI	Clarisia	biflora	Moraceae	
+CLARRA	Clarisia	racemosa	Moraceae	
+CLAVBI	Clavija	biborrana	Theophrastaceae	
+CLAVCO	Clavija	costaricana	Theophrastaceae	
+CLAVME	Clavija	mezii	Theophrastaceae	
+CLETLA	Clethra	lanata	Clethraceae	
+CLETPY	Clethra	pyrogena	Clethraceae	
+CLIBSU	Clibadium	surinamense	Asteraceae	
+CLIDCA	Clidemia	capitellata	Melastomataceae	
+CLIDCO	Clidemia	crenulata	Melastomataceae	
+CLIDD1	Clidemia	densiflora	Melastomataceae	
+CLIDDE	Clidemia	dentata	Melastomataceae	
+CLIDDI	Clidemia	discolor	Melastomataceae	
+CLIDHA	Clidemia	hammelii	Melastomataceae	
+CLIDOC	Clidemia	octona	Melastomataceae	
+CLIDSE	Clidemia	septuplinervia	Melastomataceae	
+CLIDS1	Clidemia	sericea	Melastomataceae	
+CLID1	Clidemia	sp.1	Melastomataceae	
+CLITGL	Clitoria	glaberrima	Fabaceae:Papil.	
+CLITJA	Clitoria	javitensis	Fabaceae	l
+CLITRU	Clitoria	rubiginosa	Fabaceae	l
+CLUSCR	Clusia	cretosa	Clusiaceae	
+CLUSDI	Clusia	divaricata	Clusiaceae	
+CLUSPR	Clusia	pratensis	Clusiaceae	
+CLUSQU	Clusia	quadrangula	Clusiaceae	
+CLUSRO	Clusia	rosea	Clusiaceae	
+CLUSST	Clusia	stenophylla	Clusiaceae	
+CLUSVA	Clusia	valerioi	Clusiaceae	
+CLYTBI	Clytostoma	binatum	Bignoniaceae	l
+CNESRU	Cnestidium	rufescens	Connaraceae	l
+CNIDUR	Cnidoscolus	urens	Euphorbiaceae	
+COCCA2	Coccoloba	acuminata	Polygonaceae	
+COCCCA	Coccoloba	caracasana	Polygonaceae	
+COCCCO	Coccoloba	coronata	Polygonaceae	
+COCCJO	Coccoloba	johnstonii	Polygonaceae	
+COCCLA	Coccoloba	lasseri	Polygonaceae	
+COCCMA	Coccoloba	manzinellensis	Polygonaceae	
+COCCMO	Coccoloba	mollis	Polygonaceae	
+COCCOB	Coccoloba	obovata	Polygonaceae	
+COCCPA	Coccoloba	padiformis	Polygonaceae	
+COCCP1	Coccoloba	parimensis	Polygonaceae	l
+COCC2	Coccoloba	sp.2	Polygonaceae	
+COCC4	Coccoloba	sp.4	Polygonaceae	
+COCCTU	Coccoloba	tuerckheimii	Polygonaceae	
+COCCUV	Coccoloba	uvifera	Polygonaceae	
+COCHVI	Cochlospermum	vitifolium	Cochlospermaceae	
+COCONU	Cocos	nucifera	Arecaceae	
+COFFAR	Coffea	arabica	Rubiaceae	
+COJO1	Cojoba	'hoja_grande'	Fabaceae:Mimos.	
+PIT1RU	Cojoba	rufescens	Fabaceae:Mimos.	
+COLPAP	Colpothrinax	aphanopetala	Arecaceae	
+COLUGL	Colubrina	glandulosa	Rhamnaceae	
+COLUHE	Colubrina	heteroneura	Rhamnaceae	
+COLUSP	Colubrina	spinosa	Rhamnaceae	
+COMBCA	Combretum	cacoucia	Combretaceae	l
+COMBDE	Combretum	decandrum	Combretaceae	l
+COMBFR	Combretum	fruticosum	Combretaceae	l
+COMBLA	Combretum	laxum	Combretaceae	l
+COMBPR	Combretum	o Prionostemma???	Combretaceae	l
+COMPCA	Compsoneura	capitellata	Myristicaceae	
+COMPSP	Compsoneura	sprucei	Myristicaceae	
+CONCPL	Conceveiba	pleiostemona	Euphorbiaceae	
+ANGONI	Conchocarpus	nicaraguensis	Rutaceae	
+CONDCO	Condaminea	corymbosa	Rubiaceae	
+CONNPA	Connarus	panamensis	Connaraceae	l
+CONNTU	Connarus	turczaninowii	Connaraceae	l
+CON1ER	Conocarpus	erectus	Combretaceae	
+CONOBR	Conostegia	bracteata	Melastomataceae	
+CONOCI	Conostegia	cinnamomea	Melastomataceae	
+CONOCU	Conostegia	cuatrecasii	Melastomataceae	
+CONOMO	Conostegia	montana	Melastomataceae	
+CONORU	Conostegia	rufescens	Melastomataceae	
+CONO1	Conostegia	sp.1	Melastomataceae	
+CONOSP	Conostegia	speciosa	Melastomataceae	
+CONOXA	Conostegia	xalapensis	Melastomataceae	
+COPAAR	Copaifera	aromatica	Fabaceae:Caesal.	
+CORDAL	Cordia	alliodora	Boraginaceae	
+CORDBI	Cordia	bicolor	Boraginaceae	
+CORDCO	Cordia	collococca	Boraginaceae	
+CORDC1	Cordia	correae	Boraginaceae	
+CORDCU	Cordia	curassavica	Boraginaceae	
+CORDCY	Cordia	cymosa	Boraginaceae	
+CORDDE	Cordia	dentata	Boraginaceae	
+CORDDW	Cordia	dwyeri	Boraginaceae	
+CORDER	Cordia	eriostigma	Boraginaceae	
+CORDLA	Cordia	lasiocalyx	Boraginaceae	
+CORDLU	Cordia	lucidula	Boraginaceae	
+CORDME	Cordia	megalantha	Boraginaceae	
+CORDPA	Cordia	panamensis	Boraginaceae	
+CORDPO	Cordia	porcata	Boraginaceae	
+CORD6	Cordia	sp.6	Boraginaceae	
+CORD7	Cordia	sp.7	Boraginaceae	
+CORNDI	Cornus	disciflora	Cornaceae	
+COR1PY	Cornutia	pyramidata	Lamiaceae	
+CORYRO	Corymbosa	roseum	Fabaceae	l
+CORYUM	Corypha	umbraculifera	Arecaceae	
+COSMGR	Cosmibuena	grandiflora	Rubiaceae	
+COSMMA	Cosmibuena	macrocarpa	Rubiaceae	
+COUE2	Couepia	'chocolate'	Chrysobalanaceae	
+COUE1	Couepia	sp.1	Chrysobalanaceae	
+COUMMA	Couma	macrocarpa	Apocynaceae	
+COURPA	Couratari	guianensis	Lecythidaceae	
+COU3GU	Couroupita	guianensis	Lecythidaceae	
+COUSVI	Coussapoa	villosa	Cecropiaceae	l
+COU2CE	Coussarea	cerroazulensis	Rubiaceae	
+COU2CU	Coussarea	curvigemmia	Rubiaceae	
+COU2HO	Coussarea	hondensis	Rubiaceae	
+COU2LA	Coussarea	latifolia	Rubiaceae	
+COU2LO	Coussarea	loftonii	Rubiaceae	
+COU21	Coussarea	sp.1	Rubiaceae	
+COUTHE	Coutarea	hexandra	Rubiaceae	
+CRATTA	Crateva	tapia	Capparaceae	
+CREMPA	Cremastosperma	panamense	Annonaceae	
+CREM2	Cremastosperma	sp.2	Annonaceae	
+CREM4	Cremastosperma	sp.4	Annonaceae	
+CRESAL	Crescentia	alata	Bignoniaceae	
+CRESCU	Crescentia	cujete	Bignoniaceae	
+CROSPA	Crossopetalum	parviflorum	Celastraceae	
+CROTBI	Croton	billbergianus	Euphorbiaceae	
+CROTDR	Croton	draco	Euphorbiaceae	
+CROTLA	Croton	lanjouwensis	Euphorbiaceae	
+CROTPA	Croton	pachypodus	Euphorbiaceae	
+CROTSA	Croton	santaritensis	Euphorbiaceae	
+CROTSC	Croton	schiedeanus	Euphorbiaceae	
+CROTSM	Croton	smithianus	Euphorbiaceae	
+CROT2	Croton	sp.2	Euphorbiaceae	
+CROT3	Croton	sp.3	Euphorbiaceae	
+CRUDAC	Crudia	acuminata	Fabaceae:Caesal.	
+CRYOWA	Cryosophila	warscewiczii	Arecaceae	
+CRYPAS	Cryptocarya	aschersoniana	Lauraceae	
+CUPACI	Cupania	cinerea	Sapindaceae	
+CUPAGU	Cupania	guatemalensis	Sapindaceae	
+CUPALA	Cupania	latifolia	Sapindaceae	
+CUPARU	Cupania	rufescens	Sapindaceae	
+CUPASC	Cupania	scrobiculata	Sapindaceae	
+CUPASY	Cupania	seemannii	Sapindaceae	
+CUPA1	Cupania	sp.1	Sapindaceae	
+CUPA2	Cupania	sp.2	Sapindaceae	
+CUPA3	Cupania	sp.3	Sapindaceae	
+CUPA5	Cupania	sp.5	Sapindaceae	
+CURAAM	Curatella	americana	Dilleniaceae	
+CYATMU	Cyathea	multiflora	Cyatheaceae	
+CNEMPE	Cyathea	petiolata	Cyatheaceae	
+CYBISC	Cybianthus	schlimii	Myrsinaceae	
+CYDIAE	Cydista	aequinoctialis	Bignoniaceae	l
+CYDIHE	Cydista	heterophylla	Bignoniaceae	l
+CYM1CO	Cymbopetalum	costaricense	Annonaceae	
+CYM1LA	Cymbopetalum	lanugipetalum	Annonaceae	
+CYM1TO	Cymbopetalum	torulosum	Annonaceae	
+CYMBRO	Cymbosema	roseum	Fabaceae:faboid.	l
+CYNOBA	Cynometra	bauhiniifolia	Fabaceae:Caesal.	
+CYRIRA	Cyrilla	racemiflora	Cyrillaceae	
+DALBMO	Dalbergia	monetaria	Fabaceae	l
+DALBRE	Dalbergia	retusa	Fabaceae:Papil.	
+DALECI	Dalechampia	cissifolia	Euphorbiaceae	l
+DALEDI	Dalechampia	dioscoreifolia	Euphorbiaceae	l
+DAPHAM	Daphnopsis	americana	Thymelaeaceae	
+DAPHCO	Daphnopsis	correae	Thymelaeaceae	
+DAVINI	Davilla	nitida	Dilleniaceae	l
+DELORE	Delonix	regia	Fabaceae:Caesal.	
+DENDAR	Dendropanax	arboreus	Araliaceae	
+DENDGL	Dendropanax	globosus	Araliaceae	
+DENDPU	Dendropanax	punctatus	Araliaceae	
+DENDSE	Dendropanax	sessiliflorus	Araliaceae	
+DES1OR	Desmoncus	orthacanthos	Arecaceae	l
+DES2BI	Desmopsis	bibracteata	Annonaceae	
+DES2MA	Desmopsis	maxonii	Annonaceae	
+DES2PA	Desmopsis	panamensis	Annonaceae	
+DIALGU	Dialium	guianense	Fabaceae:Caesal.	
+DICHAX	Dichapetalum	axillare	Dichapetalaceae	
+DILOCO	Dilodendron	costaricense	Sapindaceae	
+DIOCGU	Dioclea	guianensis	Fabaceae	l
+DIOCRE	Dioclea	reflexa	Fabaceae	l
+DIOC1	Dioclea	sp.1	Fabaceae:Papil.	l
+DIOCWI	Dioclea	wilsonii	Fabaceae	l
+DIO1AL	Dioscorea	alata	Dioscoreaceae	l
+DIO1HA	Dioscorea	haenkeana	Dioscoreaceae	l
+DIO1PI	Dioscorea	pilosiuscula	Dioscoreaceae	l
+DIO1PO	Dioscorea	polygonoides	Dioscoreaceae	l
+DIO1UR	Dioscorea	urophylla	Dioscoreaceae	l
+DIO2AR	Diospyros	artanthifolia	Ebenaceae	
+DIPHRO	Diphysa	americana	Fabaceae:Papil.	
+DIPLPU	Diplotropis	purpurea	Fabaceae:Papil.	
+DIPTPA	Dipteryx	oleifera	Fabaceae:Papil.	
+DISCGU	Discophora	guianensis	Icacinaceae	
+DOLI1	Doliocarpus	1	Dilleniaceae	l
+DOLIDE	Doliocarpus	dentatus	Dilleniaceae	l
+DOLIMA	Doliocarpus	major	Dilleniaceae	l
+DOLIMU	Doliocarpus	multiflorus	Dilleniaceae	l
+DOLIOL	Doliocarpus	olivaceus	Dilleniaceae	l
+DRYP2	Drypetes	'coba'	Euphorbiaceae	
+DRYPAM	Drypetes	aff.amazonica	Euphorbiaceae	
+DRYP1	Drypetes	sp.1	Euphorbiaceae	
+DRYPST	Drypetes	standleyi	Euphorbiaceae	
+DUGUCO	Duguetia	confusa	Annonaceae	
+DUSSAT	Dussia	atropurpurea	Fabaceae:Papil.	
+DUSSMA	Dussia	macroprophyllata	Fabaceae:Papil.	
+DUSS1	Dussia	sp.1	Fabaceae:Papil.	
+DUSS2	Dussia	sp.2	Fabaceae:Papil.	
+DUSS3	Dussia	sp.3	Fabaceae:Papil.	
+DUSS4	Dussia	sp.4	Fabaceae:Papil.	
+DUSS5	Dussia	sp.5	Fabaceae:Papil.	
+DUSS6	Dussia	sp.6	Fabaceae:Papil.	
+DUSSTE	Dussia	tessmannii	Fabaceae:Papil.	
+DYSTPA	Dystovomita	paniculata	Clusiaceae	
+ECCLLA	Ecclinusa	lanceolata	Sapotaceae	
+ELA1AU	Elaeagia	auriculata	Rubiaceae	
+ELA1NI	Elaeagia	nitidifolia	Rubiaceae	
+ELAEOL	Elaeis	oleifera	Arecaceae	
+ELA21	Elaeoluma	sp.1	Sapotaceae	
+ENDLBR	Endlicheria	browniana	Lauraceae	
+ENTAMO	Entada	gigas	Fabaceae	l
+ADE4PO	Entadopsis	polystachya	Fabaceae	l
+ENTECY	Enterolobium	cyclocarpum	Fabaceae:Mimos.	
+ENTESC	Enterolobium	schomburgkii	Fabaceae:Mimos.	
+ERBLOD	Erblichia	odorata	Turneraceae	
+ERISBL	Erisma	blancoa	Vochysiaceae	
+ERY1CO	Erythrina	costaricensis	Fabaceae:Papil.	
+ERY1FU	Erythrina	fusca	Fabaceae:Papil.	
+ERY1GI	Erythrina	gibbosa	Fabaceae:Papil.	
+ERY1RU	Erythrina	rubrinervia	Fabaceae:Papil.	
+ERY3SU	Erythrophleum	suaveolens	Fabaceae:Papil.	
+ERY22	Erythroxylum	'parita'	Erythroxylaceae	
+ERY2CI	Erythroxylum	citrifolium	Erythroxylaceae	
+ERY2MA	Erythroxylum	macrophyllum	Erythroxylaceae	
+ERY2PA	Erythroxylum	panamense	Erythroxylaceae	
+ESCHAN	Eschweilera	aff.angustifolia	Lecythidaceae	
+ESCHAM	Eschweilera	amplexifolia	Lecythidaceae	
+ESCHCA	Eschweilera	calyculata	Lecythidaceae	
+ESCHJA	Eschweilera	jacquelyniae	Lecythidaceae	
+ESCHPA	Eschweilera	panamensis	Lecythidaceae	
+ESCHPI	Eschweilera	pittieri	Lecythidaceae	
+ESCHSE	Eschweilera	sessilis	Lecythidaceae	
+ESCH3	Eschweilera	sp.3	Lecythidaceae	
+ESCH6	Eschweilera	sp.6	Lecythidaceae	
+ESCH7	Eschweilera	sp.7	Lecythidaceae	
+ESCH8	Eschweilera	sp.8	Lecythidaceae	
+ESENPA	Esenbeckia	panamensis	Rutaceae	
+EUGEAU	Eugenia	austin-smithii	Myrtaceae	
+EUGECO	Eugenia	coloradoensis	Myrtaceae	
+EUGECR	Eugenia	cricamolensis	Myrtaceae	
+EUGEGA	Eugenia	galalonensis	Myrtaceae	
+EUGESA	Eugenia	hiraeifolia	Myrtaceae	
+EUGENE	Eugenia	nesiotica	Myrtaceae	
+EUGEOC	Eugenia	octopleura	Myrtaceae	
+EUGEOE	Eugenia	oerstediana	Myrtaceae	
+EUGEPR	Eugenia	principium	Myrtaceae	
+EUGE10	Eugenia	sp.10	Myrtaceae	
+EUGE13	Eugenia	sp.13	Myrtaceae	
+EUGE16	Eugenia	sp.16	Myrtaceae	
+EUGE18	Eugenia	sp.18	Myrtaceae	
+EUGE19	Eugenia	sp.19	Myrtaceae	
+EUGE20	Eugenia	sp.20	Myrtaceae	
+EUGE22	Eugenia	sp.22	Myrtaceae	
+EUGE24	Eugenia	sp.24	Myrtaceae	
+EUGE26	Eugenia	sp.26	Myrtaceae	
+EUGE27	Eugenia	sp.27	Myrtaceae	
+EUGE5	Eugenia	sp.5	Myrtaceae	
+EUGE6	Eugenia	sp.6	Myrtaceae	
+EUGE7	Eugenia	sp.7	Myrtaceae	
+EUGE8	Eugenia	sp.8	Myrtaceae	
+EUGE9	Eugenia	sp.9	Myrtaceae	
+EUGEVE	Eugenia	venezuelensis	Myrtaceae	
+EUPHEL	Euphorbia	elata	Euphorbiaceae	
+EUTEPR	Euterpe	precatoria	Arecaceae	
+EXOSME	Exostema	mexicanum	Rubiaceae	
+FARA2	Faramea	'coba'	Rubiaceae	
+FARAEU	Faramea	eurycarpa	Rubiaceae	
+FARAJE	Faramea	jefensis	Rubiaceae	
+FARALU	Faramea	luteovirens	Rubiaceae	
+FARAMU	Faramea	multiflora	Rubiaceae	
+FARAOC	Faramea	occidentalis	Rubiaceae	
+FARAP2	Faramea	papillata	Rubiaceae	
+FARAP1	Faramea	papirifolia	Rubiaceae	
+FARAPA	Faramea	parvibractea	Rubiaceae	
+FARA1	Faramea	sp.1	Rubiaceae	
+FARASU	Faramea	suerrensis	Rubiaceae	
+FERDPA	Ferdinandusa	panamensis	Rubiaceae	
+FEVICO	Fevillea	cordifolia	Cucurbitaceae	l
+FICUAM	Ficus	americana	Moraceae	
+FICUP1	Ficus	apollinaris	Moraceae	
+FICUBE	Ficus	benjamina	Moraceae	
+FICUBR	Ficus	brevibracteata	Moraceae	
+FICUBU	Ficus	bullenei	Moraceae	
+FICUCI	Ficus	citrifolia	Moraceae	
+FICUC1	Ficus	colubrinae	Moraceae	
+FICUC2	Ficus	costaricana	Moraceae	
+FICUIN	Ficus	insipida	Moraceae	
+FICUMA	Ficus	maxima	Moraceae	
+FICUNY	Ficus	nymphaeifolia	Moraceae	
+FICUOB	Ficus	obtusifolia	Moraceae	
+FICUPE	Ficus	pertusa	Moraceae	
+FICUPO	Ficus	popenoei	Moraceae	
+FICU10	Ficus	sp.10	Moraceae	
+FICU11	Ficus	sp.11	Moraceae	
+FICU12	Ficus	sp.12	Moraceae	
+FICU13	Ficus	sp.13	Moraceae	
+FICU3	Ficus	sp.3	Moraceae	
+FICU4	Ficus	sp.4	Moraceae	
+FICU5	Ficus	sp.5	Moraceae	
+FICU6	Ficus	sp.6	Moraceae	
+FICU8	Ficus	sp.8	Moraceae	
+FICU9	Ficus	sp.9	Moraceae	
+FICUTO	Ficus	tonduzii	Moraceae	
+FICUTR	Ficus	trigonata	Moraceae	
+FICUYO	Ficus	yoponensis	Moraceae	
+FISCBL	Fischeria	blepharopetala	Asclepiadaceae	l
+FISCFU	Fischeria	funebris	Asclepiadaceae	l
+FISSFE	Fissicalyx	fendleri	Fabaceae:Papil.	
+FLACJA	Flacourtia	jangomas	Flacourtiaceae	
+FLEMST	Flemingia	strobilifera	Fabaceae:Papil.	
+FORSMY	Forsteronia	myriantha	Apocynaceae	l
+FORSPE	Forsteronia	peninsularis	Apocynaceae	l
+FORSVI	Forsteronia	viridescens	Apocynaceae	l
+FREZCA	Freziera	calophylla	Theaceae	
+FUCHPA	Fuchsia	paniculata	Onagraceae	
+FUSIMI	Fusispermum	minutiflorum	Violaceae	
+GALIPA	Galipea	panamensis	Rutaceae	
+GAR2IN	Garcinia	intermedia	Clusiaceae	
+GAR2MA	Garcinia	madruno	Clusiaceae	
+GAR2M1	Garcinia	magnifolia	Clusiaceae	
+GAR21	Garcinia	sp.1	Clusiaceae	
+GENIAM	Genipa	americana	Rubiaceae	
+GEONCO	Geonoma	congesta	Arecaceae	
+GEONCU	Geonoma	cuneata	Arecaceae	
+GEONDE	Geonoma	deversa	Arecaceae	
+GEONIN	Geonoma	interrupta	Arecaceae	
+GLIRSE	Gliricidia	sepium	Fabaceae:Papil.	
+GLOEBL	Gloeospermum	blakeanum	Violaceae	
+GLOEEN	Gloeospermum	eneidense	Violaceae	
+GLOESP	Gloeospermum	sphaerocarpum	Violaceae	
+GMELAR	Gmelina	arborea	Verbenaceae	
+GNETLE	Gnetum	leyboldii	Gnetaceae	l
+GODMAE	Godmania	aesculifolia	Bignoniaceae	
+GONZPA	Gonzalagunia	panamensis	Rubiaceae	
+GONZRU	Gonzalagunia	rudis	Rubiaceae	
+GONZ1	Gonzalagunia	sp.1	Rubiaceae	
+GORDBR	Gordonia	brandegeei	Theaceae	
+LAPLFR	Gordonia	fruticosa	Theaceae	
+GOSSBA	Gossypium	barbadense	Malvaceae	
+GOUAAD	Gouania	adenophera	Rhamnaceae	l
+GOUACO	Gouania	colombiana	Rhamnaceae	l
+GOUALU	Gouania	lupuloides	Rhamnaceae	l
+GRAFGA	Graffenrieda	galeottii	Melastomataceae	
+GRIACA	Grias	cauliflora	Lecythidaceae	
+NYC1	Guapira	'campochagres'	Nyctaginaceae	
+GUAPCO	Guapira	costaricana	Nyctaginaceae	
+GUAPST	Guapira	standleyana	Nyctaginaceae	
+GUAR9	Guarea	'arbusto'	Meliaceae	
+GUAR2	Guarea	'sherman'	Meliaceae	
+GUARSP	Guarea	bullata	Meliaceae	
+GUARGL	Guarea	glabra	Meliaceae	
+GUARGR	Guarea	grandifolia	Meliaceae	
+GUARGU	Guarea	guidonia	Meliaceae	
+GUARKU	Guarea	kunthiana	Meliaceae	
+GUARMA	Guarea	macropetala	Meliaceae	
+GUARM1	Guarea	macrophylla	Meliaceae	
+GUARPT	Guarea	pterorhachis	Meliaceae	
+GUARRH	Guarea	rhopalocarpa	Meliaceae	
+GUAR1	Guarea	sp.1	Meliaceae	
+GUAR4	Guarea	sp.4	Meliaceae	
+GUAR6	Guarea	sp.6	Meliaceae	
+GUAR8	Guarea	sp.8	Meliaceae	
+GUARTE	Guarea	ternifoliola	Meliaceae	
+GUATAB	Guatteria	aberrans	Annonaceae	
+GUATA1	Guatteria	alata	Annonaceae	
+GUATAL	Guatteria	allenii	Annonaceae	
+GUATAM	Guatteria	amplifolia	Annonaceae	
+GUATIN	Guatteria	diospyroides	Annonaceae	
+GUATDO	Guatteria	dolichopoda	Annonaceae	
+GUATDU	Guatteria	dumetorum	Annonaceae	
+GUATJE	Guatteria	jefensis	Annonaceae	
+GUATRE	Guatteria	recurvisepala	Annonaceae	
+GUATSE	Guatteria	sessilicarpa	Annonaceae	
+GUAT5	Guatteria	sp.5	Annonaceae	
+GUAT7	Guatteria	sp.7	Annonaceae	
+GUAZUL	Guazuma	ulmifolia	Sterculiaceae	
+GUETCR	Guettarda	crispiflora	Rubiaceae	
+GUETFO	Guettarda	foliacea	Rubiaceae	
+GUETOD	Guettarda	odorata	Rubiaceae	
+GUETRA	Guettarda	ramuliflora	Rubiaceae	
+GURACO	Gurania	coccinea	Cucurbitaceae	l
+GURAMA	Gurania	makoyana	Cucurbitaceae	l
+GURATU	Gurania	tubulosa	Cucurbitaceae	l
+GUSTDU	Gustavia	dubia	Lecythidaceae	
+GUSTFO	Gustavia	fosteri	Lecythidaceae	
+GUSTGR	Gustavia	grandibracteata	Lecythidaceae	
+GUSTHE	Gustavia	hexapetala	Lecythidaceae	
+GUSTNA	Gustavia	nana	Lecythidaceae	
+GUST1	Gustavia	sp.1	Lecythidaceae	
+GUSTSU	Gustavia	superba	Lecythidaceae	
+GYRADA	Gyranthera	darienensis	Bombacaceae	
+GYROAM	Gyrocarpus	americanus	Hernandiaceae	
+HAMEAX	Hamelia	axillaris	Rubiaceae	
+HAMEMA	Hamelia	macrantha	Rubiaceae	
+HAMEPA	Hamelia	patens	Rubiaceae	
+HAMESA	Hamelia	sanguinea	Rubiaceae	
+HAMPAP	Hampea	appendiculata	Malvaceae	
+HAMPMI	Hampea	micrantha	Malvaceae	
+HASSFL	Hasseltia	floribunda	Flacourtiaceae	
+HEDYBO	Hedyosmum	bonplandianum	Chloranthaceae	
+HEDYCO	Hedyosmum	costaricense	Chloranthaceae	
+HEDYME	Hedyosmum	mexicanum	Chloranthaceae	
+HEDYSC	Hedyosmum	scaberrimum	Chloranthaceae	
+HEISAC	Heisteria	acuminata	Olacaceae	
+HEISCO	Heisteria	concinna	Olacaceae	
+HEISC1	Heisteria	costaricensis	Olacaceae	
+HEISMA	Heisteria	macrophylla	Olacaceae	
+HEISSC	Heisteria	scandens	Olacaceae	
+HEL1TO	Helicostylis	tovarensis	Moraceae	
+HEL2GU	Helicteres	guazumifolia	Sterculiaceae	
+HELIAM	Heliocarpus	americanus	Tiliaceae	
+HELIAP	Heliocarpus	appendiculatus	Tiliaceae	
+HENRSU	Henriettea	succosa	Melastomataceae	
+HENRFA	Henriettella	fascicularis	Melastomataceae	
+HENRTR	Henriettella	trachyphylla	Melastomataceae	
+HENRTU	Henriettella	tuberculosa	Melastomataceae	
+HERNDI	Hernandia	didymantha	Hernandiaceae	
+HERNST	Hernandia	stenura	Hernandiaceae	
+HERRNY	Herrania	nycterodendron	Sterculiaceae	
+HERRPU	Herrania	purpurea	Sterculiaceae	
+HET1VI	Heterocondylus	vitalbae	Asteraceae	l
+HETELA	Heteropteris	laurifolia	Malpighiaceae	l
+HETEPA	Heteropteris	panamense	Malpighiaceae	l
+HEVEBR	Hevea	brasiliensis	Euphorbiaceae	
+HYERAL	Hieronyma	alchorneoides	Euphorbiaceae	
+HYEROB	Hieronyma	oblonga	Euphorbiaceae	
+HIPPVO	Hippocratea	volubilis	Hippocrateaceae	l
+HIPPMA	Hippomane	mancinella	Euphorbiaceae	
+HIP1PA	Hippotis	panamensis	Rubiaceae	
+HIRAF1	Hiraea	fagifolia	Malpighiaceae	l
+HIRAFA	Hiraea	faginea	Malpighiaceae	l
+HIRAGR	Hiraea	grandifolia	Malpighiaceae	l
+HIRARE	Hiraea	reclinata	Malpighiaceae	l
+HIRAQU	Hiraea	smilacina	Malpighiaceae	l
+HIRTAM	Hirtella	americana	Chrysobalanaceae	
+HIRTGU	Hirtella	guatemalensis	Chrysobalanaceae	
+HIRTLA	Hirtella	latifolia	Chrysobalanaceae	
+HIRTRA	Hirtella	racemosa	Chrysobalanaceae	
+HIRT5	Hirtella	sp.5	Chrysobalanaceae	
+HIRTTR	Hirtella	triandra	Chrysobalanaceae	
+HIRTTU	Hirtella	tubiflora	Chrysobalanaceae	
+HOMARA	Homalium	racemosum	Flacourtiaceae	
+HORTCO	Hortia	colombiana	Rutaceae	
+HUMIDI	Humiriastrum	diguense	Humiriaceae	
+HURACR	Hura	crepitans	Euphorbiaceae	
+HYBAAT	Hybanthus	attenuatus	Violaceae	
+HYBADE	Hybanthus	denticulatus	Violaceae	
+HYBAPR	Hybanthus	prunifolius	Violaceae	
+HYLEPR	Hylenaea	praecelsa	Hippocrateaceae	l
+HYMECO	Hymenaea	courbaril	Fabaceae:Caesal.	
+HYMEPI	Hymenandra	pittieri	Myrsinaceae	
+HYM1ME	Hymenolobium	mesoamericanum	Fabaceae:Papil.	
+HYPETO	Hyperbaena	tonduzii	Menispermaceae	
+ILEXGU	Ilex	guianensis	Aquifoliaceae	
+INGAAC	Inga	acrocephala	Fabaceae:Mimos.	
+INGAS1	Inga	acuminata	Fabaceae:Mimos.	
+INGAST	Inga	aff.stenophylla	Fabaceae:Mimos.	
+INGAAL	Inga	alba	Fabaceae:Mimos.	
+INGABE	Inga	bella	Fabaceae:Mimos.	
+INGACA	Inga	capitata	Fabaceae:Mimos.	
+INGACH	Inga	chocoensis	Fabaceae:Mimos.	
+INGACI	Inga	ciliata_ss:ciliata	Fabaceae:Mimos.	
+INGAC1	Inga	ciliata_ss:subcapitata	Fabaceae:Mimos.	
+INGACO	Inga	cocleensis	Fabaceae:Mimos.	
+INGAC2	Inga	coruscans	Fabaceae:Mimos.	
+INGADW	Inga	dwyeri	Fabaceae:Mimos.	
+INGAED	Inga	edulis	Fabaceae:Mimos.	
+INGAFI	Inga	filiformis	Fabaceae:Mimos.	
+INGAGO	Inga	goldmanii	Fabaceae:Mimos.	
+INGAJE	Inga	jefensis	Fabaceae:Mimos.	
+INGAFA	Inga	laurina	Fabaceae:Mimos.	
+INGALE	Inga	leiocalycina	Fabaceae:Mimos.	
+INGAMA	Inga	marginata	Fabaceae:Mimos.	
+INGAMO	Inga	mortoniana	Fabaceae:Mimos.	
+INGAM1	Inga	mucuna	Fabaceae:Mimos.	
+INGAM2	Inga	multijuga	Fabaceae:Mimos.	
+INGAQU	Inga	nobilis	Fabaceae:Mimos.	
+INGAMI	Inga	oerstediana	Fabaceae:Mimos.	
+INGAPA	Inga	pauciflora	Fabaceae:Mimos.	
+INGAPE	Inga	pezizifera	Fabaceae:Mimos.	
+INGAP1	Inga	polita	Fabaceae:Mimos.	
+INGAPO	Inga	portobellensis	Fabaceae:Mimos.	
+INGAPU	Inga	punctata	Fabaceae:Mimos.	
+INGARU	Inga	ruiziana	Fabaceae:Mimos.	
+INGASA	Inga	sapindoides	Fabaceae:Mimos.	
+INGASE	Inga	sertulifera	Fabaceae:Mimos.	
+INGASI	Inga	sierrae	Fabaceae:Mimos.	
+INGA11	Inga	sp.11	Fabaceae:Mimos.	
+INGA15	Inga	sp.15	Fabaceae:Mimos.	
+INGA18	Inga	sp.18	Fabaceae:Mimos.	
+INGA24	Inga	sp.24	Fabaceae:Mimos.	
+INGA31	Inga	sp.31	Fabaceae:Mimos.	
+INGA32	Inga	sp.32	Fabaceae:Mimos.	
+INGA34	Inga	sp.34('hoja_pequeña')	Fabaceae:Mimos.	
+INGA6	Inga	sp.6	Fabaceae:Mimos.	
+INGA7	Inga	sp.7	Fabaceae:Mimos.	
+INGA8	Inga	sp.8	Fabaceae:Mimos.	
+INGASP	Inga	spectabilis	Fabaceae:Mimos.	
+INGATH	Inga	thibaudiana	Fabaceae:Mimos.	
+INGAUM	Inga	umbellifera	Fabaceae:Mimos.	
+INGAUR	Inga	urceolata	Fabaceae:Mimos.	
+INGAV1	Inga	venusta	Fabaceae:Mimos.	
+INGAVE	Inga	vera	Fabaceae:Mimos.	
+IPOMPH	Ipomoea	phillomega	Convolvulaceae	l
+IPOMSQ	Ipomoea	squamosa	Convolvulaceae	l
+IPOMTI	Ipomoea	tiliacea	Convolvulaceae	l
+IRIADE	Iriartea	deltoidea	Arecaceae	
+IRYAJU	Iryanthera	juruensis	Myristicaceae	
+IRYAME	Iryanthera	megistocarpa	Myristicaceae	
+ISEILU	Iseia	luxurians	Convolvulaceae	l
+ISERHA	Isertia	haenkeana	Rubiaceae	
+ISERLA	Isertia	laevis	Rubiaceae	
+IXORFL	Ixora	floribunda	Rubiaceae	
+JAC1CA	Jacaranda	caucana	Bignoniaceae	
+JAC1CO	Jacaranda	copaia	Bignoniaceae	
+JAC2CO	Jacaratia	costaricensis	Caricaceae	
+JAC2DO	Jacaratia	dolichaula	Caricaceae	
+JAC2SP	Jacaratia	spinosa	Caricaceae	
+JATRCU	Jatropha	curcas	Euphorbiaceae	
+JATRGO	Jatropha	gossypiifolia	Euphorbiaceae	
+JATRIN	Jatropha	integerrima	Euphorbiaceae	
+JOOSUM	Joosia	umbellifera	Rubiaceae	
+JUSTGR	Justicia	graciliflora	Acanthaceae	l
+KHAYSE	Khaya	senegalensis	Meliaceae	
+KIGEAF	Kigelia	africana	Bignoniaceae	
+CREMAN	Klarobelia	anomala	Annonaceae	
+KOANWE	Koanophyllon	wetmorei	Asteraceae	
+LACIAG	Lacistema	aggregatum	Flacourtiaceae	
+LACMPA	Lacmellea	panamensis	Apocynaceae	
+LACMSP	Lacmellea	speciosa	Apocynaceae	
+LADEBR	Ladenbergia	brenesii	Rubiaceae	
+LADEMA	Ladenbergia	macrocarpa	Rubiaceae	
+LAETPR	Laetia	procera	Flacourtiaceae	
+LAETTH	Laetia	thamnia	Flacourtiaceae	
+LAFOPU	Lafoensia	punicifolia	Lythraceae	
+LAGESP	Lagerstroemia	speciosa	Lythraceae	
+LAGURA	Laguncularia	racemosa	Combretaceae	
+LANTCA	Lantana	camara	Verbenaceae	
+LAXOTE	Laxoplumeria	tessmannii	Apocynaceae	
+LEAN1	Leandra	'roja'	Melastomataceae	
+LEANDI	Leandra	dichotoma	Melastomataceae	
+LEANGR	Leandra	granatensis	Melastomataceae	
+LECOAM	Lecointea	aff.amazonica	Fabaceae:Papil.	
+LECYAM	Lecythis	ampla	Lecythidaceae	
+LENNVI	Lennea	viridiflora	Fabaceae:Papil.	
+LEONGL	Leonia	glycycarpa	Violaceae	
+LICA4	Licania	'coba'	Chrysobalanaceae	
+LICAAF	Licania	affinis	Chrysobalanaceae	
+LICAAR	Licania	arborea	Chrysobalanaceae	
+LICACR	Licania	cruegeriana	Chrysobalanaceae	
+LICAFA	Licania	fasciculata	Chrysobalanaceae	
+LICAHY	Licania	hypoleuca	Chrysobalanaceae	
+LICAKA	Licania	kallunkii	Chrysobalanaceae	
+LICALO	Licania	longistyla	Chrysobalanaceae	
+LICAMA	Licania	macrocarpa	Chrysobalanaceae	
+LICAMO	Licania	morii	Chrysobalanaceae	
+LICAPL	Licania	platypus	Chrysobalanaceae	
+LICA1	Licania	sp.1	Chrysobalanaceae	
+LICA3	Licania	sp.3	Chrysobalanaceae	
+LIC13	Licaria	'arco_seco'	Lauraceae	
+LIC1EX	Licaria	excelsa	Lauraceae	
+LIC1GU	Licaria	guianensis	Lauraceae	
+LIC1MI	Licaria	misantlae	Lauraceae	
+LIC12	Licaria	sp.2	Lauraceae	
+LINDLA	Lindackeria	laurina	Flacourtiaceae	
+LIPPUM	Lippia	umbellata	Verbenaceae	
+LISIJE	Lisianthius	jefensis	Gentianaceae	
+LONCAT	Lonchocarpus	atropurpureus	Fabaceae:Papil.	
+LONCFE	Lonchocarpus	ferrugineus	Fabaceae:Papil.	
+LONCLA	Lonchocarpus	heptaphyllus	Fabaceae:Papil.	
+LONCMA	Lonchocarpus	macrophyllus	Fabaceae:Papil.	
+LONCMI	Lonchocarpus	minimiflorus	Fabaceae:Papil.	
+LONCOL	Lonchocarpus	oliganthus	Fabaceae:Papil.	
+LONCSE	Lonchocarpus	sericeus	Fabaceae:Papil.	
+LONCVE	Lonchocarpus	velutinus	Fabaceae:Papil.	
+LOZAMU	Lozania	mutisiana	Lacistemataceae	
+LOZAPI	Lozania	pittieri	Lacistemataceae	
+LUEHCA	Luehea	candida	Tiliaceae	
+LUEHSE	Luehea	seemannii	Tiliaceae	
+LUEHSP	Luehea	speciosa	Tiliaceae	
+LUNAPI	Lunania	mexicana	Flacourtiaceae	
+LUNAPA	Lunania	parviflora	Flacourtiaceae	
+LYCIMA	Lycianthes	maxonii	Solanaceae	
+MABEOC	Mabea	occidentalis	Euphorbiaceae	
+MACFUN	Macfadyena	unguis-cati	Bignoniaceae	l
+MACHBI	Machaerium	biovulatum	Fabaceae:Papil.	
+MACHFL	Machaerium	floribundum	Fabaceae	l
+MACHM1	Machaerium	isadelphum	Fabaceae	l
+MACHKE	Machaerium	kegelii	Fabaceae	l
+MACHM2	Machaerium	milleflorum	Fabaceae	l
+MACHAR	Machaerium	pittieri	Fabaceae	l
+MACHRI	Machaerium	riparium	Fabaceae	l
+MACHSE	Machaerium	seemanii	Fabaceae	l
+MACLTI	Maclura	tinctoria	Moraceae	
+MACOSP	Macoubea	mesoamericana	Apocynaceae	
+MACRGL	Macrocnemum	roseum	Rubiaceae	
+MAC1CO	Macrolobium	costaricense	Fabaceae:Caesal.	
+MAC1PI	Macrolobium	pittieri	Fabaceae:Caesal.	
+MAGNSO	Magnolia	sororum	Magnoliaceae	
+MALMDI	Malmea	dimera	Annonaceae	
+MALOGU	Malouetia	guatemalensis	Apocynaceae	
+MALOIS	Malouetia	isthmica	Apocynaceae	
+MALPAL	Malpighia	albiflora	Malpighiaceae	
+MALPGL	Malpighia	glabra	Malpighiaceae	
+MALPRO	Malpighia	romeroana	Malpighiaceae	
+MAMMIM	Mammea	immansueta	Clusiaceae	
+MANDSU	Mandevilla	subsagittata	Apocynaceae	l
+MANDVI	Mandevilla	villosa	Apocynaceae	l
+MANGIN	Mangifera	indica	Anacardiaceae	
+MAN1ES	Manihot	esculenta	Euphorbiaceae	
+MANIBI	Manilkara	bidentata	Sapotaceae	
+MANICH	Manilkara	chicle	Sapotaceae	
+MANI1	Manilkara	sp.1	Sapotaceae	
+MANI2	Manilkara	sp.2	Sapotaceae	
+MANIZA	Manilkara	zapota	Sapotaceae	
+MANSKE	Mansoa	kerere	Bignoniaceae	l
+MANSVE	Mansoa	verrucifera	Bignoniaceae	l
+MAPRGU	Maprounea	guianensis	Euphorbiaceae	
+MAQUCO	Maquira	guianensis	Moraceae	
+MARAPA	Maranthes	panamensis	Chrysobalanaceae	
+MARCNE	Marcgravia	nepenthoides	Marcgraviaceae	l
+MARGNO	Margaritaria	nobilis	Euphorbiaceae	
+MAR1DO	Marila	domingensis	Clusiaceae	
+MAR1L1	Marila	lactogena	Clusiaceae	
+MAR1LA	Marila	laxiflora	Clusiaceae	
+MAR1PL	Marila	pluricostata	Clusiaceae	
+MAR11	Marila	sp.1	Clusiaceae	
+MAR13	Marila	sp.3	Clusiaceae	
+MAR2PA	Maripa	panamensis	Convolvulaceae	l
+MARKUL	Markea	ulei	Solanaceae	l
+MARSCR	Marsdenia	crassipes	Asclepiadaceae	l
+MARTOB	Martinella	obovata	Bignoniaceae	l
+MASCHI	Mascagnia	hiraea	Malpighiaceae	l
+MASCNE	Mascagnia	ovatifolia	Malpighiaceae	l
+MASC1	Mascagnia	sp. 1	Malpighiaceae	l
+MATAAP	Matayba	apetala	Sapindaceae	
+MATAGL	Matayba	glaberrima	Sapindaceae	
+MATASC	Matayba	scrobiculata	Sapindaceae	
+MATA1	Matayba	sp.1	Sapindaceae	
+MATIID	Matisia	aff.idroboi	Bombacaceae	
+MATIBR	Matisia	bracteolosa	Bombacaceae	
+MATICO	Matisia	cordata	Bombacaceae	
+MATIEX	Matisia	exalata	Bombacaceae	
+MATIJE	Matisia	jefensis	Bombacaceae	
+QUAROB	Matisia	obliquifolia	Bombacaceae	
+MATIOC	Matisia	ochrocalyx	Bombacaceae	
+MATISA	Matisia	sanblasensis	Bombacaceae	
+MAYNGR	Mayna	grandifolia	Flacourtiaceae	
+MAYNOD	Mayna	odorata	Flacourtiaceae	
+MAYTSC	Maytenus	schippii	Celastraceae	
+MAYT1	Maytenus	sp.1	Celastraceae	
+MEL2BI	Melicoccus	bijugatus	Sapindaceae	
+MELIG1	Meliosma	'hoja_grande'	Sabiaceae	
+MELIGL	Meliosma	glabrata	Sabiaceae	
+MELIGR	Meliosma	grandiflora	Sabiaceae	
+MELIID	Meliosma	idiopoda	Sabiaceae	
+MELILI	Meliosma	linearifolia	Sabiaceae	
+MELIOC	Meliosma	occidentalis	Sabiaceae	
+MENDGR	Mendoncia	gracilis	Acanthaceae	l
+MENDLI	Mendoncia	litoralis	Acanthaceae	l
+MESETR	Mesechites	trifida	Apocynaceae	l
+CYNACU	Metalepis	peraffinis	Asclepiadaceae	l
+MICOAF	Miconia	affinis	Melastomataceae	
+MICOAR	Miconia	argentea	Melastomataceae	
+MICOCE	Miconia	centronioides	Melastomataceae	
+MICOC1	Miconia	centrosperma	Melastomataceae	
+MICOCH	Miconia	chrysophylla	Melastomataceae	
+MICOCR	Miconia	crocata	Melastomataceae	
+MICOD1	Miconia	dodecandra	Melastomataceae	
+MICOD2	Miconia	donaeana	Melastomataceae	
+MICODO	Miconia	dorsiloba	Melastomataceae	
+MICOEL	Miconia	elata	Melastomataceae	
+MICOHO	Miconia	hondurensis	Melastomataceae	
+MICOIM	Miconia	impetiolaris	Melastomataceae	
+MICOLA	Miconia	lacera	Melastomataceae	
+MICOLI	Miconia	ligulata	Melastomataceae	
+MICOBO	Miconia	minutiflora	Melastomataceae	
+MICOMU	Miconia	multispicata	Melastomataceae	
+MICONE	Miconia	nervosa	Melastomataceae	
+MICOOI	Miconia	oinochrophylla	Melastomataceae	
+MICOPI	Miconia	pileata	Melastomataceae	
+MICOPO	Miconia	poeppigii	Melastomataceae	
+MICOPR	Miconia	prasina	Melastomataceae	
+MICOPU	Miconia	punctata	Melastomataceae	
+MICORE	Miconia	reducens	Melastomataceae	
+MICORU	Miconia	rubiginosa	Melastomataceae	
+MICOSE	Miconia	serrulata	Melastomataceae	
+MICOSI	Miconia	simplex	Melastomataceae	
+MICO10	Miconia	sp.10	Melastomataceae	
+MICO14	Miconia	sp.14	Melastomataceae	
+MICO3	Miconia	sp.3	Melastomataceae	
+MICO5	Miconia	sp.5	Melastomataceae	
+MICO9	Miconia	sp.9	Melastomataceae	
+MICOST	Miconia	stenostachya	Melastomataceae	
+MICOTR	Miconia	trinervia	Melastomataceae	
+MICOUM	Miconia	umbriensis	Melastomataceae	
+MICRGU	Micropholis	guyanensis	Sapotaceae	
+MICRME	Micropholis	melinoniana	Sapotaceae	
+MICRVE	Micropholis	venulosa	Sapotaceae	
+MIKAGU	Mikania	guaco	Asteraceae	l
+MIKAHO	Mikania	hookeriana	Asteraceae	l
+MIKALE	Mikania	leiostachya	Asteraceae	l
+MIKAMI	Mikania	micrantha	Asteraceae	l
+MIKATO	Mikania	tonduzii	Asteraceae	l
+MIMOTE	Mimosa	tenuiflora	Fabaceae:Mimos.	
+MIMUEL	Mimusops	elengi	Sapotaceae	
+MINQGU	Minquartia	guianensis	Olacaceae	
+MOLLDA	Mollinedia	darienensis	Monimiaceae	
+MOLLPI	Mollinedia	pinchotiana	Monimiaceae	
+MOMOCH	Momordica	charantia	Cucurbitaceae	l
+MYR1ME	Morella	cerifera	Myricaceae	
+MORICI	Morinda	citrifolia	Rubiaceae	
+MORIPA	Morinda	panamensis	Rubiaceae	
+MOR1AM	Morisonia	americana	Capparaceae	
+MORTAN	Mortoniodendron	anisophyllum	Tiliaceae	
+MORT1	Mortoniodendron	sp.1	Tiliaceae	
+MALMSP	Mosannona	garwoodii	Annonaceae	
+MOSQJA	Mosquitoxylum	jamaicense	Anacardiaceae	
+MOUR1	Mouriri	'coba'	Melastomataceae	
+MOUREX	Mouriri	aff.exilis	Melastomataceae	
+MOURCO	Mouriri	cf.completens	Melastomataceae	
+MOURGL	Mouriri	gleasoniana	Melastomataceae	
+MOURMY	Mouriri	myrtilloides	Melastomataceae	
+MOURPA	Mouriri	panamensis	Melastomataceae	
+MUCUMU	Mucuna	mutisiana	Fabaceae:faboid.	l
+MUCURO	Mucuna	rostrata	Fabaceae	l
+MUNTCA	Muntingia	calabura	Tiliaceae	
+MYRCFO	Myrcia	fosteri	Myrtaceae	
+MYRCGA	Myrcia	gatunensis	Myrtaceae	
+MYRCPA	Myrcia	panamensis	Myrtaceae	
+MYRC3	Myrcia	sp.3	Myrtaceae	
+MYRC4	Myrcia	sp.4	Myrtaceae	
+MYRC5	Myrcia	sp.5	Myrtaceae	
+MYRC6	Myrcia	sp.6	Myrtaceae	
+MYRCSP	Myrcia	splendens	Myrtaceae	
+MYR4ST	Myrcianthes	storkii	Myrtaceae	
+MYR2FL	Myrciaria	floribunda	Myrtaceae	
+MYR21	Myrciaria	sp.1	Myrtaceae	
+MYR22	Myrciaria	sp.2	Myrtaceae	
+MYRILO	Myriocarpa	longipes	Urticaceae	
+MYROFR	Myrospermum	frutescens	Fabaceae:Papil.	
+MYR3BA	Myroxylum	balsamum	Fabaceae:Papil.	
+MYRSCO	Myrsine	coriacea	Myrsinaceae	
+MYRSCU	Myrsine	cubana	Myrsinaceae	
+MYRS1	Myrsine	sp.1	Myrsinaceae	
+NAUCCA	Naucleopsis	capirensis	Moraceae	
+NAUCNA	Naucleopsis	naga	Moraceae	
+NAUCST	Naucleopsis	straminea	Moraceae	
+NAUCUL	Naucleopsis	ulei	Moraceae	
+NECTS1	Nectandra	'fuzzy'	Lauraceae	
+NECTBI	Nectandra	bicolor	Lauraceae	
+NECTCI	Nectandra	cissiflora	Lauraceae	
+NECTCU	Nectandra	cuspidata	Lauraceae	
+NECTGL	Nectandra	lineata	Lauraceae	
+NECTMA	Nectandra	martinicensis	Lauraceae	
+NECTME	Nectandra	membranacea	Lauraceae	
+NECTPU	Nectandra	purpurea	Lauraceae	
+NECT11	Nectandra	sp.11	Lauraceae	
+NECT12	Nectandra	sp.12	Lauraceae	
+NECT3	Nectandra	sp.3	Lauraceae	
+NECTS3	Nectandra	sp.4_('tiny_leaf')	Lauraceae	
+NECT9	Nectandra	sp.9	Lauraceae	
+NECTUM	Nectandra	umbrosa	Lauraceae	
+NEEA6	Neea	'roja'	Nyctaginaceae	
+NEEAAM	Neea	amplifolia	Nyctaginaceae	
+NEEADE	Neea	delicatula	Nyctaginaceae	
+NEEALA	Neea	laetevirens	Nyctaginaceae	
+NEEA1	Neea	sp.1	Nyctaginaceae	
+NEEA2	Neea	sp.2	Nyctaginaceae	
+NEEA3	Neea	sp.3	Nyctaginaceae	
+NEEA4	Neea	sp.4	Nyctaginaceae	
+NEEA7	Neea	sp.7	Nyctaginaceae	
+OCHOCO	Ochoterenaea	colombiana	Anacardiaceae	
+OCHRPY	Ochroma	pyramidale	Bombacaceae	
+OCOTAR	Ocotea	arcuata	Lauraceae	
+OCOTPA	Ocotea	atirrensis	Lauraceae	
+OCOTCE	Ocotea	cernua	Lauraceae	
+OCOTDE	Ocotea	dendrodaphne	Lauraceae	
+OCOTEN	Ocotea	endresiana	Lauraceae	
+OCOTHA	Ocotea	hartshorniana	Lauraceae	
+OCOTHE	Ocotea	helicterifolia	Lauraceae	
+OCOTIR	Ocotea	insularis	Lauraceae	
+OCOTJO	Ocotea	jorge-escobarii	Lauraceae	
+OCOTLE	Ocotea	leucoxylon	Lauraceae	
+OCOTME	Ocotea	meziana	Lauraceae	
+OCOTOB	Ocotea	oblonga	Lauraceae	
+OCOTPU	Ocotea	puberula	Lauraceae	
+OCOTRU	Ocotea	rubrinervis	Lauraceae	
+OCOT13	Ocotea	sp.13	Lauraceae	
+OCOT14	Ocotea	sp.14	Lauraceae	
+OCOT17	Ocotea	sp.17	Lauraceae	
+OCOT18	Ocotea	sp.18	Lauraceae	
+OCOT19	Ocotea	sp.19	Lauraceae	
+OCOT5	Ocotea	sp.5	Lauraceae	
+OCOT6	Ocotea	sp.6	Lauraceae	
+OCOT7	Ocotea	sp.7	Lauraceae	
+OCOT8	Ocotea	sp.8	Lauraceae	
+OCOT9	Ocotea	sp.9	Lauraceae	
+OCOTTO	Ocotea	tonduzii	Lauraceae	
+OCOTVE	Ocotea	veraguensis	Lauraceae	
+OCOTWH	Ocotea	whitei	Lauraceae	
+ODO1MA	Odontadenia	macrantha	Apocynaceae	l
+ODO1PU	Odontadenia	puncticulosa	Apocynaceae	l
+ODO21	Odontocarya	1	Menispermaceae	l
+ODO2TA	Odontocarya	tamoides	Menispermaceae	l
+ODO2TR	Odontocarya	truncata	Menispermaceae	l
+OENOMA	Oenocarpus	mapora	Arecaceae	
+OMPHDI	Omphalea	diandra	Euphorbiaceae	l
+OPUNEL	Opuntia	elatior	Cactaceae	
+OREOCA	Oreopanax	capitatus	Araliaceae	
+OREO2	Oreopanax	sp.2	Araliaceae	
+ORMOAM	Ormosia	amazonica	Fabaceae:Papil.	
+ORMOCR	Ormosia	coccinea	Fabaceae:Papil.	
+ORMOMA	Ormosia	macrocalyx	Fabaceae:Papil.	
+OSSASP	Ossaea	spicata	Melastomataceae	
+OSTEPL	Osteophloeum	platyspermum	Myristicaceae	
+OTOBAC	Otoba	acuminata	Myristicaceae	
+OTOBNO	Otoba	novogranatensis	Myristicaceae	
+OTOBPA	Otoba	parvifolia	Myristicaceae	
+OURAKN	Ouratea	knappiae	Ochnaceae	
+OURALU	Ouratea	lucens	Ochnaceae	
+OURACO	Ouratea	prominens	Ochnaceae	
+OURASU	Ouratea	sulcatinervia	Ochnaceae	
+OXANLO	Oxandra	longipetala	Annonaceae	
+OXANPA	Oxandra	panamensis	Annonaceae	
+OXANVE	Oxandra	venezuelana	Annonaceae	
+POCHAQ	Pachira	aquatica	Bombacaceae	
+POCHQU	Pachira	quinata	Bombacaceae	
+POCHSE	Pachira	sessilis	Bombacaceae	
+PALICR	Palicourea	crocea	Rubiaceae	
+PALIGU	Palicourea	guianensis	Rubiaceae	
+PALITR	Palicourea	triphylla	Rubiaceae	
+PALITU	Palicourea	tubuliflora	Rubiaceae	
+PANOSU	Panopsis	suaveolens	Proteaceae	
+PAR1PY	Paragonia	pyramidata	Bignoniaceae	l
+PAR2AM	Parathesis	amplifolia	Myrsinaceae	
+PAR21	Parathesis	sp.1	Myrsinaceae	
+PARICH	Parinari	chocoensis	Chrysobalanaceae	
+PARKNI	Parkia	nitida	Fabaceae:Mimos.	
+PAR1AC	Parkinsonia	aculeata	Fabaceae:Caesal.	
+PARMCE	Parmentiera	cereifera	Bignoniaceae	
+PARMMA	Parmentiera	macrophylla	Bignoniaceae	
+PASSAM	Passiflora	ambigua	Passifloraceae	l
+PASSAU	Passiflora	auriculata	Passifloraceae	l
+PASSBI	Passiflora	biflora	Passifloraceae	l
+PASSNI	Passiflora	nitida	Passifloraceae	l
+PASSSE	Passiflora	seemannii	Passifloraceae	l
+PASSVI	Passiflora	vitifolia	Passifloraceae	l
+PAULBA	Paullinia	baileyi	Sapindaceae	l
+PAULBR	Paullinia	bracteosa	Sapindaceae	l
+PAULFI	Paullinia	fibrigera	Sapindaceae	l
+PAULFU	Paullinia	fuscescens	Sapindaceae	l
+PAULG1	Paullinia	glabrata	Sapindaceae	l
+PAULG2	Paullinia	glomerulosa	Sapindaceae	l
+PAULMA	Paullinia	mallophyla	Sapindaceae	l
+PAULPI	Paullinia	pinnata	Sapindaceae	l
+PAULPT	Paullinia	pterocarpa	Sapindaceae	l
+PAULRU	Paullinia	rugosa	Sapindaceae	l
+PAULTU	Paullinia	turbacensis	Sapindaceae	l
+PAUSTR	Pausandra	trianae	Euphorbiaceae	
+LOPIDA	Pavonia	dasypetala	Malvaceae	
+PELLRH	Pelliciera	rhizophorae	Theaceae	
+PEL1IN	Peltophorum	pterocarpum	Fabaceae:Caesal.	
+PEN1MA	Pentaclethra	macroloba	Fabaceae:Mimos.	
+PENTCO	Pentagonia	costaricensis	Rubiaceae	
+PENTGY	Pentagonia	gymnopoda	Rubiaceae	
+PENTMA	Pentagonia	macrophylla	Rubiaceae	
+PENTPA	Pentagonia	parvifolia	Rubiaceae	
+PENTWE	Pentagonia	wendlandii	Rubiaceae	
+PERAAR	Pera	arborea	Euphorbiaceae	
+PERAOP	Pera	oppositifolia	Euphorbiaceae	
+PEREAN	Perebea	angustifolia	Moraceae	
+PEREGU	Perebea	guianensis	Moraceae	
+PERE1	Perebea	sp.1	Moraceae	
+PEREXA	Perebea	xanthochyma	Moraceae	
+PER1BL	Pereskia	bleo	Cactaceae	
+PERIPR	Peritassa	pruinosa	Celastraceae	l
+PERSAM	Persea	americana	Lauraceae	
+PETRAS	Petrea	volubilis	Verbenaceae	l
+PHOE1	Phoebe	sp.1	Lauraceae	
+PHOTMI	Photinia	microcarpa	Rosaceae	
+PHRAMA	Phragmotheca	mammosa	Bombacaceae	
+PHRYCO	Phryganocydia	corymbosa	Bignoniaceae	l
+PHYL1	Phyllanthus	'chagres'	Euphorbiaceae	
+PHYLAC	Phyllanthus	acuminatus	Euphorbiaceae	
+PHYLSK	Phyllanthus	skutchii	Euphorbiaceae	
+PHYTSE	Phytelephas	seemannii	Arecaceae	
+PICRLA	Picramnia	latifolia	Simaroubaceae	
+PICR1	Picramnia	sp.1	Simaroubaceae	
+PINUCA	Pinus	caribaea	Pinaceae	
+PIPEAD	Piper	aduncum	Piperaceae	
+PIPEAE	Piper	aequale	Piperaceae	
+PIPEAM	Piper	amalago	Piperaceae	
+PIPEA1	Piper	arboreum	Piperaceae	
+PIPEA2	Piper	aristolochiaefolium	Piperaceae	l
+PIPEA4	Piper	augustum	Piperaceae	
+PIPEAU	Piper	auritum	Piperaceae	
+PIPECU	Piper	colonense	Piperaceae	
+PIPECO	Piper	cordulatum	Piperaceae	
+PIPEFI	Piper	fimbriulatum	Piperaceae	
+PIPEGR	Piper	grande	Piperaceae	
+PIPEH2	Piper	hirtellipetiolum	Piperaceae	
+PIPEHI	Piper	hispidum	Piperaceae	
+PIPEIM	Piper	imperialis	Piperaceae	
+PIPELO	Piper	longispicum	Piperaceae	
+PIPEMA	Piper	marginatum	Piperaceae	
+PIPEMU	Piper	multiplinervium	Piperaceae	
+PIPEMU	Piper	multiplinervium	Piperaceae	l
+PIPEP1	Piper	peltatum	Piperaceae	
+PIPEPE	Piper	perlasense	Piperaceae	
+PIPEPH	Piper	phytolaccifolium	Piperaceae	
+PIPERE	Piper	reticulatum	Piperaceae	
+PIPESA	Piper	sancti-felicis	Piperaceae	
+PIPECA	Piper	schiedeanum	Piperaceae	
+PIPE5	Piper	sp.5	Piperaceae	
+PIPE6	Piper	sp.6	Piperaceae	
+PIPE7	Piper	sp.7	Piperaceae	
+PIPE8	Piper	sp.8	Piperaceae	
+PISOAC	Pisonia	aculeata	Nyctaginaceae	l
+PIT1HY	Pithecellobium	hymenaeifolium	Fabaceae:Mimos.	
+PIT1HY	Pithecellobium	hymenaeifolium	Fabaceae	l
+PIT1LA	Pithecellobium	lanceolatum	Fabaceae:Mimos.	
+PIT1UN	Pithecellobium	unguis-cati	Fabaceae:Mimos.	
+PIT2CR	Pithecoctenium	crucigerum	Bignoniaceae	l
+ANTITR	Pittoniotis	trichantha	Rubiaceae	
+PLA1PI	Platymiscium	pinnatum	Fabaceae:Papil.	
+PLA2EL	Platypodium	elegans	Fabaceae:Papil.	
+PLEOVA	Pleonotoma	variabilis	Bignoniaceae	l
+PLE1LI	Pleuranthodendron	lindenii	Flacourtiaceae	
+PLEUHE	Pleurothyrium	aff.hexaglandulosum	Lauraceae	
+PLEURA	Pleurothyrium	racemosum	Lauraceae	
+PLEU2	Pleurothyrium	sp.2_('hoja_grande')	Lauraceae	
+PLIN1	Plinia	'cerrojefe'	Myraceae	
+PLINPO	Plinia	povedae	Myrtaceae	
+PLINSA	Plinia	salamancana	Myrtaceae	
+PLUMAC	Plumeria	rubra	Apocynaceae	
+PODOGU	Podocarpus	guatemalensis	Podocarpaceae	
+PODOOL	Podocarpus	oleifolius	Podocarpaceae	
+POGOSP	Pogonopus	exsertus	Rubiaceae	
+POLLDI	Pollalesta	discolor	Asteraceae	
+POSOLA	Posoqueria	latifolia	Rubiaceae	
+POSOMA	Posoqueria	maxima	Rubiaceae	
+POSO1	Posoqueria	sp.1_(hojas_chicas)	Rubiaceae	
+POTAAM	Potalia	amara	Loganiaceae	
+POULAR	Poulsenia	armata	Moraceae	
+POURBI	Pourouma	bicolor	Cecropiaceae	
+POURMI	Pourouma	minor	Cecropiaceae	
+POUTBU	Pouteria	buenaventurensis	Sapotaceae	
+POUTB1	Pouteria	bulliformis	Sapotaceae	
+POUTC1	Pouteria	calistophylla	Sapotaceae	
+POUTCA	Pouteria	campechiana	Sapotaceae	
+POUTCO	Pouteria	congestifolia	Sapotaceae	
+POUTCU	Pouteria	cuspidata	Sapotaceae	
+POUTDU	Pouteria	durlandii	Sapotaceae	
+POUTFO	Pouteria	fossicola	Sapotaceae	
+POUTF1	Pouteria	foveolata	Sapotaceae	
+POUTGL	Pouteria	glomerata_ss:glomerata	Sapotaceae	
+POUTG1	Pouteria	glomerata_ss:stylosa	Sapotaceae	
+POUTLE	Pouteria	leptopedicellata	Sapotaceae	
+POUTMU	Pouteria	multiflora	Sapotaceae	
+POUTRE	Pouteria	reticulata	Sapotaceae	
+POUTSA	Pouteria	sapota	Sapotaceae	
+POUTSC	Pouteria	sclerocarpa.aff	Sapotaceae	
+POUTSY	Pouteria	silvestris	Sapotaceae	
+POUT10	Pouteria	sp.10	Sapotaceae	
+POUT17	Pouteria	sp.17	Sapotaceae	
+POUT18	Pouteria	sp.18	Sapotaceae	
+POUT20	Pouteria	sp.20	Sapotaceae	
+POUT21	Pouteria	sp.21	Sapotaceae	
+POUT23	Pouteria	sp.23	Sapotaceae	
+POUT27	Pouteria	sp.27	Sapotaceae	
+POUT28	Pouteria	sp.28	Sapotaceae	
+POUT3	Pouteria	sp.3	Sapotaceae	
+POUT30	Pouteria	sp.30	Sapotaceae	
+POUT4	Pouteria	sp.4	Sapotaceae	
+POUT7	Pouteria	sp.7	Sapotaceae	
+POUT8	Pouteria	sp.8	Sapotaceae	
+POUT9	Pouteria	sp.9	Sapotaceae	
+POUTST	Pouteria	stipitata	Sapotaceae	
+POUTTO	Pouteria	torta	Sapotaceae	
+PRESDE	Prestoea	decurrens	Arecaceae	
+PRESIP	Prestonia	ipomaeifolia	Apocynaceae	l
+PRESOB	Prestonia	obovata	Apocynaceae	l
+PRESPO	Prestonia	portobellensis	Apocynaceae	l
+PRESAC	Prestonia	quinquangularis	Apocynaceae	l
+PRES1	Prestonia	sp.1	Apocynaceae	l
+PRES2	Prestonia	sp.2	Apocynaceae	l
+PRI1AS	Prionostemma	aspera	Hippocrateaceae	l
+PRI2CO	Prioria	copaifera	Fabaceae:Caesal.	
+PROCCR	Prockia	crucis	Flacourtiaceae	
+PROSJU	Prosopis	juliflora	Fabaceae:Mimos.	
+PROTGU	Protium	aff.guianense	Burseraceae	
+PROTSP	Protium	confusum	Burseraceae	
+PROTCO	Protium	costaricense	Burseraceae	
+PROTGL	Protium	glabrum	Burseraceae	
+PROTPA	Protium	panamense	Burseraceae	
+PROTTE	Protium	tenuifolium	Burseraceae	
+PROTT2	Protium	tenuifolium_subsp.mcleodii	Burseraceae	
+PROTTR	Protium	trifoliolatum	Burseraceae	
+PSE3FR	Pseudima	frutescens	Sapindaceae	
+PSE1SE	Pseudobombax	septenatum	Bombacaceae	
+PSE2LA	Pseudolmedia	laevigata	Moraceae	
+PSE2SP	Pseudolmedia	spuria	Moraceae	
+ALBIGU	Pseudosamanea	guachapele	Fabaceae:Mimos.	
+PSEUAC	Pseudosicydium	acariianthum	Cucurbitaceae	l
+PSIDFR	Psidium	friedrichsthalianum	Myrtaceae	
+PSIDGU	Psidium	guajava	Myrtaceae	
+PSIDG1	Psidium	guineense	Myrtaceae	
+PSIGBI	Psiguria	triphylla	Cucurbitaceae	l
+PSIGWA	Psiguria	warscewiczii	Cucurbitaceae	l
+PSYCAC	Psychotria	acuminata	Rubiaceae	
+PSYCAL	Psychotria	allenii	Rubiaceae	
+PSYCB1	Psychotria	brachiata	Rubiaceae	
+PSYCB2	Psychotria	brachybotrya	Rubiaceae	
+PSYCCA	Psychotria	calophylla	Rubiaceae	
+PSYCC1	Psychotria	capitata	Rubiaceae	
+PSYCCH	Psychotria	chagrensis	Rubiaceae	
+PSYCCI	Psychotria	cincta	Rubiaceae	
+PSYCPI	Psychotria	cyanococca	Rubiaceae	
+PSYCDE	Psychotria	deflexa	Rubiaceae	
+PSYCEL	Psychotria	elata	Rubiaceae	
+PSYCER	Psychotria	erecta	Rubiaceae	
+PSYCGL	Psychotria	glomerulata	Rubiaceae	
+PSYCG1	Psychotria	graciliflora	Rubiaceae	
+PSYCG3	Psychotria	grandis	Rubiaceae	
+PSYCFU	Psychotria	hoffmannseggiana	Rubiaceae	
+PSYCHO	Psychotria	horizontalis	Rubiaceae	
+PSYCLI	Psychotria	limonensis	Rubiaceae	
+PSYCLU	Psychotria	luxurians	Rubiaceae	
+PSYCMA	Psychotria	marginata	Rubiaceae	
+PSYCMI	Psychotria	micrantha	Rubiaceae	
+PSYCNE	Psychotria	nervosa	Rubiaceae	
+PSYCPA	Psychotria	panamensis	Rubiaceae	
+PSYCPO	Psychotria	poeppigiana	Rubiaceae	
+PSYCPS	Psychotria	psychotriifolia	Rubiaceae	
+PSYCPU	Psychotria	pubescens	Rubiaceae	
+PSYCRA	Psychotria	racemosa	Rubiaceae	
+PSYCRE	Psychotria	remota	Rubiaceae	
+PSYCSA	Psychotria	santaritensis	Rubiaceae	
+PSYC4	Psychotria	sp.4	Rubiaceae	
+PSYCSU	Psychotria	suerrensis	Rubiaceae	
+PSYCG2	Psychotria	tenuifolia	Rubiaceae	
+PSYCUM	Psychotria	umbelliformis	Rubiaceae	
+PTERAC	Pterocarpus	acapulcensis	Fabaceae:Papil.	
+PTEROF	Pterocarpus	officinalis	Fabaceae:Papil.	
+PTERRO	Pterocarpus	rohrii	Fabaceae:Papil.	
+PTER2	Pterocarpus	sp.2	Fabaceae:Papil.	
+PTER3	Pterocarpus	sp.3	Fabaceae:Papil.	
+QUALPO	Qualea	polychroma	Vochysiaceae	
+QUARAS	Quararibea	asterolepis	Bombacaceae	
+QUARA1	Quararibea	asterolepis_ss:stenophylla	Bombacaceae	
+QUARPL	Quararibea	platyphylla	Bombacaceae	
+QUARPT	Quararibea	pterocalyx	Bombacaceae	
+QUARPU	Quararibea	pumila	Bombacaceae	
+QUAR3	Quararibea	sp.3	Bombacaceae	
+QUAR4	Quararibea	sp.4	Bombacaceae	
+QUASAM	Quassia	amara	Simaroubaceae	
+QUERIN	Quercus	insignis	Fagaceae	
+QUETOC	Quetzalia	occidentalis	Celastraceae	
+QUIISC	Quiina	schippii	Quiinaceae	
+RAND4	Randia	'campo_chagres'	Rubiaceae	
+RANDAC	Randia	aculeata	Rubiaceae	
+RANDAR	Randia	armata	Rubiaceae	
+RANDGR	Randia	grandifolia	Rubiaceae	
+RANDHO	Randia	hondensis	Rubiaceae	
+RANDLA	Randia	lasiantha	Rubiaceae	
+RAND2	Randia	sp.2	Rubiaceae	
+RAND3	Randia	sp.3	Rubiaceae	
+RAPHTA	Raphia	taedigera	Arecaceae	
+RARIPA	Raritebe	palicoureoides	Rubiaceae	
+RAUVAP	Rauvolfia	aphlebia	Apocynaceae	
+RAUVLI	Rauvolfia	littoralis	Apocynaceae	
+RAUVPU	Rauvolfia	purpurascens	Apocynaceae	
+RHABBI	Rhabdadenia	biflora	Apocynaceae	l
+RHAMSH	Rhamnus	sharpii	Rhamnaceae	
+RHIZMA	Rhizophora	mangle	Rhizophoraceae	
+RHYCPY	Rhynchosia	pyramidalis	Fabaceae:faboid.	l
+RICICO	Ricinus	communis	Euphorbiaceae	
+RINOAP	Rinorea	aff.apiculata	Violaceae	
+RINOCR	Rinorea	crenata	Violaceae	
+RINODA	Rinorea	dasyadena	Violaceae	
+RINOHU	Rinorea	hummelii	Violaceae	
+RINOLI	Rinorea	lindeniana	Violaceae	
+RINO2	Rinorea	sp.2	Violaceae	
+RINO3	Rinorea	sp.3	Violaceae	
+RINO4	Rinorea	sp.4 (p19)	Violaceae	
+RINOSQ	Rinorea	squamata	Violaceae	
+RINOSY	Rinorea	sylvatica	Violaceae	
+RONDAM	Rogiera	amoena	Rubiaceae	
+ROLLMU	Rollinia	mucosa	Annonaceae	
+ROLLPI	Rollinia	pittieri	Annonaceae	
+RONDPA	Rondeletia	panamensis	Rubiaceae	
+RANDFO	Rosenbergiodendron	formosum	Rubiaceae	
+ROUPMO	Roupala	montana	Proteaceae	
+ROUPPE	Roupala	percoriacea	Proteaceae	
+ROURGL	Rourea	glabra	Connaraceae	l
+ROYSRE	Roystonea	regia	Arecaceae	
+RUDGCO	Rudgea	cornifolia	Rubiaceae	
+RUDGIS	Rudgea	isthmensis	Rubiaceae	
+RUDGPI	Rudgea	pittieri	Rubiaceae	
+RUDGSK	Rudgea	skutchii	Rubiaceae	
+RUDG1	Rudgea	sp.1	Rubiaceae	
+RUPRCO	Ruprechtia	costata	Polygonaceae	
+RUPTCA	Ruptiliocarpon	caracolito	Lepidobotryaceae	
+RYANSP	Ryania	speciosa	Flacourtiaceae	
+SABIVI	Sabicea	villosa	Rubiaceae	l
+SACOOV	Sacoglottis	ovicarpa	Humiriaceae	
+SACOTR	Sacoglottis	trichogyna	Humiriaceae	
+SALAJU	Salacia	juruana	Hippocrateaceae	
+SALAPE	Salacia	petenensis	Hippocrateaceae	
+SAMASA	Samanea	saman	Fabaceae:Mimos.	
+SAP1SA	Sapindus	saponaria	Sapindaceae	
+SAPISP	Sapium	'broadleaf'	Euphorbiaceae	
+SAPIAU	Sapium	glandulosum	Euphorbiaceae	
+SAPILA	Sapium	laurifolium	Euphorbiaceae	
+SAPIPA	Sapium	pachystachys	Euphorbiaceae	
+SAPI2	Sapium	sp.2	Euphorbiaceae	
+SARCBR	Sarcaulus	brasiliensis	Sapotaceae	
+SAURMO	Saurauia	montana	Actinidiaceae	
+SAURRU	Saurauia	rubiformis	Actinidiaceae	
+SAURLA	Saurauia	yasicae	Actinidiaceae	
+SCH2MO	Schefflera	morototoni	Araliaceae	
+SCHIPA	Schizolobium	parahyba	Fabaceae:Caesal.	
+SCHOPA	Schoenobiblus	panamensis	Thymelaeaceae	
+SCH3VA	Schoepfia	vacciniiflora	Olacaceae	
+SCIAEX	Sciadodendron	excelsum	Araliaceae	
+SCIANI	Sciadotenia	nitida	Menispermaceae	l
+SCLECO	Sclerolobium	costaricense	Fabaceae:Caesal.	
+SECUDI	Securidaca	diversifolia	Polygalaceae	l
+SENNBI	Senna	bicapsularis	Fabaceae:Caesal.	
+SENNDA	Senna	dariensis	Fabaceae:Caesal.	
+SENNRE	Senna	reticulata	Fabaceae:Caesal.	
+SENNUN	Senna	undulata	Fabaceae	l
+SERJAT	Serjania	atrolineata	Sapindaceae	l
+SERJCI	Serjania	circumvallata	Sapindaceae	l
+SERJCO	Serjania	cornigera	Sapindaceae	l
+SERJDE	Serjania	decapleuria	Sapindaceae	l
+SERJM1	Serjania	membranacea	Sapindaceae	l
+SERJME	Serjania	mexicana	Sapindaceae	l
+SERJPA	Serjania	paucidentata	Sapindaceae	l
+SERJPL	Serjania	pluvialiflorens	Sapindaceae	l
+SERJRH	Serjania	rhombea	Sapindaceae	l
+SERJTR	Serjania	trachygona	Sapindaceae	l
+SICYCO	Sicydium	coriaceum	Cucurbitaceae	l
+SIDECA	Sideroxylon	capiri	Sapotaceae	
+SIDECE	Sideroxylon	celastrinum	Sapotaceae	
+SIDECO	Sideroxylon	cf.contrerasii	Sapotaceae	
+SIDEPE	Sideroxylon	persimile	Sapotaceae	
+SIM1CE	Simaba	cedron	Simaroubaceae	
+SIM1PO	Simaba	polyphylla	Simaroubaceae	
+SIMAAM	Simarouba	amara	Simaroubaceae	
+SIMIMA	Simira	maxonii	Rubiaceae	
+SIPACO	Siparuna	conica	Monimiaceae	
+SIPACU	Siparuna	cuspidata	Monimiaceae	
+SIPAGR	Siparuna	grandiflora	Monimiaceae	
+SIPAGU	Siparuna	guianensis	Monimiaceae	
+SIPAPA	Siparuna	pauciflora	Monimiaceae	
+SIPA3	Siparuna	sp.3	Monimiaceae	
+SIPA5	Siparuna	sp.5	Monimiaceae	
+SIPATH	Siparuna	thecaphora	Monimiaceae	
+SLOACE	Sloanea	'cerrojefe'	Elaeocarpaceae	
+SLOALA	Sloanea	aff.laurifolia	Elaeocarpaceae	
+SLOAGR	Sloanea	grandiflora	Elaeocarpaceae	
+SLOAM2	Sloanea	medusula	Elaeocarpaceae	
+SLOAME	Sloanea	megaphylla	Elaeocarpaceae	
+SLOAM1	Sloanea	meianthera	Elaeocarpaceae	
+SLOAOB	Sloanea	obtusifolia	Elaeocarpaceae	
+SLOA5	Sloanea	sp.5	Elaeocarpaceae	
+SLOA6	Sloanea	sp.6	Elaeocarpaceae	
+SLOA7	Sloanea	sp.7	Elaeocarpaceae	
+SLOA8	Sloanea	sp.8	Elaeocarpaceae	
+SLOA9	Sloanea	sp.9	Elaeocarpaceae	
+SLOATE	Sloanea	terniflora	Elaeocarpaceae	
+SLOATU	Sloanea	tuerckheimii	Elaeocarpaceae	
+SLOAZU	Sloanea	zuliaensis	Elaeocarpaceae	
+SMILLA	Smilax	domingensis	Smilacaceae	l
+SMILMO	Smilax	mollis	Smilacaceae	l
+SMILPA	Smilax	panamensis	Smilacaceae	l
+SMIL	Smilax	sp.	Smilacaceae	l
+SMIL1	Smilax	sp.1	Smilacaceae	l
+SMILS1	Smilax	spinosa	Smilacaceae	l
+SMILS2	Smilax	spissa	Smilacaceae	l
+SOCREX	Socratea	exorrhiza	Arecaceae	
+SOLA5	Solanum	'enves_purpura'	Solanaceae	
+SOLAAR	Solanum	arboreum	Solanaceae	
+SOLAAS	Solanum	asperum	Solanaceae	
+SOLAAT	Solanum	aturense	Solanaceae	
+SOLAAT	Solanum	aturense	Solanaceae	l
+CYPHHA	Solanum	circinatum	Solanaceae	
+SOLAEX	Solanum	cordovense	Solanaceae	
+SOLAHA	Solanum	hayesii	Solanaceae	
+SOLAH1	Solanum	hazenii	Solanaceae	
+SOLALA	Solanum	lancaeifolium	Solanaceae	l
+SOLASI	Solanum	siparunoides	Solanaceae	
+SOLA3	Solanum	sp.3	Solanaceae	
+SOLAST	Solanum	steyermarkii	Solanaceae	
+SOMMDO	Sommera	donnell-smithii	Rubiaceae	
+SOROAF	Sorocea	affinis	Moraceae	
+SOROP1	Sorocea	pubivena_ss:oligotricha	Moraceae	
+SOROPU	Sorocea	pubivena_ss:pubivena	Moraceae	
+SOURSY	Souroubea	sympetala	Marcgraviaceae	l
+SPACCO	Spachea	correae	Malpighiaceae	
+SPACME	Spachea	membranacea	Malpighiaceae	
+SPATCA	Spathodea	campanulata	Bignoniaceae	
+SPONCY	Spondias	dulcis	Anacardiaceae	
+SPONMO	Spondias	mombin	Anacardiaceae	
+SPONPU	Spondias	purpurea	Anacardiaceae	
+SPONRA	Spondias	radlkoferi	Anacardiaceae	
+STACDI	Stachyarrhena	heterochroa	Rubiaceae	
+STAUPE	Stauranthus	perforatus	Rutaceae	
+STEMAL	Stemmadenia	alfari	Apocynaceae	
+STEMGR	Stemmadenia	grandiflora	Apocynaceae	
+STEMOB	Stemmadenia	obovata	Apocynaceae	
+STEM1	Stemmadenia	sp.1	Apocynaceae	
+STEM3	Stemmadenia	sp.3	Apocynaceae	
+STERAP	Sterculia	apetala	Sterculiaceae	
+STERGL	Sterculia	costaricana var. glauca	Sterculiaceae	
+STERRE	Sterculia	recordiana	Sterculiaceae	
+STER2	Sterculia	sp.2	Sterculiaceae	
+STIGEL	Stigmaphyllon	ellipticum	Malpighiaceae	l
+STIGHY	Stigmaphyllon	hypargyreum	Malpighiaceae	l
+STIGLI	Stigmaphyllon	lindenianum	Malpighiaceae	l
+STIGPU	Stigmaphyllon	puberum	Malpighiaceae	l
+STIZIN	Stizophyllum	inaequilaterum	Bignoniaceae	l
+STIZRI	Stizophyllum	riparium	Bignoniaceae	l
+STRYBR	Strychnos	brachistantha	Loganiaceae	l
+STRYDA	Strychnos	darienensis	Loganiaceae	l
+STRYPA	Strychnos	panamensis	Loganiaceae	l
+STRY1	Strychnos	sp.1	Loganiaceae	
+STRYTO	Strychnos	toxifera	Loganiaceae	l
+STYLST	Stylogyne	turbacensis	Myrsinaceae	
+SWARSU	Swartzia	aff.sumorum	Fabaceae:Papil.	
+SWARPA	Swartzia	panamensis	Fabaceae:Papil.	
+SWARS1	Swartzia	simplex_var.grandiflora	Fabaceae:Papil.	
+SWARS2	Swartzia	simplex_var.ochnacea	Fabaceae:Papil.	
+SWIEMA	Swietenia	macrophylla	Meliaceae	
+SYMPGL	Symphonia	globulifera	Clusiaceae	
+SYM1PA	Symplocos	panamensis	Symplocaceae	
+SYNEWA	Synechanthus	warscewiczianus	Arecaceae	
+SYZYJA	Syzygium	jambos	Myrtaceae	
+SYZYMA	Syzygium	malaccense	Myrtaceae	
+TAB1GU	Tabebuia	guayacan	Bignoniaceae	
+TAB1OC	Tabebuia	ochracea	Bignoniaceae	
+TAB1RO	Tabebuia	rosea	Bignoniaceae	
+TAB1ST	Tabebuia	striata	Bignoniaceae	
+TAB2AR	Tabernaemontana	arborea	Apocynaceae	
+TAB2DI	Tabernaemontana	divaricata	Apocynaceae	
+TAB2PE	Tabernaemontana	longipes	Apocynaceae	
+TAB2PA	Tabernaemontana	panamensis	Apocynaceae	
+TAB2UN	Tabernaemontana	undulata	Apocynaceae	
+TACHVE	Tachigali	versicolor	Fabaceae:Caesal.	
+TALAGL	Talauma	gloriensis	Magnoliaceae	
+TALASA	Talauma	sambuensis	Magnoliaceae	
+HIBIPE	Talipariti	tiliaceum_var.pernambucens	Malvaceae	
+TALIPR	Talisia	croatii	Sapindaceae	
+TALINE	Talisia	nervosa	Sapindaceae	
+TAMAIN	Tamarindus	indica	Fabaceae:Caesal.	
+TAPIGU	Tapirira	guianensis	Anacardiaceae	
+TAPUCU	Tapura	cubensis	Dichapetalaceae	
+CYNARE	Tassadia	obovata	Asclepiadaceae	l
+TECOST	Tecoma	stans	Bignoniaceae	
+TECTGR	Tectona	grandis	Verbenaceae	
+TERMAM	Terminalia	amazonia	Combretaceae	
+TERMBU	Terminalia	bucidoides	Combretaceae	
+TERMCA	Terminalia	catappa	Combretaceae	
+TERMMY	Terminalia	myriocarpa	Combretaceae	
+TERMOB	Terminalia	oblonga	Combretaceae	
+TERM1	Terminalia	sp.1	Combretaceae	
+TERM2	Terminalia	sp.2	Combretaceae	
+TERNTE	Ternstroemia	tepezapote	Theaceae	
+TESSGO	Tessmannianthus	gordonii	Melastomataceae	
+TET1HY	Tetracera	hydrophila	Dilleniaceae	l
+TET1PO	Tetracera	portobellensis	Dilleniaceae	l
+TET1VO	Tetracera	volubilis	Dilleniaceae	l
+TET2PA	Tetragastris	panamensis	Burseraceae	
+TET3DI	Tetrapterys	discolor	Malpighiaceae	l
+TET3GO	Tetrapterys	goudotiana	Malpighiaceae	l
+TET3SE	Tetrapterys	seemannii	Malpighiaceae	l
+TET31	Tetrapterys	sp.1	Malpighiaceae	l
+TET3MA	Tetrapterys	tinifolia	Malpighiaceae	l
+TET4JO	Tetrathylacium	johansenii	Flacourtiaceae	
+TET4MA	Tetrathylacium	macrophyllum	Flacourtiaceae	
+TET5EU	Tetrorchidium	euryphyllum	Euphorbiaceae	
+TET5GO	Tetrorchidium	gorgonae	Euphorbiaceae	
+THEOBE	Theobroma	bernoullii	Sterculiaceae	
+THEOBI	Theobroma	bicolor	Sterculiaceae	
+THEOCA	Theobroma	cacao	Sterculiaceae	
+THEOMA	Theobroma	mammosum	Sterculiaceae	
+THEOCH	Theobroma	simiarum	Sterculiaceae	
+THEOSP	Theobroma	speciosum	Sterculiaceae	
+THESPO	Thespesia	populnea	Malvaceae	
+THEVAH	Thevetia	ahouai	Apocynaceae	
+THINMY	Thinouia	myriantha	Sapindaceae	l
+TIBOBI	Tibouchina	bipenicillata	Melastomataceae	
+WULFBA	Tilesia	baccata	Asteraceae	l
+TOC1GU	Tococa	guianensis	Melastomataceae	
+TOCOPI	Tocoyena	pittieri	Rubiaceae	
+TONTOV	Tontelea	ovalifolia_subsp._ richardii	Hippocrateaceae	l
+TOURBI	Tournefortia	bicolor	Boraginaceae	l
+TOURCU	Tournefortia	cuspidata	Boraginaceae	l
+TOURHI	Tournefortia	hirsutissima	Boraginaceae	l
+TOVOLO	Tovomita	longifolia	Clusiaceae	
+TOVO1	Tovomita	sp.1	Clusiaceae	
+TOVOST	Tovomita	stylosa	Clusiaceae	
+TOVOWE	Tovomita	weddelliana	Clusiaceae	
+TRATAS	Trattinnickia	aspera	Burseraceae	
+TRATBU	Trattinnickia	burserifolia	Burseraceae	
+TREMIN	Trema	integerrima	Ulmaceae	
+TREMMI	Trema	micrantha	Ulmaceae	
+TRI1GI	Trichanthera	gigantea	Acanthaceae	
+TRI2HI	Trichilia	hirta	Meliaceae	
+TRI2TO	Trichilia	martiana	Meliaceae	
+TRI2PA	Trichilia	pallida	Meliaceae	
+TRI2PL	Trichilia	pleeana	Meliaceae	
+TRI2PO	Trichilia	poeppigii	Meliaceae	
+TRI2QU	Trichilia	quadrijuga	Meliaceae	
+TRI2SE	Trichilia	septentrionalis	Meliaceae	
+TRI21	Trichilia	sp.1	Meliaceae	
+TRI22	Trichilia	sp.2	Meliaceae	
+TRI2TR	Trichilia	trifolia	Meliaceae	
+TRI2TU	Trichilia	tuberculata	Meliaceae	
+TRI4GA	Trichospermum	galeottii	Tiliaceae	
+TRIGRU	Trigonia	rugosa	Trigoniaceae	l
+TRIPCU	Triplaris	cumingiana	Polygonaceae	
+TRIUBO	Triumfetta	bogotensis	Tiliaceae	
+TRIULA	Triumfetta	lappula	Tiliaceae	
+OLMEAS	Trophis	caucana	Moraceae	
+TROPRA	Trophis	racemosa	Moraceae	
+TURNPA	Turnera	panamensis	Turneraceae	
+TURPOC	Turpinia	occidentalis	Staphyleaceae	
+TYNNCR	Tynnanthus	croatianus	Bignoniaceae	l
+ULMUME	Ulmus	mexicana	Ulmaceae	
+UNCATO	Uncaria	tomentosa	Rubiaceae	l
+UN2_SH	Unidentified	(sherman)	Unidentified	
+UN1M39	Unidentified	monitoreo_39	Unidentified	
+UN1M40	Unidentified	monitoreo_40	Unidentified	
+UN1M41	Unidentified	monitoreo_41_1	Unidentified	
+UN1_M9	Unidentified	monitoreo_9	Unidentified	
+UNIDEN	Unidentified	species	Unidentified	
+UNON3	Unonopsis	'peludo'	Annonaceae	
+UNONBU	Unonopsis	bullata	Annonaceae	
+UNONPA	Unonopsis	panamensis	Annonaceae	
+UNONPI	Unonopsis	pittieri	Annonaceae	
+UNON1	Unonopsis	sp.1	Annonaceae	
+UNON2	Unonopsis	sp.2	Annonaceae	
+UNONTH	Unonopsis	theobromifolia	Annonaceae	
+UNONVE	Unonopsis	veneficiorum	Annonaceae	
+URERBA	Urera	baccifera	Urticaceae	
+URERCA	Urera	caracasana	Urticaceae	
+UREREG	Urera	eggersii	Urticaceae	
+UREREG	Urera	eggersii	Urticaceae	l
+UREREL	Urera	elata	Urticaceae	
+URERLA	Urera	laciniata	Urticaceae	
+URERLI	Urera	lianoides	Urticaceae	l
+VANTDE	Vantanea	depleta	Humiriaceae	
+CARICA	Vasconcellea	cauliflora	Caricaceae	
+VATAER	Vatairea	erythrocarpa	Fabaceae:Papil.	
+VERBGI	Verbesina	gigantea	Asteraceae	
+VERBLA	Verbesina	lanata	Asteraceae	
+VERNPA	Vernonanthura	patens	Asteraceae	
+VIBUCO	Viburnum	costaricanum	Caprifoliaceae	
+VIROEL	Virola	elongata	Myristicaceae	
+VIROGU	Virola	guatemalensis	Myristicaceae	
+VIROKO	Virola	koschnyi	Myristicaceae	
+VIROMA	Virola	macrocarpa	Myristicaceae	
+VIROME	Virola	megacarpa	Myristicaceae	
+VIROSP	Virola	multiflora	Myristicaceae	
+VIROSE	Virola	sebifera	Myristicaceae	
+VIRO1	Virola	sp.1	Myristicaceae	
+VIRO2	Virola	sp.2	Myristicaceae	
+VIROSU	Virola	surinamensis	Myristicaceae	
+VISMBA	Vismia	baccifera	Clusiaceae	
+VISMBI	Vismia	billbergiana	Clusiaceae	
+VISMJE	Vismia	jefensis	Clusiaceae	
+VISMMA	Vismia	macrophylla	Clusiaceae	
+VITECO	Vitex	cooperi	Verbenaceae	
+VITECY	Vitex	cymosa	Verbenaceae	
+VITITI	Vitis	tiliifolia	Vitaceae	l
+VOCHFE	Vochysia	ferruginea	Vochysiaceae	
+VOCHHO	Vochysia	guatemalensis	Vochysiaceae	
+VOCHJE	Vochysia	jefensis	Vochysiaceae	
+VOCH1	Vochysia	sp.1	Vochysiaceae	
+WALTGL	Waltheria	glomerata	Sterculiaceae	
+WARSCO	Warszewiczia	coccinea	Rubiaceae	
+WELFRE	Welfia	regia	Arecaceae	
+WERCCO	Wercklea	cocleana	Malvaceae	
+WERCIN	Wercklea	insignis	Malvaceae	
+WERCWO	Wercklea	woodsonii	Malvaceae	
+WETTHI	Wettinia	quinaria	Arecaceae	
+WITHSO	Witheringia	solanacea	Solanaceae	
+XIMEAM	Ximenia	americana	Olacaceae	
+XYL3SE	Xylophragma	seemannianum	Bignoniaceae	l
+XYL14	Xylopia	'roubik'	Annonaceae	
+XYL1AR	Xylopia	aromatica	Annonaceae	
+XYL1BO	Xylopia	bocatorena	Annonaceae	
+XYL1FR	Xylopia	frutescens	Annonaceae	
+XYL1MA	Xylopia	macrantha	Annonaceae	
+XYL1SE	Xylopia	sericea	Annonaceae	
+XYL2CH	Xylosma	chlorantha	Flacourtiaceae	
+XYL2OL	Xylosma	oligandra	Flacourtiaceae	
+XYL2PA	Xylosma	panamensis	Flacourtiaceae	
+ZAMIEL	Zamia	elegantissimia	Cycadaceae	
+ZANTPR	Zanthoxylum	acuminatum	Rutaceae	
+ZANTBE	Zanthoxylum	ekmanii	Rutaceae	
+ZANTME	Zanthoxylum	melanostictum	Rutaceae	
+ZANTP1	Zanthoxylum	panamense	Rutaceae	
+ZANTSE	Zanthoxylum	setulosum	Rutaceae	
+ZANT1	Zanthoxylum	sp.1	Rutaceae	
+ZIZICI	Ziziphus	chloroxylon	Rhamnaceae	
+ZIZIMA	Ziziphus	mauritiana	Rhamnaceae	
+ZIZIST	Ziziphus	strychnifolia	Rhamnaceae	
+ZUELGU	Zuelania	guidonia	Flacourtiaceae	
+PIT1DI	Zygia	dinizii	Fabaceae:Mimos.	
+ZYGIEN	Zygia	englesingii	Fabaceae:Mimos.	
+ZYGILA	Zygia	latifolia	Fabaceae:Mimos.	
+ZYGILO	Zygia	longifolia	Fabaceae:Mimos.	
+ZYGI1	Zygia	sp.1	Fabaceae:Mimos.	
+ZYGI2	Zygia	sp.2	Fabaceae:Mimos.	

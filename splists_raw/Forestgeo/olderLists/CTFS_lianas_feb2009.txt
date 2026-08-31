@@ -1,0 +1,250 @@
+spcode	FAMILY	GENUS	SPECIES	NOTES
+BIG2	Bignoniaceae	(Bignoniaceae)	'clitoria'	
+BIG1	Bignoniaceae	(Bignoniaceae)	sp.1	
+CUC1	Cucurbitaceae	(Cucurbitaceae)	sp.1	
+MAL1	Malpighiaceae	(Malpighiaceae)	sp. 1	
+PAS1	Passifloraceae	(Passifloraceae)	sp.1	
+SAP1	Sapindaceae	(Sapindaceae)	sp. 1	
+SAP3	Sapindaceae	(Sapindaceae)	sp. 3	
+ABUTPA	Menispermaceae	Abuta	panamensis	
+ABUTRA	Menispermaceae	Abuta	racemosa	A. racimosa fue mal escrito
+ACACAC	Fabaceae	Acacia	hayesii	A. acanthophylla es sinonimo de A. hayesii
+ACACHA	Fabaceae	Acacia	hayesii	
+ACACRI	Fabaceae	Acacia	riparia	
+ADE2AD	Melastomataceae	Adelobotrys	adscendens	
+ADE3AR	Bignoniaceae	Adenocalymma	arthropetiolatum	
+ADE3IN	Bignoniaceae	Adenocalymma	inundatum	Nombre viejo: Adenocalymma apurense
+AEGICE	Verbenaceae	Aegiphila	cephalophora	
+AEGIEL	Verbenaceae	Aegiphila	elata	
+ALLACA	Apocynaceae	Allamanda	cathartica	
+AMPHPA	Bignoniaceae	Amphilophium	paniculatum	
+ANEMCH	Bignoniaceae	Anemopaegma	chrysoleucum	
+ANTHPA	Hippocrateaceae	Anthodon	panamense	
+ARISCO	Aristolochiaceae	Aristolochia	cordiflora	El nombre A. cordifolia fue mal escrito
+ARISGI	Aristolochiaceae	Aristolochia	gigantea	
+ARISPI	Aristolochiaceae	Aristolochia	pilosa	
+ARISTO	Aristolochiaceae	Aristolochia	tonduzii	Nombre viejo: Aristolochia chapmaniana
+ARRACA	Bignoniaceae	Arrabidaea	candicans	
+ARRACH	Bignoniaceae	Arrabidaea	chica	
+ARRACO	Bignoniaceae	Arrabidaea	corallina	
+ARRAFL	Bignoniaceae	Arrabidaea	florida	
+ARRAPA	Bignoniaceae	Arrabidaea	patellifera	
+ARRAVE	Bignoniaceae	Arrabidaea	verrucosa	
+BANICO	Malpighiaceae	Banisteriopsis	cornifolia	
+BAUHGU	Fabaceae	Bauhinia	guianensis	
+BAUHRE	Fabaceae	Bauhinia	reflexa	
+BAUH1	Fabaceae	Bauhinia	spp.	
+BIGNSP	Bignoniaceae	Bignoniaceae	sp.	
+BLEPMU	Asclepiadaceae	Blepharodon	mucronatum	
+BONATR	Convulvaceae	Bonamia	trichantha	
+BYTTAC	Sterculiaceae	Byttneria	aculeata	
+CALLLA	Bignoniaceae	Callichlamys	latifolia	
+CAYADE	Cucurbitaceae	Cayaponia	denticulata	
+CAYAGR	Cucurbitaceae	Cayaponia	granatensis	
+CELTIG	Ulmaceae	Celtis	iguanaeus	
+CERATE	Bignoniaceae	Ceratophytum	tetragonolobum	
+CHIOAL	Rubiaceae	Chiococca	alba	
+CHOMPS	Rubiaceae	Chomelia	psilocarpa	
+CHONTO	Menispermaceae	Chondrodendron	tomentosum	
+CHUSSI	Poaceae	Chusquea	simpliciflora	
+CISSRH	Vitaceae	Cissus	alata	Nombre viejo: Cissus rhombifolia
+CISSER	Vitaceae	Cissus	erosa	
+CISSPS	Vitaceae	Cissus	fuliginea	Nombre viejo: Cissus pseudosicyoides
+CISSMI	Vitaceae	Cissus	microcarpa	
+CISS1	Vitaceae	Cissus	sp.1	
+CISSSI	Vitaceae	Cissus	verticillata	Nombre viejo: Cissus sicyoides
+CLITJA	Fabaceae	Clitoria	javitensis	
+CLITRU	Fabaceae	Clitoria	rubiginosa	Esta especie no se encuentra reportada para la flora de Panama
+CLYTBI	Bignoniaceae	Clytostoma	binatum	
+CNESRU	Connaraceae	Cnestidium	rufescens	
+COCCP1	Polygonaceae	Coccoloba	parimensis	C. paramensis fue mal escrito
+COMBCA	Combretaceae	Combretum	cacoucia	
+COMBDE	Combretaceae	Combretum	decandrum	
+COMBFR	Combretaceae	Combretum	fruticosum	
+COMBLA	Combretaceae	Combretum	laxum	
+COMBPR	Combretaceae	Combretum	o Prionostemma???	NO EXISTE - es Combrotum o Prionostemma - ambos son g?neros
+CONNPA	Connaraceae	Connarus	panamensis	
+CONNTU	Connaraceae	Connarus	turczaninowii	
+CORYRO	Fabaceae	Corymbosa	roseum	Este nombre no existe ?
+COUSVI	Cecropiaceae	Coussapoa	villosa	
+CYDIAE	Bignoniaceae	Cydista	aequinoctialis	El nombre C. aequinoctalis fue mal escrito
+CYDIHE	Bignoniaceae	Cydista	heterophylla	
+CYMBRO	Fabaceae:faboid.	Cymbosema	roseum	
+DALBMO	Fabaceae	Dalbergia	monetaria	
+DALEDI	Euphorbiaceae	Dalechampia	dioscoreifolia	
+DAVINI	Dilleniaceae	Davilla	nitida	
+DES1OR	Arecaceae	Desmoncus	orthacanthos	Nombre viejo: Desmoncus isthmius
+DIOCGU	Fabaceae	Dioclea	guianensis	
+DIOCRE	Fabaceae	Dioclea	reflexa	
+DIOC1	Fabaceae:Papil.	Dioclea	sp.1	
+DIOCWI	Fabaceae	Dioclea	wilsonii	
+DIO1AL	Dioscoreaceae	Dioscorea	alata	
+DIO1HA	Dioscoreaceae	Dioscorea	haenkeana	
+DIO1PI	Dioscoreaceae	Dioscorea	pilosiuscula	
+DIO1PO	Dioscoreaceae	Dioscorea	polygonoides	
+DIO1UR	Dioscoreaceae	Dioscorea	urophylla	
+DOLI1	Dilleniaceae	Doliocarpus	1	
+DOLIDE	Dilleniaceae	Doliocarpus	dentatus	
+DOLIMA	Dilleniaceae	Doliocarpus	major	
+DOLIMU	Dilleniaceae	Doliocarpus	multiflorus	
+DOLIOL	Dilleniaceae	Doliocarpus	olivaceus	
+ENTAMO	Fabaceae	Entada	gigas	Nombre viejo: Entada monostachya
+ADE4PO	Fabaceae	Entadopsis	polystachya	Nombre viejo: Adenopodia polystachya
+FEVICO	Cucurbitaceae	Fevillea	cordifolia	
+FISCBL	Asclepiadaceae	Fischeria	blepharopetala	
+FORSMY	Apocynaceae	Forsteronia	myriantha	
+FORSPE	Apocynaceae	Forsteronia	peninsularis	
+FORSVI	Apocynaceae	Forsteronia	viridescens	
+GNETLE	Gnetaceae	Gnetum	leyboldii	
+GOUAAD	Rhamnaceae	Gouania	adenophera	G. adenophora fue mal escrito
+GOUACO	Rhamnaceae	Gouania	colombiana	
+GOUALU	Rhamnaceae	Gouania	lupuloides	
+GURACO	Cucurbitaceae	Gurania	coccinea	
+GURAMA	Cucurbitaceae	Gurania	makoyana	
+GURATU	Cucurbitaceae	Gurania	tubulosa	Nombre viejo: Gurania megistantha
+HET1VI	Asteraceae	Heterocondylus	vitalbae	El nombre H. vitalbis fue mal escrito
+HETELA	Malpighiaceae	Heteropteris	laurifolia	
+HETEPA	Malpighiaceae	Heteropteris	panamense	
+HIPPVO	Hippocrateaceae	Hippocratea	volubilis	
+HIRAF1	Malpighiaceae	Hiraea	fagifolia	
+HIRAFA	Malpighiaceae	Hiraea	faginea	
+HIRAGR	Malpighiaceae	Hiraea	grandifolia	
+HIRARE	Malpighiaceae	Hiraea	reclinata	
+HIRAQU	Malpighiaceae	Hiraea	smilacina	Nombre viejo: Hiraea quapara
+HYLEPR	Hippocrateaceae	Hylenaea	praecelsa	
+IPOMPH	Convolvulaceae	Ipomoea	phillomega	
+IPOMSQ	Convolvulaceae	Ipomoea	squamosa	
+IPOMTI	Convolvulaceae	Ipomoea	tiliacea	
+ISEILU	Convolvulaceae	Iseia	luxurians	
+JUSTGR	Acanthaceae	Justicia	graciliflora	
+MACFUN	Bignoniaceae	Macfadyena	unguis-cati	
+MACHFL	Fabaceae	Machaerium	floribundum	
+MACHM1	Fabaceae	Machaerium	isadelphum	Nombre viejo: Machaerium microphyllum
+MACHKE	Fabaceae	Machaerium	kegelii	
+MACHM2	Fabaceae	Machaerium	milleflorum	
+MACHAR	Fabaceae	Machaerium	pittieri	Nombre viejo: Machaerium arboreum
+MACHRI	Fabaceae	Machaerium	riparium	
+MACHSE	Fabaceae	Machaerium	seemanii	
+MANDSU	Apocynaceae	Mandevilla	subsagittata	
+MANDVI	Apocynaceae	Mandevilla	villosa	
+MANSKE	Bignoniaceae	Mansoa	kerere	Nombre viejo: Pachyptera kerere
+MANSVE	Bignoniaceae	Mansoa	verrucifera	
+MARCNE	Marcgraviaceae	Marcgravia	nepenthoides	
+MAR2PA	Convolvulaceae	Maripa	panamensis	
+MARKUL	Solanaceae	Markea	ulei	
+MARSCR	Asclepiadaceae	Marsdenia	crassipes	
+MARTOB	Bignoniaceae	Martinella	obovata	
+MASCHI	Malpighiaceae	Mascagnia	hiraea	Nombre viejo: Mascagnia hippocrateoides
+MASCNE	Malpighiaceae	Mascagnia	ovatifolia	Nombre viejo: Mascagnia nervosa
+MASC1	Malpighiaceae	Mascagnia	sp. 1	
+MENDGR	Acanthaceae	Mendoncia	gracilis	
+MENDLI	Acanthaceae	Mendoncia	litoralis	
+MESETR	Apocynaceae	Mesechites	trifida	
+CYNACU	Asclepiadaceae	Metalepis	peraffinis	El nombre Cynanchum cubense fue utilizado erroneamente
+MIKAGU	Asteraceae	Mikania	guaco	
+MIKAHO	Asteraceae	Mikania	hookeriana	
+MIKALE	Asteraceae	Mikania	leiostachya	
+MIKAMI	Asteraceae	Mikania	micrantha	
+MIKATO	Asteraceae	Mikania	tonduzii	
+MOMOCH	Cucurbitaceae	Momordica	charantia	
+MUCUMU	Fabaceae:faboid.	Mucuna	mutisiana	
+MUCURO	Fabaceae	Mucuna	rostrata	
+ODO1MA	Apocynaceae	Odontadenia	macrantha	
+ODO1PU	Apocynaceae	Odontadenia	puncticulosa	
+ODO21	Menispermaceae	Odontocarya	1	
+ODO2TA	Menispermaceae	Odontocarya	tamoides	
+ODO2TR	Menispermaceae	Odontocarya	truncata	
+OMPHDI	Euphorbiaceae	Omphalea	diandra	
+PAR1PY	Bignoniaceae	Paragonia	pyramidata	
+PASSAM	Passifloraceae	Passiflora	ambigua	
+PASSAU	Passifloraceae	Passiflora	auriculata	
+PASSBI	Passifloriaceae	Passiflora	biflora	
+PASSNI	Passifloraceae	Passiflora	nitida	
+PASSSE	Passifloraceae	Passiflora	seemannii	
+PASSVI	Passifloriaceae	Passiflora	vitifolia	
+PAULBA	Sapindaceae	Paullinia	baileyi	
+PAULBR	Sapindaceae	Paullinia	bracteosa	
+PAULFI	Sapindaceae	Paullinia	fibrigera	
+PAULFU	Sapindaceae	Paullinia	fuscescens	
+PAULG1	Sapindaceae	Paullinia	glabrata	
+PAULG2	Sapindaceae	Paullinia	glomerulosa	
+PAULMA	Sapindaceae	Paullinia	mallophyla	
+PAULPI	Sapindaceae	Paullinia	pinnata	
+PAULPT	Sapindaceae	Paullinia	pterocarpa	
+PAULRU	Sapindaceae	Paullinia	rugosa	
+PAULTU	Sapindaceae	Paullinia	turbacensis	
+PETRAS	Verbenaceae	Petrea	volubilis	Nombre viejo: Petrea aspera
+PHRYCO	Bignoniaceae	Phryganocydia	corymbosa	
+PIPEA2	Piperaceae	Piper	aristolochiaefolium	
+PIPEMU	Piperaceae	Piper	multiplinervium	
+PISOAC	Nyctaginaceae	Pisonia	aculeata	
+PIT1HY	Fabaceae	Pithecellobium	hymenaeifolium	P. hymeneaefolium fue mal escrito
+PIT2CR	Bignoniaceae	Pithecoctenium	crucigerum	
+PLEOVA	Bignoniaceae	Pleonotoma	variabilis	
+PRESIP	Apocynaceae	Prestonia	ipomaeifolia	Mal escrito: Prestonia ipomiifolia
+PRESOB	Apocynaceae	Prestonia	obovata	
+PRESPO	Apocynaceae	Prestonia	portobellensis	
+PRESAC	Apocynaceae	Prestonia	quinquangularis	Nombre viejo: Prestonia acutifolia
+PRES1	Apocynaceae	Prestonia	sp.1	
+PRES2	Apocynaceae	Prestonia	sp.2	
+PRI1AS	Hippocrateaceae	Prionostemma	aspera	
+PSIGBI	Cucurbitaceae	Psiguria	bignoniacea	
+PSIGWA	Cucurbitaceae	Psiguria	warscewiczii	
+RHABBI	Apocynaceae	Rhabdadenia	biflora	
+RHYCPY	Fabaceae:faboid.	Rhynchosia	pyramidalis	
+ROURGL	Connaraceae	Rourea	glabra	
+SABIVI	Rubiaceae	Sabicea	villosa	
+SECUDI	Polygalaceae	Securidaca	diversifolia	
+SENNUN	Fabaceae	Senna	undulata	Nombre viejo: Cassia undulata
+SERJAT	Sapindaceae	Serjania	atrolineata	
+SERJCI	Sapindaceae	Serjania	circumvallata	
+SERJCO	Sapindaceae	Serjania	cornigera	
+SERJDE	Sapindaceae	Serjania	decapleuria	
+SERJM1	Sapindaceae	Serjania	membranacea	
+SERJME	Sapindaceae	Serjania	mexicana	
+SERJPA	Sapindaceae	Serjania	paucidentata	
+SERJPL	Sapindaceae	Serjania	pluvialiflorens	
+SERJRH	Sapindaceae	Serjania	rhombea	
+SERJTR	Sapindaceae	Serjania	trachygona	
+SICYCO	Cucurbitaceae	Sicydium	coriaceum	
+SMILLA	Smilacaceae	Smilax	domingensis	Nombre viejo: Smilax lanceolata
+SMILMO	Smilacaceae	Smilax	mollis	
+SMILPA	Smilacaceae	Smilax	panamensis	
+SMIL	Smilacaceae	Smilax	sp.	
+SMIL1	Smilacaceae	Smilax	sp.1	
+SMILS1	Smilacaceae	Smilax	spinosa	
+SMILS2	Smilacaceae	Smilax	spissa	
+SOLAAT	Solanaceae	Solanum	aturense	
+SOLALA	Solanaceae	Solanum	lancaeifolium	
+SOURSY	Marcgraviaceae	Souroubea	sympetala	
+STIGEL	Malpighiaceae	Stigmaphyllon	ellipticum	
+STIGHY	Malpighiaceae	Stigmaphyllon	hypargyreum	
+STIGLI	Malpighiaceae	Stigmaphyllon	lindenianum	
+STIGPU	Malpighiaceae	Stigmaphyllon	puberum	
+STIZIN	Bignoniaceae	Stizophyllum	inaequilaterum	
+STIZRI	Bignoniaceae	Stizophyllum	riparium	
+STRYBR	Loganiaceae	Strychnos	brachistantha	
+STRYDA	Loganiaceae	Strychnos	darienensis	
+STRYPA	Loganiaceae	Strychnos	panamensis	
+STRYTO	Loganiaceae	Strychnos	toxifera	
+CYNARE	Asclepiadaceae	Tassadia	obovata	Nombre viejo: Cynanchum recurvum
+TET1HY	Dilleniaceae	Tetracera	hydrophila	
+TET1PO	Dilleniaceae	Tetracera	portobellensis	
+TET1VO	Dilleniaceae	Tetracera	volubilis	
+TET3DI	Malpighiaceae	Tetrapterys	discolor	
+TET3SE	Malpighiaceae	Tetrapterys	seemannii	
+TET31	Malpighiaceae	Tetrapterys	sp.1	
+TET3MA	Malpighiaceae	Tetrapterys	tinifolia	Nombre viejo: Tetrapteris macrocarpa
+THINMY	Sapindaceae	Thinouia	myriantha	
+WULFBA	Asteraceae	Tilesia	baccata	Nombre viejo: Wulffia baccata
+TONTOV	Hippocrateaceae	Tontelea	ovalifolia_subsp._ richardii	Nombre viejo: Tontelea richardii
+TOURBI	Boraginaceae	Tournefortia	bicolor	
+TOURCU	Boraginaceae	Tournefortia	cuspidata	
+TOURHI	Boraginaceae	Tournefortia	hirsutissima	
+TRIGRU	Trigoniaceae	Trigonia	rugosa	Nombre viejo: Trigonia floribunda
+TYNNCR	Bignoniaceae	Tynnanthus	croatianus	
+UNCATO	Rubiaceae	Uncaria	tomentosa	
+UREREG	Urticaceae	Urera	eggersii	
+VITITI	Vitaceae	Vitis	tiliifolia	
+XYL3SE	Bignoniaceae	Xylophragma	seemannianum	
+SCIANI	Menispermaceae	Sciadotenia	nitida	
