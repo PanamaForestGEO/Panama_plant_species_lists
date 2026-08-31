@@ -15,10 +15,11 @@ This Rmarkdown merges information from multiple high-quality plant species lists
 
 This Rmarkdown additionally outputs a list of plant species that appear in panamabiota.org's list of plants of Barro Colorado, that are *not* in the combined high-quality list. This list is generated for the purpose of later review.  
 
-The component and output lists are all available in the public GitHub site https://github.com/PanamaForestGEO/Panama_plant_species_lists 
+The component and output lists are all available in the public GitHub site https://github.com/PanamaForestGEO/Panama_plant_species_lists
 
+**Manual additions**: this Rmarkdown fully rebuilds the combined list from the source lists above every time it is run, so it does not by itself pick up one-off, botanist-requested additions (e.g. a species confirmed by email, or approved after review of a `tocheck/panamabiota_not_garwood_*.xlsx` file). Those are logged in `splists_raw/Manual_additions/manual_additions_log.csv` and applied to the *latest* output file by `scripts/add_manual_species.R`, without needing a full rerun of this Rmd. # STILL TO DO: fold `manual_additions_log.csv` into the merge logic below (e.g. as an additional source list, matched the same way Zotz/Lianas are) so a full rerun of this Rmd reproduces manually-added species too, instead of relying on `add_manual_species.R` to re-apply them afterward.
 
-## References 
+## References
 
 Croat, Thomas B. 1978. *Flora of Barro Colorado Island*. Stanford University Press.
 

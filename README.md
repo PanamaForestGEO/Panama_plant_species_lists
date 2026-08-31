@@ -27,3 +27,15 @@ The readme for the splists_raw directory includes information on the authors of 
 - **reports** Html files generated after running rmarkdown scripts
 
 - **tocheck/**: Species lists requiring botanical revision due to missing records or naming conflicts between datasets.
+
+# Adding species to the BCNM Botanists Species List
+
+Species reach `splists_out/BCNM_SPECIES_BOTANISTS_LIST_*.xlsx` in two ways:
+
+1. **Full rebuild**: rerunning `scripts/species_plantnet.Rmd`, which merges Garwood, Zotz, Lianas/Schnitzer, ForestGeo/Panama woody, plot census, and Wright from scratch. This is the canonical generator, but it is a long, network-calling process not meant to be rerun for a single species.
+
+2. **One-off manual additions** (e.g. a species confirmed by email, or approved after review of a `tocheck/panamabiota_not_garwood_*.xlsx` file — see below): add a row to `splists_raw/Manual_additions/manual_additions_log.csv` describing the request and its evidence, then run `scripts/add_manual_species.R`. It WCVP/GBIF-matches the pending row(s), appends them to the latest BCNM list, and writes a new dated output file. See `splists_raw/Manual_additions/readme.md` for the column details.
+
+## Reviewing Panamabiota entries not yet in the list
+
+`species_plantnet.Rmd` already flags species that are in panamabiota.org's Barro Colorado checklist but not in the combined list, writing them to `tocheck/panamabiota_not_garwood_<date>.xlsx` (see `tocheck/readme.md`). There is not yet a routine cadence for actually reviewing that file. The recommended process: whenever the Panamabiota download is refreshed (or on a periodic basis, e.g. yearly), a botanist should review the current `tocheck/panamabiota_not_garwood_*.xlsx`, and for each species confirmed as a genuine BCNM record, add a row to `splists_raw/Manual_additions/manual_additions_log.csv` and run `scripts/add_manual_species.R` to incorporate it.

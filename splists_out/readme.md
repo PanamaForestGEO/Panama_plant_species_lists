@@ -16,7 +16,7 @@ Previously the BCI species list, now extended to species across the broader Barr
 | `source_current_name` | Source of the current name. |
 | `sp6` | Current 6-letter ForestGEO species code. |
 | `sp4` | Current 4-letter ForestGEO species code. |
-| `source_list` | Original source from which this species was added to the list. |
+| `source_list` | Original source from which this species was added to the list. A value of `Manual_addition` means the species was added via `scripts/add_manual_species.R` rather than a full rerun of `species_plantnet.Rmd` — see `splists_raw/Manual_additions/readme.md`. |
 
 ---
 
