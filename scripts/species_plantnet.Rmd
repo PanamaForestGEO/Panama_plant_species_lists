@@ -3285,10 +3285,42 @@ pbiota_garwood_synonym_match_print <- pbiota_garwood_synonym_match %>%  left_joi
   distinct(orig_name, .keep_all = TRUE)
   
 
-datatable(pbiota_garwood_synonym_match_print %>% 
-            select(orig_name, wcvp_matched_name, wcvp_accepted_name, SynonymMatchAll, orig_garwood), 
+datatable(pbiota_garwood_synonym_match_print %>%
+            select(orig_name, wcvp_matched_name, wcvp_accepted_name, SynonymMatchAll, orig_garwood),
           caption="Panamabiota species that matched Garwood by synonym",
           options = list(scrollX = TRUE, pageLength = 10))
 ```
+
+Printing species in Panamabiota that are not in the combined BCNM list at all, by name or synonym match. These should be reviewed by a botanist and, if confirmed as genuine BCNM records, added via the manual additions mechanism (`splists_raw/Manual_additions/manual_additions_log.csv` + `scripts/add_manual_species.R`).
+```{r pbiotanomatch}
+
+# combine direct matches and matches by synonym
+pbiota_garwood_match <- bind_rows(
+  pbiota_garwood_name_match,
+  pbiota_garwood_synonym_match
+) %>%
+  distinct(orig_name, .keep_all = TRUE)
+
+# filter unmatched rows
+pbiota_no_garwood_at_all <- pbiota_list %>%
+  filter(!orig_name %in% pbiota_garwood_match$orig_name)
+
+datatable(
+  pbiota_no_garwood_at_all %>%
+    select(orig_name, orig_binomial, wcvp_matched_name, wcvp_accepted_name, wcvp_accepted_family),
+  caption="Species in Panamabiota that don't match anything in Garwood or the combined BCNM list",
+  options = list(scrollX = TRUE, pageLength = 10)
+)
+
+# Writing file to be reviewed by a botanist
+write_xlsx(
+  pbiota_no_garwood_at_all %>%
+    select(orig_name, orig_binomial, orig_author, wcvp_matched_name, wcvp_accepted_name,
+           wcvp_accepted_family, source, TaxonId, Notes),
+  FILECHECKPANAMABIOTA
+)
+```
+
+Added `r nrow(pbiota_no_garwood_at_all)` species to `r FILECHECKPANAMABIOTA` for botanist review.
 
 
