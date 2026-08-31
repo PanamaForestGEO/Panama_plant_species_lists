@@ -36,6 +36,20 @@ and `output_file` once it has appended that row to a new dated BCNM list.
 
 ## Adding a new species
 
+**Before logging anything from a `tocheck/panamabiota_not_garwood_*.xlsx`
+review**: the Panamabiota download includes both woody and non-woody
+species generally (see `splists_raw/readme.md`), unlike Garwood/Zotz/
+Lianas/Wright, which were each assembled with a specific woody or
+BCI-focused scope. A species failing to match the BCNM list there does
+**not** by itself mean it belongs on this list — it may just be outside
+this list's intended scope (a herb, grass, etc.). `add_manual_species.R`
+does not check this itself; it only WCVP/GBIF-matches and appends
+whatever is logged. Only log a species here once a botanist has
+confirmed both (a) it is a genuine BCNM record and (b) its lifeform
+(check `wcvp_lifeform_description` in the review file) is within scope —
+woody plant, liana, epiphyte, or another lifeform this list already
+deliberately tracks.
+
 1. Add a new row to `manual_additions_log.csv` with the fields above filled
    in (leave the last two blank).
 2. Run `scripts/add_manual_species.R`. It matches any pending rows against

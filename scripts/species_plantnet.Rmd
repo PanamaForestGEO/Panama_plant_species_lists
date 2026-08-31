@@ -3292,6 +3292,8 @@ datatable(pbiota_garwood_synonym_match_print %>%
 ```
 
 Printing species in Panamabiota that are not in the combined BCNM list at all, by name or synonym match. These should be reviewed by a botanist and, if confirmed as genuine BCNM records, added via the manual additions mechanism (`splists_raw/Manual_additions/manual_additions_log.csv` + `scripts/add_manual_species.R`).
+
+Note that the Panamabiota download includes both woody and non-woody species generally (see `splists_raw/readme.md`), unlike Garwood/Zotz/Lianas/Wright, which were each assembled with a specific woody or BCI-focused scope. A name failing to match here does not by itself mean it belongs on the BCNM list - it may simply be outside this list's scope (e.g. a herb or grass Panamabiota happens to record for BCI). `wcvp_lifeform_description` is included below so a reviewer can screen for this before logging an addition.
 ```{r pbiotanomatch}
 
 # combine direct matches and matches by synonym
@@ -3307,16 +3309,18 @@ pbiota_no_garwood_at_all <- pbiota_list %>%
 
 datatable(
   pbiota_no_garwood_at_all %>%
-    select(orig_name, orig_binomial, wcvp_matched_name, wcvp_accepted_name, wcvp_accepted_family),
+    select(orig_name, orig_binomial, wcvp_matched_name, wcvp_accepted_name, wcvp_accepted_family, wcvp_lifeform_description),
   caption="Species in Panamabiota that don't match anything in Garwood or the combined BCNM list",
   options = list(scrollX = TRUE, pageLength = 10)
 )
 
-# Writing file to be reviewed by a botanist
+# Writing file to be reviewed by a botanist. wcvp_lifeform_description is included
+# so a reviewer can screen out non-woody, non-liana, non-epiphyte species that are
+# outside the scope of this list before logging any of these as a manual addition.
 write_xlsx(
   pbiota_no_garwood_at_all %>%
     select(orig_name, orig_binomial, orig_author, wcvp_matched_name, wcvp_accepted_name,
-           wcvp_accepted_family, source, TaxonId, Notes),
+           wcvp_accepted_family, wcvp_lifeform_description, source, TaxonId, Notes),
   FILECHECKPANAMABIOTA
 )
 ```
